@@ -1,0 +1,55 @@
+/* entire site’s base styling */
+@font-face {
+    font-family: 'TTHoves-Regular';
+    src: url('./assets/fonts/tt_hoves_pro/TT Hoves Pro Trial Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TTHoves-Medium';
+    src: url('./assets/fonts/tt_hoves_pro/TT Hoves Pro Trial Medium.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TTHoves-DemiBold';
+    src: url('./assets/fonts/tt_hoves_pro/TT Hoves Pro Trial DemiBold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TTHoves-Bold';
+    src: url('./assets/fonts/tt_hoves_pro/TT Hoves Pro Trial Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+html,
+body,
+#root,
+.app {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'TTHoves-Regular', sans-serif;
+    color: white;
+}
+
+::-webkit-scrollbar{
+    width: 10px;
+}
+
+::-webkit-scrollbar-track{
+    background: #e0e0e0;
+}
+
+::-webkit-scrollbar-thumb{
+    background: #888;
+}
+
+::-webkit-scrollbar-track:hover{
+    background: #555;
+}

@@ -1,0 +1,165 @@
+.login-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    width: 800px;
+    padding: 2rem;
+    max-width: 90vw;
+    border-radius: 4rem;
+    backdrop-filter: blur(30px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.left-container {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.back-icon {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    align-self: flex-start;
+    margin-left: 1rem;
+}
+
+.back-icon:hover {
+    color: #cbd5e1;
+}
+
+.left-container img {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    object-fit: cover;
+    user-select: none;
+}
+
+.right-container {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.right-container h2 {
+    font-family: 'TTHoves-Bold', sans-serif;
+    font-size: 2rem;
+    color: white;
+    align-self: flex-start;
+    line-height: 0;
+}
+
+.right-container form {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    gap: 1.2rem;
+    padding: 1rem;
+}
+
+.input-field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-field label {
+    font-family: 'TTHoves-Medium', sans-serif;
+    color: #e5e5e5;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+}
+
+.input-field input {
+    font-family: 'TTHoves-Regular', sans-serif;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    border: none;
+    border-radius: 0.75rem;
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+.input-field input:focus {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.input-field i {
+    position: absolute;
+    right: 1rem;
+    top: 65%;
+    transform: translateY(-50%);
+    color: #dcdcdc;
+    font-size: 1.2rem;
+}
+
+.show-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.show-forgot label {
+    font-family: 'TTHoves-DemiBold', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.show-forgot a {
+    font-family: 'TTHoves-DemiBold', sans-serif;
+    color: var(--blue);
+    text-decoration: none;
+}
+
+.login-btn {
+    font-family: 'TTHoves-DemiBold', sans-serif;
+    margin-top: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        width: 90%;
+        padding: 2rem;
+    }
+
+    .left-container,
+    .right-container {
+        width: 100%;
+    }
+
+    .right-container {
+        margin-top: 1rem;
+    }
+}

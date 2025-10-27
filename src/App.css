@@ -1,0 +1,20 @@
+:root {
+    /* typography */
+    --regular: 'TTHoves-Regular', sans-serif;
+    --medium: 'TTHoves-Medium', sans-serif;
+    --demibold: 'TTHoves-Demibold', sans-serif;
+    --bold: 'TTHoves-Bold', sans-serif;
+
+    /* color palette (light mode/dark mode) */
+    --charcoal: #1b2223;
+    --deep-teal: #3a4f50;
+    --off-white: #e7e8e8;
+    --light-gray: #e4e4e7;
+    --silver-gray: #cacace;
+
+    /* alert, code, symbol) */
+    --red: #a61f24;
+    --green: #27cf40;
+    --yellow: #e9e574;
+    --blue: #7d9de2;
+}
