@@ -15,7 +15,8 @@ const EmployeeDashboard = () => {
     return (
         <Box
             width="100%"
-            height="80%">
+            height="80%"
+        >
             <Box
                 display="grid"
                 gridTemplateColumns="repeat(3, 1fr)"

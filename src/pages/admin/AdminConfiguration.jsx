@@ -1,22 +1,28 @@
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import {
+    Box,
+    Button,
+    Typography,
+    IconButton,
+    Select,
+    MenuItem,
+    TextField,
+    Checkbox,
+    FormControlLabel,
+    Modal,
+} from "@mui/material";
 import { RiFilter3Line, RiPencilFill, RiEyeFill } from "react-icons/ri";
-import "../styles/AdminConfiguration.css";
 
 export default function AdminConfiguration() {
     const [activeTab, setActiveTab] = useState("payrollRules");
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState("");
 
-    const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
-    const [selectedRule, setSelectedRule] = useState("Select Rule Type");
-
-    const [freqDropdownOpen, setFreqDropdownOpen] = useState(false);
-    const [selectedFreq, setSelectedFreq] = useState("Select Frequency");
-
-    const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
-    const [selectedDept, setSelectedDept] = useState("Select Department");
+    const [selectedRule, setSelectedRule] = useState("");
+    const [selectedFreq, setSelectedFreq] = useState("");
+    const [selectedDept, setSelectedDept] = useState("");
 
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
@@ -24,103 +30,229 @@ export default function AdminConfiguration() {
     const openModal = (type) => {
         setModalType(type);
         setShowModal(true);
-        setTypeDropdownOpen(false);
-        setSelectedRule("Select Rule Type");
-        setFreqDropdownOpen(false);
-        setSelectedFreq("Select Frequency");
-        setDeptDropdownOpen(false);
-        setSelectedDept("Select Department");
+        setSelectedRule("");
+        setSelectedFreq("");
+        setSelectedDept("");
     };
 
     const closeModal = () => {
         setShowModal(false);
         setModalType("");
-        setTypeDropdownOpen(false);
-        setFreqDropdownOpen(false);
-        setDeptDropdownOpen(false);
     };
 
     const renderCards = () => {
         switch (activeTab) {
             case "payrollRules":
                 return (
-                    <div className="Config-cardTable">
-                        <div className="Config-headerRow">
-                            <span></span>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "12px",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: "60px repeat(5,1fr)",
+                                fontWeight: 700,
+                                p: "8px",
+                                bgcolor: "#e4e4e4",
+                                borderRadius: "15px",
+                            }}
+                        >
+                            <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                <Checkbox />
+                            </Box>
                             <span>Rule Type</span>
                             <span>Description</span>
                             <span>Formula / Value</span>
                             <span>Status</span>
                             <span>Actions</span>
-                        </div>
+                        </Box>
+
                         {["Benefit", "Deduction", "Bonus", "Allowance"].map((type, i) => (
-                            <div key={i} className="Config-dataRow">
-                                <span className="Config-checkboxCol"><input type="checkbox" /></span>
+                            <Box
+                                key={i}
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "60px repeat(5,1fr)",
+                                    alignItems: "center",
+                                    p: "8px",
+                                    bgcolor: "#fff",
+                                    borderRadius: "8px",
+                                }}
+                            >
+                                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                    <Checkbox />
+                                </Box>
                                 <span>{type}</span>
                                 <span>Lorem Ipsum</span>
                                 <span>10%</span>
-                                <span className="Config-status">
-                                    <span className="Config-statusDot active"></span> Active
-                                </span>
-                                <span className="Config-actionBtns">
-                                    <button className="Config-iconBtn" onClick={() => openModal("rule")}><RiPencilFill /></button>
-                                </span>
-                            </div>
+                                <span>
+                  <Box
+                      component="span"
+                      sx={{
+                          display: "inline-block",
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          bgcolor: "#28a745",
+                          mr: "4px",
+                      }}
+                  />
+                  Active
+                </span>
+                                <Box sx={{ display: "flex", gap: "8px" }}>
+                                    <IconButton
+                                        onClick={() => openModal("rule")}
+                                        sx={{
+                                            bgcolor: "#1f2937",
+                                            color: "#fff",
+                                            width: "30px",
+                                            height: "30px",
+                                        }}
+                                    >
+                                        <RiPencilFill />
+                                    </IconButton>
+                                </Box>
+                            </Box>
                         ))}
-                    </div>
+                    </Box>
                 );
 
             case "cutoffDates":
                 return (
-                    <div className="Config-cardTable">
-                        <div className="Config-headerRow">
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "12px",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: "60px repeat(5,1fr)",
+                                fontWeight: 700,
+                                p: "8px",
+                                bgcolor: "#e4e4e4",
+                                borderRadius: "8px",
+                            }}
+                        >
                             <span></span>
                             <span>Period</span>
                             <span>Start Date</span>
                             <span>End Date</span>
                             <span>Frequency</span>
                             <span>Actions</span>
-                        </div>
+                        </Box>
+
                         {[1, 2, 3].map((_, i) => (
-                            <div key={i} className="Config-dataRow">
-                                <span className="Config-checkboxCol"><input type="checkbox" /></span>
+                            <Box
+                                key={i}
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "60px repeat(5,1fr)",
+                                    alignItems: "center",
+                                    p: "8px",
+                                    bgcolor: "#fff",
+                                    borderRadius: "8px",
+                                }}
+                            >
+                                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                    <Checkbox />
+                                </Box>
                                 <span>Sept. 1 - 15</span>
                                 <span>Sept. 1, 2025</span>
                                 <span>Sept. 15, 2025</span>
                                 <span>Bi-weekly</span>
-                                <span className="Config-actionBtns">
-                                    <button className="Config-iconBtn" onClick={() => openModal("cutoff")}><RiPencilFill /></button>
-                                </span>
-                            </div>
+                                <Box sx={{ display: "flex", gap: "8px" }}>
+                                    <IconButton
+                                        onClick={() => openModal("cutoff")}
+                                        sx={{
+                                            bgcolor: "#1f2937",
+                                            color: "#fff",
+                                            width: "30px",
+                                            height: "30px",
+                                        }}
+                                    >
+                                        <RiPencilFill />
+                                    </IconButton>
+                                </Box>
+                            </Box>
                         ))}
-                    </div>
+                    </Box>
                 );
 
             case "employeeGroups":
                 return (
-                    <div className="Config-cardTable">
-                        <div className="Config-headerRow employeeHeader">
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "12px",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 120px",
+                                fontWeight: 700,
+                                p: "8px",
+                            }}
+                        >
                             <span>Department</span>
                             <span>Employees</span>
                             <span>Full Time</span>
                             <span>Part Time</span>
                             <span>Contract</span>
                             <span>Actions</span>
-                        </div>
+                        </Box>
+
                         {["IT Department", "HR", "Accounting"].map((dept, i) => (
-                            <div key={i} className="Config-dataRow employeeRow">
+                            <Box
+                                key={i}
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 120px",
+                                    alignItems: "center",
+                                    p: "8px",
+                                    bgcolor: "#fff",
+                                    borderRadius: "8px",
+                                }}
+                            >
                                 <span>{dept}</span>
                                 <span>53</span>
                                 <span>23</span>
                                 <span>27</span>
                                 <span>3</span>
-                                <span className="Config-actionBtns">
-                                    <button className="Config-iconBtn" onClick={() => openModal("employee")}><RiEyeFill /></button>
-                                    <button className="Config-iconBtn"><RiPencilFill /></button>
-                                </span>
-                            </div>
+                                <Box sx={{ display: "flex", gap: "8px" }}>
+                                    <IconButton
+                                        onClick={() => openModal("employee")}
+                                        sx={{
+                                            bgcolor: "#1f2937",
+                                            color: "#fff",
+                                            width: "30px",
+                                            height: "30px",
+                                        }}
+                                    >
+                                        <RiEyeFill />
+                                    </IconButton>
+                                    <IconButton
+                                        sx={{
+                                            bgcolor: "#1f2937",
+                                            color: "#fff",
+                                            width: "30px",
+                                            height: "30px",
+                                        }}
+                                    >
+                                        <RiPencilFill />
+                                    </IconButton>
+                                </Box>
+                            </Box>
                         ))}
-                    </div>
+                    </Box>
                 );
 
             default:
@@ -132,182 +264,183 @@ export default function AdminConfiguration() {
         switch (modalType) {
             case "rule":
                 return (
-                    <>
-                        <h3>Config Rule</h3>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "16px",
+                        }}
+                    >
+                        <Typography variant="h6">Config Rule</Typography>
 
-                        <label>Rule Type</label>
-                        <div className="Config-dropdown-container">
-                            <div
-                                className="Config-dropdown-selected"
-                                onClick={() => setTypeDropdownOpen(!typeDropdownOpen)}
+                        <Select
+                            value={selectedRule}
+                            onChange={(e) => setSelectedRule(e.target.value)}
+                            displayEmpty
+                            sx={{
+                                bgcolor: "#fff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <MenuItem value="" disabled>
+                                Select Rule Type
+                            </MenuItem>
+                            {["Overtime", "Deduction", "Bonus", "Allowance"].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </Select>
+
+                        <TextField
+                            placeholder="Formula or Fixed Amount"
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                        />
+                        <TextField
+                            placeholder="Description"
+                            fullWidth
+                            variant="outlined"
+                            multiline
+                            rows={3}
+                            size="small"
+                        />
+
+                        <Box sx={{ display: "flex", gap: "16px" }}>
+                            <Button
+                                onClick={closeModal}
+                                variant="contained"
+                                color="error"
+                                fullWidth
                             >
-                                {selectedRule}
-                            </div>
-                            {typeDropdownOpen && (
-                                <div className="Config-dropdown-menu">
-                                    {["Overtime", "Deduction", "Bonus", "Allowance"].map((option, i) => (
-                                        <div
-                                            key={i}
-                                            className="Config-dropdown-item"
-                                            onClick={() => {
-                                                setSelectedRule(option);
-                                                setTypeDropdownOpen(false);
-                                            }}
-                                        >
-                                            {option}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <label>Formula or Fixed Amount</label>
-                        <input type="text" placeholder="Enter value" />
-
-                        <label>Description</label>
-                        <textarea placeholder="Enter description" rows="3" />
-
-                        <div className="Config-modal-buttons">
-                            <button className="Config-add-btn" onClick={closeModal}>Remove</button>
-                            <button className="Config-add-btn">Save</button>
-                        </div>
-                    </>
+                                Remove
+                            </Button>
+                            <Button variant="contained" fullWidth>
+                                Save
+                            </Button>
+                        </Box>
+                    </Box>
                 );
 
             case "cutoff":
                 return (
-                    <>
-                        <h3>Add Cutoff</h3>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <Typography variant="h6">Add Cutoff</Typography>
 
-                        <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-                            <div style={{ flex: 1 }}>
-                                <label>Start Date</label>
-                                <DatePicker
-                                    selected={startDate}
-                                    onChange={(date) => setStartDate(date)}
-                                    dateFormat="MMMM d, yyyy"
-                                    className="Config-dateInput"
-                                />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <label>End Date</label>
-                                <DatePicker
-                                    selected={endDate}
-                                    onChange={(date) => setEndDate(date)}
-                                    dateFormat="MMMM d, yyyy"
-                                    className="Config-dateInput"
-                                />
-                            </div>
-                        </div>
+                        <Box sx={{ display: "flex", gap: "16px" }}>
+                            <DatePicker
+                                selected={startDate}
+                                onChange={(date) => setStartDate(date)}
+                                dateFormat="MMMM d, yyyy"
+                                customInput={<TextField label="Start Date" fullWidth size="small" />}
+                            />
+                            <DatePicker
+                                selected={endDate}
+                                onChange={(date) => setEndDate(date)}
+                                dateFormat="MMMM d, yyyy"
+                                customInput={<TextField label="End Date" fullWidth size="small" />}
+                            />
+                        </Box>
 
-                        <label>Payroll Frequency</label>
-                        <div className="Config-dropdown-container">
-                            <div
-                                className="Config-dropdown-selected"
-                                onClick={() => setFreqDropdownOpen(!freqDropdownOpen)}
-                            >
-                                {selectedFreq}
-                            </div>
-                            {freqDropdownOpen && (
-                                <div className="Config-dropdown-menu">
-                                    {["Weekly", "Bi-weekly", "Monthly"].map((option, i) => (
-                                        <div
-                                            key={i}
-                                            className="Config-dropdown-item"
-                                            onClick={() => {
-                                                setSelectedFreq(option);
-                                                setFreqDropdownOpen(false);
-                                            }}
-                                        >
-                                            {option}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <Select
+                            value={selectedFreq}
+                            onChange={(e) => setSelectedFreq(e.target.value)}
+                            displayEmpty
+                            sx={{
+                                bgcolor: "#fff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <MenuItem value="" disabled>
+                                Select Frequency
+                            </MenuItem>
+                            {["Weekly", "Bi-weekly", "Monthly"].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </Select>
 
-                        <label>Apply to Department</label>
-                        <div className="Config-dropdown-container">
-                            <div
-                                className="Config-dropdown-selected"
-                                onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-                            >
-                                {selectedDept}
-                            </div>
-                            {deptDropdownOpen && (
-                                <div className="Config-dropdown-menu">
-                                    {["IT Department", "HR", "Accounting"].map((option, i) => (
-                                        <div
-                                            key={i}
-                                            className="Config-dropdown-item"
-                                            onClick={() => {
-                                                setSelectedDept(option);
-                                                setDeptDropdownOpen(false);
-                                            }}
-                                        >
-                                            {option}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <Select
+                            value={selectedDept}
+                            onChange={(e) => setSelectedDept(e.target.value)}
+                            displayEmpty
+                            sx={{
+                                bgcolor: "#fff",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <MenuItem value="" disabled>
+                                Select Department
+                            </MenuItem>
+                            {["IT Department", "HR", "Accounting"].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </Select>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "5px" }}>
-                            <input type="checkbox" id="applyAll" style={{ width: "16px", height: "16px" }} />
-                            <label htmlFor="applyAll" style={{ fontSize: "12px", marginBottom:"7px" }}>Apply to all employees in selected department</label>
-                        </div>
+                        <FormControlLabel
+                            control={<Checkbox />}
+                            label="Apply to all employees in selected department"
+                        />
 
-                        <div className="Config-modal-buttons">
-                            <button className="Config-add-btn" onClick={closeModal}>Cancel</button>
-                            <button className="Config-add-btn">Save</button>
-                        </div>
-                    </>
+                        <Box sx={{ display: "flex", gap: "16px" }}>
+                            <Button onClick={closeModal} variant="outlined" fullWidth>
+                                Cancel
+                            </Button>
+                            <Button variant="contained" fullWidth>
+                                Save
+                            </Button>
+                        </Box>
+                    </Box>
                 );
 
             case "employee":
                 return (
-                    <div className="EmployeeModal-container">
-                        <div className="EmployeeModal-header">
-                            <span className="EmployeeModal-title">IT Department</span>
-                            <input
-                                type="text"
-                                className="EmployeeModal-search"
-                                placeholder="Enter User Name"
-                            />
-                        </div>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <Typography variant="h6">IT Department</Typography>
+                            <TextField placeholder="Enter User Name" size="small" />
+                        </Box>
 
-                        <div className="EmployeeModal-tableHeader">
+                        <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: 700 }}>
                             <span>Employee</span>
                             <span>Type</span>
-                        </div>
+                        </Box>
 
-                        <div className="EmployeeModal-tableBody">
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                             {[
                                 { name: "Jherwin Jimenez", type: "Full Time" },
                                 { name: "Symon Banana", type: "Part Time" },
                                 { name: "Russell James Vitale", type: "Contract" },
                             ].map((emp, i) => (
-                                <div key={i} className="EmployeeModal-row">
+                                <Box
+                                    key={i}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        p: "8px",
+                                        bgcolor: "#f5f5f5",
+                                        borderRadius: "8px",
+                                    }}
+                                >
                                     <span>{emp.name}</span>
-                                    <select
-                                        defaultValue={emp.type}
-                                        className="EmployeeModal-select"
-                                    >
-                                        <option>Full Time</option>
-                                        <option>Part Time</option>
-                                        <option>Contract</option>
-                                    </select>
-                                </div>
+                                    <Select value={emp.type} size="small" sx={{ minWidth: "120px" }}>
+                                        <MenuItem>Full Time</MenuItem>
+                                        <MenuItem>Part Time</MenuItem>
+                                        <MenuItem>Contract</MenuItem>
+                                    </Select>
+                                </Box>
                             ))}
-                        </div>
+                        </Box>
 
-                        {/* Save Button */}
-                        <div className="EmployeeModal-footer">
-                            <button className="EmployeeModal-saveBtn" onClick={closeModal}>
-                                Save
-                            </button>
-                        </div>
-                    </div>
+                        <Button onClick={closeModal} variant="contained" sx={{ mt: "8px" }}>
+                            Save
+                        </Button>
+                    </Box>
                 );
 
             default:
@@ -316,57 +449,172 @@ export default function AdminConfiguration() {
     };
 
     return (
-        <div className="Config-pageContainer">
-            <h2 className="Config-title">Payment System Setup</h2>
+        <Box
+            width="100%"
+            height="100%"
+            sx={{ fontFamily: "'TTHoves-Regular', sans-serif" }}
+        >
+            <Typography
+                variant="h5"
+                sx={{
+                    fontSize: "20px",
+                    fontFamily: "'TTHoves-Bold', sans-serif",
+                    color: "#222",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "25px",
+                }}
+            >
+                Payment System Setup
+            </Typography>
 
-            <div className="Config-container">
-                <div className="Config-tabs">
-                    <button
-                        className={`Config-tabBtn ${activeTab === "payrollRules" ? "active" : ""}`}
-                        onClick={() => setActiveTab("payrollRules")}
-                    >
-                        Payroll Rules
-                    </button>
-                    <button
-                        className={`Config-tabBtn ${activeTab === "cutoffDates" ? "active" : ""}`}
-                        onClick={() => setActiveTab("cutoffDates")}
-                    >
-                        Cutoff Dates
-                    </button>
-                    <button
-                        className={`Config-tabBtn ${activeTab === "employeeGroups" ? "active" : ""}`}
-                        onClick={() => setActiveTab("employeeGroups")}
-                    >
-                        Employee Groups
-                    </button>
-                </div>
+            <Box
+                sx={{
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    borderRadius: "15px",
+                    pt: "12px",
+                    pb: "12px",
+                    pl: "24px",
+                    pr: "24px",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: "12px",
+                        mb: "16px",
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        p: "12px",
+                        borderRadius: "25px",
+                    }}
+                >
+                    {["payrollRules", "cutoffDates", "employeeGroups"].map((tab) => (
+                        <Button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            sx={{
+                                bgcolor: activeTab === tab ? "#fff" : "#efeff0", // non-active tab background
+                                color: activeTab === tab ? "#172224" : "#3a4f50", // non-active tab text
+                                fontWeight: 700,
+                                textTransform: "none",
+                                borderRadius: "15px",
+                                fontSize: "18px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                minWidth: "180px",
+                                minHeight: "50px",
+                            }}
+                        >
+                            {tab === "payrollRules"
+                                ? "Payroll Rules"
+                                : tab === "cutoffDates"
+                                    ? "Cutoff Dates"
+                                    : "Employee Groups"}
+                        </Button>
+                    ))}
+                </Box>
 
-                <div className="Config-content">
-                    <div className="Config-actionsHeader">
-                        <div className="Config-topActions">
+                <Box
+                    backgroundColor="rgba(150, 150, 150, 0.3)"
+                    borderRadius="12px"
+                    p="24px"
+                    color="#222"
+                    sx={{
+                        fontFamily: "'TTHoves-Regular', sans-serif",
+                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
+                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            mb: "16px",
+                        }}
+                    >
+                        <Box>
                             {(activeTab === "payrollRules" || activeTab === "cutoffDates") && (
-                                <button className="Config-addBtn" onClick={() => openModal(activeTab === "payrollRules" ? "rule" : "cutoff")}>
-                                    {activeTab === "payrollRules" && "Add Rule"}
-                                    {activeTab === "cutoffDates" && "Add Cutoff"}
-                                </button>
+                                <Box
+                                    component="button"
+                                    onClick={() =>
+                                        openModal(activeTab === "payrollRules" ? "rule" : "cutoff")
+                                    }
+                                    sx={{
+                                        fontSize: "16px",
+                                        backgroundColor: "#172224",
+                                        color: "#fff",
+                                        padding: "10px 0",
+                                        borderRadius: "15px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        cursor: "pointer",
+                                        border: "none",
+                                        transition: "all 0.3s ease",
+                                        width: "200px",
+                                        "&:hover": {
+                                            backgroundColor: "#1f2f31",
+                                        },
+                                    }}
+                                >
+                                    {activeTab === "payrollRules" ? "Add Rule" : "Add Cutoff"}
+                                </Box>
                             )}
-                        </div>
-                        <button className="Config-filterBtn">
-                            <RiFilter3Line /> Filter
-                        </button>
-                    </div>
-                    {renderCards()}
-                </div>
-            </div>
+                        </Box>
+                        <Button
+                            startIcon={<RiFilter3Line />}
+                            sx={{
+                                appearance: "none",
+                                WebkitAppearance: "none",
+                                MozAppearance: "none",
+                                width: 250,
+                                padding: "10px 40px 10px 12px",
+                                borderRadius: "15px",
+                                border: "1px solid rgba(255, 255, 255, 0.4)",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                backdropFilter: "blur(12px)",
+                                color: "#222",
+                                fontFamily: "inherit",
+                                fontSize: "16px",
+                                cursor: "pointer",
+                                outline: "none",
+                                "&:hover": {
+                                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                                },
+                            }}
+                        >
+                            Filter
+                        </Button>
+                    </Box>
 
-            {showModal && (
-                <>
-                    <div className="Config-modal-backdrop" onClick={closeModal}></div>
-                    <div className="Config-modal" onClick={(e) => e.stopPropagation()}>
-                        {renderModalContent()}
-                    </div>
-                </>
-            )}
-        </div>
+                    {renderCards()}
+
+                    <Modal open={showModal} onClose={closeModal}>
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                bgcolor: "background.paper",
+                                p: "32px",
+                                borderRadius: "16px",
+                                width: "500px",
+                                maxHeight: "80vh",
+                                overflowY: "auto",
+                            }}
+                        >
+                            {renderModalContent()}
+                        </Box>
+                    </Modal>
+                </Box>
+            </Box>
+        </Box>
     );
 }
