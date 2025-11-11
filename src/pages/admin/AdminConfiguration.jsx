@@ -27,6 +27,78 @@ export default function AdminConfiguration() {
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
 
+    const [rulesFromDB, setRulesFromDB] = useState([
+        { id: 1, type: "Benefit", description: "Additional fixed compensation for specific purposes" },
+        { id: 2, type: "Deduction", description: "Mandatory payroll deductions" },
+        { id: 3, type: "Bonus", description: "Performance-based rewards" },
+        { id: 4, type: "Allowance", description: "Fixed allowances for specific tasks" },
+        { id: 5, type: "Deduction", description: "Mandatory payroll deductions" },
+    ]);
+
+    const [checkedItems, setCheckedItems] = useState({});
+
+    const allChecked =
+        rulesFromDB.length > 0 && rulesFromDB.every((rule) => checkedItems[rule.id]);
+
+    const handleSelectAll = (e) => {
+        const checked = e.target.checked;
+        const newChecked = {};
+        rulesFromDB.forEach((rule) => {
+            newChecked[rule.id] = checked;
+        });
+        setCheckedItems(newChecked);
+    };
+
+    const handleDeleteSelected = () => {
+        const remaining = rulesFromDB.filter((rule) => !checkedItems[rule.id]);
+        setRulesFromDB(remaining);
+        setCheckedItems({});
+    };
+
+    const hasChecked = Object.values(checkedItems).some(Boolean);
+
+    const cutoffsFromDB = [
+        { id: 1, period: "January 2025 - 1st Half", startDate: "Jan 1, 2025", endDate: "Jan 15, 2025", frequency: "Bi-Monthly" },
+        { id: 2, period: "January 2025 - 2nd Half", startDate: "Jan 16, 2025", endDate: "Jan 31, 2025", frequency: "Bi-Monthly" },
+        { id: 3, period: "February 2025 - 1st Half", startDate: "Feb 1, 2025", endDate: "Feb 15, 2025", frequency: "Bi-Monthly" },
+        { id: 4, period: "February 2025 - 2nd Half", startDate: "Feb 16, 2025", endDate: "Feb 28, 2025", frequency: "Bi-Monthly" },
+        { id: 5, period: "March 2025 - 1st Half", startDate: "Mar 1, 2025", endDate: "Mar 15, 2025", frequency: "Bi-Monthly" },
+        { id: 6, period: "March 2025 - 2nd Half", startDate: "Mar 16, 2025", endDate: "Mar 31, 2025", frequency: "Bi-Monthly" },
+        { id: 7, period: "April 2025 - 1st Half", startDate: "Apr 1, 2025", endDate: "Apr 15, 2025", frequency: "Bi-Monthly" },
+        { id: 8, period: "April 2025 - 2nd Half", startDate: "Apr 16, 2025", endDate: "Apr 30, 2025", frequency: "Bi-Monthly" },
+        { id: 9, period: "May 2025 - 1st Half", startDate: "May 1, 2025", endDate: "May 15, 2025", frequency: "Bi-Monthly" },
+        { id: 10, period: "May 2025 - 2nd Half", startDate: "May 16, 2025", endDate: "May 31, 2025", frequency: "Bi-Monthly" },
+        { id: 11, period: "June 2025 - 1st Half", startDate: "Jun 1, 2025", endDate: "Jun 15, 2025", frequency: "Bi-Monthly" },
+        { id: 12, period: "June 2025 - 2nd Half", startDate: "Jun 16, 2025", endDate: "Jun 30, 2025", frequency: "Bi-Monthly" },
+    ];
+
+    const employeeGroupsFromDB = [
+        {
+            id: 1,
+            department: "Human Resources",
+            totalEmployees: 25,
+            fullTime: 15,
+            partTime: 7,
+            temporary: 3,
+        },
+        {
+            id: 2,
+            department: "Finance",
+            totalEmployees: 18,
+            fullTime: 12,
+            partTime: 4,
+            temporary: 2,
+        },
+        {
+            id: 3,
+            department: "IT",
+            totalEmployees: 30,
+            fullTime: 25,
+            partTime: 3,
+            temporary: 2,
+        },
+    ];
+
     const openModal = (type) => {
         setModalType(type);
         setShowModal(true);
@@ -46,78 +118,155 @@ export default function AdminConfiguration() {
                 return (
                     <Box
                         sx={{
+                            paddingLeft: "10px",
                             display: "flex",
                             flexDirection: "column",
-                            gap: "12px",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
                         }}
                     >
                         <Box
                             sx={{
-                                display: "grid",
-                                gridTemplateColumns: "60px repeat(5,1fr)",
-                                fontWeight: 700,
-                                p: "8px",
-                                bgcolor: "#e4e4e4",
-                                borderRadius: "15px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
                             }}
                         >
-                            <Box sx={{ display: "flex", justifyContent: "center" }}>
-                                <Checkbox />
-                            </Box>
-                            <span>Rule Type</span>
-                            <span>Description</span>
-                            <span>Formula / Value</span>
-                            <span>Status</span>
-                            <span>Actions</span>
-                        </Box>
-
-                        {["Benefit", "Deduction", "Bonus", "Allowance"].map((type, i) => (
+                            <Checkbox
+                                checked={allChecked}
+                                onChange={handleSelectAll}
+                                sx={{
+                                    p: 0,
+                                    mr: "10px",
+                                    color: "#1F2829",
+                                    borderRadius: "5px",
+                                    "&.Mui-checked": { color: "#1F2829" },
+                                    "& .MuiSvgIcon-root": { fontSize: 25 },
+                                }}
+                            />
                             <Box
-                                key={i}
                                 sx={{
                                     display: "grid",
-                                    gridTemplateColumns: "60px repeat(5,1fr)",
-                                    alignItems: "center",
+                                    gridTemplateColumns: "repeat(5, 1fr)",
+                                    fontWeight: 700,
                                     p: "8px",
-                                    bgcolor: "#fff",
-                                    borderRadius: "8px",
+                                    borderRadius: "15px",
+                                    width: "100%",
+                                    alignItems: "center",
                                 }}
                             >
-                                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                                    <Checkbox />
-                                </Box>
-                                <span>{type}</span>
-                                <span>Lorem Ipsum</span>
-                                <span>10%</span>
-                                <span>
-                  <Box
-                      component="span"
-                      sx={{
-                          display: "inline-block",
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          bgcolor: "#28a745",
-                          mr: "4px",
-                      }}
-                  />
-                  Active
-                </span>
-                                <Box sx={{ display: "flex", gap: "8px" }}>
-                                    <IconButton
-                                        onClick={() => openModal("rule")}
+                                <span style={{ textAlign: "left" }}>Rule Type</span>
+                                <span style={{ textAlign: "left" }}>Description</span>
+                                <span style={{ textAlign: "center" }}>Formula / Value</span>
+                                <span style={{ textAlign: "center" }}>Status</span>
+                                <span style={{ textAlign: "center" }}>Actions</span>
+                            </Box>
+                        </Box>
+
+                        <Box
+                            sx={{
+                                maxHeight: "400px",
+                                overflowY: "auto",
+                                "&::-webkit-scrollbar": { width: 0, height: 0 },
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            }}
+                        >
+                            {rulesFromDB.map((rule) => (
+                                <Box
+                                    key={rule.id}
+                                    sx={{
+                                        marginTop: "10px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        mb: "12px",
+                                    }}
+                                >
+                                    <Checkbox
+                                        checked={!!checkedItems[rule.id]}
+                                        onChange={(e) =>
+                                            setCheckedItems((prev) => ({
+                                                ...prev,
+                                                [rule.id]: e.target.checked,
+                                            }))
+                                        }
                                         sx={{
-                                            bgcolor: "#1f2937",
-                                            color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
+                                            p: 0,
+                                            mr: "10px",
+                                            color: "#1F2829",
+                                            borderRadius: "5px",
+                                            "&.Mui-checked": { color: "#1F2829" },
+                                            "& .MuiSvgIcon-root": { fontSize: 25 },
+                                        }}
+                                    />
+
+                                    <Box
+                                        sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(5, 1fr)",
+                                            alignItems: "center",
+                                            bgcolor: "#f0f0f0",
+                                            borderRadius: "8px",
+                                            width: "100%",
+                                            minHeight: "80px",
+                                            transition: "all 0.3s ease",
+                                            "&:hover": {
+                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                            },
                                         }}
                                     >
-                                        <RiPencilFill />
-                                    </IconButton>
+                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>
+                                            {rule.type}
+                                        </span>
+                                        <span style={{ textAlign: "left" }}>
+                                            {rule.description}
+                                        </span>
+                                        <span style={{ textAlign: "center" }}>10%</span>
+                                        <span style={{ textAlign: "center" }}>
+                                            <Box
+                                                component="span"
+                                                sx={{
+                                                    display: "inline-block",
+                                                    width: "8px",
+                                                    height: "8px",
+                                                    borderRadius: "50%",
+                                                    bgcolor: "#28a745",
+                                                    mr: "4px",
+                                                }}
+                                            />
+                                            Active
+                                        </span>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                gap: "8px",
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            <IconButton
+                                                onClick={() => openModal("rule")}
+                                                sx={{
+                                                    bgcolor: "#3A4F50",
+                                                    color: "#fff",
+                                                    width: "30px",
+                                                    height: "30px",
+                                                    transition: "all 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "translateY(-3px)",
+                                                        bgcolor: "#2E3B3D",
+                                                    },
+                                                }}
+                                            >
+                                                <RiPencilFill />
+                                            </IconButton>
+                                        </Box>
+                                    </Box>
                                 </Box>
-                            </Box>
-                        ))}
+                            ))}
+                        </Box>
                     </Box>
                 );
 
@@ -125,63 +274,146 @@ export default function AdminConfiguration() {
                 return (
                     <Box
                         sx={{
+                            paddingLeft: "10px",
                             display: "flex",
                             flexDirection: "column",
-                            gap: "12px",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
                         }}
                     >
                         <Box
                             sx={{
-                                display: "grid",
-                                gridTemplateColumns: "60px repeat(5,1fr)",
-                                fontWeight: 700,
-                                p: "8px",
-                                bgcolor: "#e4e4e4",
-                                borderRadius: "8px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
                             }}
                         >
-                            <span></span>
-                            <span>Period</span>
-                            <span>Start Date</span>
-                            <span>End Date</span>
-                            <span>Frequency</span>
-                            <span>Actions</span>
-                        </Box>
-
-                        {[1, 2, 3].map((_, i) => (
+                            <Checkbox
+                                checked={allChecked}
+                                onChange={handleSelectAll}
+                                sx={{
+                                    p: 0,
+                                    mr: "10px",
+                                    color: "#1F2829",
+                                    borderRadius: "5px",
+                                    "&.Mui-checked": { color: "#1F2829" },
+                                    "& .MuiSvgIcon-root": { fontSize: 25 },
+                                }}
+                            />
                             <Box
-                                key={i}
                                 sx={{
                                     display: "grid",
-                                    gridTemplateColumns: "60px repeat(5,1fr)",
-                                    alignItems: "center",
+                                    gridTemplateColumns: "repeat(5, 1fr)",
+                                    fontWeight: 700,
                                     p: "8px",
-                                    bgcolor: "#fff",
-                                    borderRadius: "8px",
+                                    borderRadius: "15px",
+                                    width: "100%",
+                                    alignItems: "center",
                                 }}
                             >
-                                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                                    <Checkbox />
-                                </Box>
-                                <span>Sept. 1 - 15</span>
-                                <span>Sept. 1, 2025</span>
-                                <span>Sept. 15, 2025</span>
-                                <span>Bi-weekly</span>
-                                <Box sx={{ display: "flex", gap: "8px" }}>
-                                    <IconButton
-                                        onClick={() => openModal("cutoff")}
+                                <span style={{ textAlign: "left" }}>Period</span>
+                                <span style={{ textAlign: "center" }}>Start Date</span>
+                                <span style={{ textAlign: "center" }}>End Date</span>
+                                <span style={{ textAlign: "center" }}>Frequency</span>
+                                <span style={{ textAlign: "center" }}>Actions</span>
+                            </Box>
+                        </Box>
+
+                        <Box
+                            sx={{
+                                maxHeight: "400px",
+                                overflowY: "auto",
+                                "&::-webkit-scrollbar": { width: 0, height: 0 },
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            }}
+                        >
+                            {cutoffsFromDB.map((cutoff) => (
+                                <Box
+                                    key={cutoff.id}
+                                    sx={{
+                                        marginTop: "10px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        mb: "12px",
+                                    }}
+                                >
+                                    <Checkbox
+                                        checked={!!checkedItems[cutoff.id]}
+                                        onChange={(e) =>
+                                            setCheckedItems((prev) => ({
+                                                ...prev,
+                                                [cutoff.id]: e.target.checked,
+                                            }))
+                                        }
                                         sx={{
-                                            bgcolor: "#1f2937",
-                                            color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
+                                            p: 0,
+                                            mr: "10px",
+                                            color: "#1F2829",
+                                            borderRadius: "5px",
+                                            "&.Mui-checked": { color: "#1F2829" },
+                                            "& .MuiSvgIcon-root": { fontSize: 25 },
+                                        }}
+                                    />
+
+                                    <Box
+                                        sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(5, 1fr)",
+                                            alignItems: "center",
+                                            bgcolor: "#f0f0f0",
+                                            borderRadius: "8px",
+                                            width: "100%",
+                                            minHeight: "80px",
+                                            transition: "all 0.3s ease",
+                                            "&:hover": {
+                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                            },
                                         }}
                                     >
-                                        <RiPencilFill />
-                                    </IconButton>
+                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>
+                                            {cutoff.period}
+                                        </span>
+                                                    <span style={{ textAlign: "center" }}>
+                                            {cutoff.startDate}
+                                        </span>
+                                                    <span style={{ textAlign: "center" }}>
+                                            {cutoff.endDate}
+                                        </span>
+                                                    <span style={{ textAlign: "center" }}>
+                                            {cutoff.frequency}
+                                        </span>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                gap: "8px",
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            <IconButton
+                                                onClick={() => openModal("cutoff", cutoff)}
+                                                sx={{
+                                                    bgcolor: "#3A4F50",
+                                                    color: "#fff",
+                                                    width: "30px",
+                                                    height: "30px",
+                                                    transition: "all 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "translateY(-3px)",
+                                                        bgcolor: "#2E3B3D",
+                                                    },
+                                                }}
+                                            >
+                                                <RiPencilFill />
+                                            </IconButton>
+                                        </Box>
+                                    </Box>
                                 </Box>
-                            </Box>
-                        ))}
+                            ))}
+                        </Box>
                     </Box>
                 );
 
@@ -189,69 +421,128 @@ export default function AdminConfiguration() {
                 return (
                     <Box
                         sx={{
+                            paddingLeft: "10px",
                             display: "flex",
                             flexDirection: "column",
-                            gap: "12px",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
                         }}
                     >
                         <Box
                             sx={{
-                                display: "grid",
-                                gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 120px",
-                                fontWeight: 700,
-                                p: "8px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
                             }}
                         >
-                            <span>Department</span>
-                            <span>Employees</span>
-                            <span>Full Time</span>
-                            <span>Part Time</span>
-                            <span>Contract</span>
-                            <span>Actions</span>
-                        </Box>
-
-                        {["IT Department", "HR", "Accounting"].map((dept, i) => (
                             <Box
-                                key={i}
                                 sx={{
                                     display: "grid",
-                                    gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 120px",
-                                    alignItems: "center",
+                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    fontWeight: 700,
                                     p: "8px",
-                                    bgcolor: "#fff",
-                                    borderRadius: "8px",
+                                    borderRadius: "15px",
+                                    width: "100%",
+                                    alignItems: "center",
+                                    textAlign: "center",
                                 }}
                             >
-                                <span>{dept}</span>
-                                <span>53</span>
-                                <span>23</span>
-                                <span>27</span>
-                                <span>3</span>
-                                <Box sx={{ display: "flex", gap: "8px" }}>
-                                    <IconButton
-                                        onClick={() => openModal("employee")}
-                                        sx={{
-                                            bgcolor: "#1f2937",
-                                            color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                        }}
-                                    >
-                                        <RiEyeFill />
-                                    </IconButton>
-                                    <IconButton
-                                        sx={{
-                                            bgcolor: "#1f2937",
-                                            color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                        }}
-                                    >
-                                        <RiPencilFill />
-                                    </IconButton>
-                                </Box>
+                                <span>Department</span>
+                                <span>Total Employees</span>
+                                <span>Full-Time</span>
+                                <span>Part-Time</span>
+                                <span>Temporary</span>
+                                <span>Actions</span>
                             </Box>
-                        ))}
+                        </Box>
+
+                        <Box
+                            sx={{
+                                maxHeight: "400px",
+                                overflowY: "auto",
+                                "&::-webkit-scrollbar": { width: 0, height: 0 },
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            }}
+                        >
+                            {employeeGroupsFromDB.map((group) => (
+                                <Box
+                                    key={group.id}
+                                    sx={{
+                                        marginTop: "10px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        mb: "12px",
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(6, 1fr)",
+                                            alignItems: "center",
+                                            bgcolor: "#f0f0f0",
+                                            borderRadius: "8px",
+                                            width: "100%",
+                                            minHeight: "80px",
+                                            transition: "all 0.3s ease",
+                                            "&:hover": {
+                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                            },
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        <span>{group.department}</span>
+                                        <span>{group.totalEmployees}</span>
+                                        <span>{group.fullTime}</span>
+                                        <span>{group.partTime}</span>
+                                        <span>{group.temporary}</span>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                gap: "8px",
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            <IconButton
+                                                onClick={() => openModal("employeeGroup", group)}
+                                                sx={{
+                                                    bgcolor: "#3A4F50",
+                                                    color: "#fff",
+                                                    width: "30px",
+                                                    height: "30px",
+                                                    transition: "all 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "translateY(-3px)",
+                                                        bgcolor: "#2E3B3D",
+                                                    },
+                                                }}
+                                            >
+                                                <RiEyeFill />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() => openModal("employeeGroup", group)}
+                                                sx={{
+                                                    bgcolor: "#3A4F50",
+                                                    color: "#fff",
+                                                    width: "30px",
+                                                    height: "30px",
+                                                    transition: "all 0.3s ease",
+                                                    "&:hover": {
+                                                        transform: "translateY(-3px)",
+                                                        bgcolor: "#2E3B3D",
+                                                    },
+                                                }}
+                                            >
+                                                <RiPencilFill />
+                                            </IconButton>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
                     </Box>
                 );
 
@@ -471,6 +762,7 @@ export default function AdminConfiguration() {
 
             <Box
                 sx={{
+                    height:"93%",
                     backgroundColor: "rgba(255, 255, 255, 0.2)",
                     border: "1px solid rgba(255, 255, 255, 0.4)",
                     borderRadius: "15px",
@@ -489,7 +781,7 @@ export default function AdminConfiguration() {
                     sx={{
                         display: "flex",
                         gap: "12px",
-                        mb: "16px",
+                        mb: "13px",
                         backgroundColor: "rgba(255, 255, 255, 0.2)",
                         border: "1px solid rgba(255, 255, 255, 0.4)",
                         p: "12px",
@@ -501,8 +793,8 @@ export default function AdminConfiguration() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             sx={{
-                                bgcolor: activeTab === tab ? "#fff" : "#efeff0", // non-active tab background
-                                color: activeTab === tab ? "#172224" : "#3a4f50", // non-active tab text
+                                bgcolor: activeTab === tab ? "#fff" : "#efeff0",
+                                color: activeTab === tab ? "#172224" : "#3a4f50",
                                 fontWeight: 700,
                                 textTransform: "none",
                                 borderRadius: "15px",
@@ -522,13 +814,13 @@ export default function AdminConfiguration() {
                 </Box>
 
                 <Box
-                    backgroundColor="rgba(150, 150, 150, 0.3)"
+                    backgroundColor="rgba(200, 200, 200, 0.6)"
+                    height={"85%"}
                     borderRadius="12px"
                     p="24px"
                     color="#222"
                     sx={{
                         fontFamily: "'TTHoves-Regular', sans-serif",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
                         border: "1px solid rgba(255, 255, 255, 0.4)",
                     }}
                 >
@@ -540,7 +832,7 @@ export default function AdminConfiguration() {
                             mb: "16px",
                         }}
                     >
-                        <Box>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             {(activeTab === "payrollRules" || activeTab === "cutoffDates") && (
                                 <Box
                                     component="button"
@@ -553,44 +845,84 @@ export default function AdminConfiguration() {
                                         color: "#fff",
                                         padding: "10px 0",
                                         borderRadius: "15px",
-                                        fontFamily: "'TTHoves-Regular', sans-serif",
                                         cursor: "pointer",
                                         border: "none",
                                         transition: "all 0.3s ease",
                                         width: "200px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
                                         "&:hover": {
                                             backgroundColor: "#1f2f31",
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                                         },
                                     }}
                                 >
                                     {activeTab === "payrollRules" ? "Add Rule" : "Add Cutoff"}
                                 </Box>
                             )}
+
+                            {(activeTab === "payrollRules" || activeTab === "cutoffDates") && hasChecked && (
+                                <Box
+                                    component="button"
+                                    onClick={handleDeleteSelected}
+                                    sx={{
+                                        fontSize: "16px",
+                                        backgroundColor: "#b22222",
+                                        color: "#fff",
+                                        padding: "10px 0",
+                                        borderRadius: "15px",
+                                        cursor: "pointer",
+                                        border: "none",
+                                        transition: "all 0.3s ease",
+                                        width: "200px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        "&:hover": {
+                                            backgroundColor: "#8b1a1a",
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                        },
+                                    }}
+                                >
+                                    Delete Selected
+                                </Box>
+                            )}
                         </Box>
-                        <Button
-                            startIcon={<RiFilter3Line />}
-                            sx={{
-                                appearance: "none",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                                width: 250,
-                                padding: "10px 40px 10px 12px",
-                                borderRadius: "15px",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
-                                backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                backdropFilter: "blur(12px)",
-                                color: "#222",
-                                fontFamily: "inherit",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                outline: "none",
-                                "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                                },
-                            }}
-                        >
-                            Filter
-                        </Button>
+
+                        <Box sx={{ position: "relative" }}>
+                            <select
+                                defaultValue=""
+                                style={{
+                                    appearance: "none",
+                                    WebkitAppearance: "none",
+                                    MozAppearance: "none",
+                                    width: 100,
+                                    padding: "10px 40px 10px 12px",
+                                    borderRadius: "20px",
+                                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                                    background: "rgba(255, 255, 255, 0.3)",
+                                    backdropFilter: "blur(12px)",
+                                    color: "#222",
+                                    fontFamily: "inherit",
+                                    fontSize: "16px",
+                                    cursor: "pointer",
+                                    outline: "none",
+                                }}
+                            >
+                                <option value="">Filter</option>
+                            </select>
+                            <i
+                                className="ri-arrow-down-s-line"
+                                style={{
+                                    position: "absolute",
+                                    right: "10px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    pointerEvents: "none",
+                                    color: "#222",
+                                    fontSize: "18px",
+                                }}
+                            ></i>
+                        </Box>
                     </Box>
 
                     {renderCards()}
