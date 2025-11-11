@@ -32,43 +32,59 @@ function Login() {
         setLoading(true);
         setStatus("Detecting face...");
 
-        const detection = await faceapi.detectSingleFace(
-            videoRef.current,
-            new faceapi.TinyFaceDetectorOptions()
-        );
-
-        if (!detection) {
-            setStatus("No face detected. Please try again.");
-            setLoading(false);
-            return;
-        }
-
-        const { x, y, width, height } = detection.box;
-
-        // Crop face
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, width, height);
-
-        const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg"));
-        const formData = new FormData();
-        formData.append("file", blob, "face.jpg");
-        formData.append("action", "time_in"); // optional for attendance
-
         try {
+            // Detect face
+            const detection = await faceapi.detectSingleFace(
+                videoRef.current,
+                new faceapi.TinyFaceDetectorOptions()
+            );
+
+            if (!detection) {
+                setStatus("No face detected. Please position yourself in front of the camera.");
+                setLoading(false);
+                return;
+            }
+
+            const { x, y, width, height } = detection.box;
+
+            // Crop face into canvas
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, width, height);
+
+            // Optional: preview cropped face for debugging
+            const previewImg = document.getElementById("face-preview");
+            if (previewImg) {
+                previewImg.src = canvas.toDataURL("image/jpeg");
+            }
+
+            // Convert canvas to blob
+            const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg"));
+            if (!blob) {
+                setStatus("Failed to capture face. Please try again.");
+                setLoading(false);
+                return;
+            }
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append("file", blob, "face.jpg");
+            formData.append("action", "time_in");
+
+            // Send to backend
             const response = await fetch("http://127.0.0.1:8000/recognize", {
                 method: "POST",
                 body: formData,
             });
 
             const data = await response.json();
+            console.log("Backend response:", data); // debug exact error
 
             if (data.matched) {
                 setStatus(`Welcome ${data.name}! Logging you in...`);
 
-                // simulate login by setting the user context
                 const userData = {
                     name: data.name,
                     role: data.role || "employee",
@@ -76,7 +92,7 @@ function Login() {
                 };
                 setUser(userData);
 
-                // redirect based on role
+                // Redirect based on role
                 setTimeout(() => {
                     switch (userData.role) {
                         case "admin":
@@ -95,11 +111,12 @@ function Login() {
                     }
                 }, 1500);
             } else {
-                setStatus("Face not recognized. Please try again.");
+                const msg = data.message || "Face not recognized. Please try again.";
+                setStatus(msg + (data.similarity ? ` (Similarity: ${data.similarity.toFixed(3)})` : ""));
             }
         } catch (err) {
-            console.error(err);
-            setStatus("Error during face recognition.");
+            console.error("Error during face login:", err);
+            setStatus("Error during face recognition. Check console for details.");
         } finally {
             setLoading(false);
         }

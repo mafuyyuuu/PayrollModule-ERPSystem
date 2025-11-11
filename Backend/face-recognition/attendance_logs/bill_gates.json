@@ -16,5 +16,41 @@
     "name": "Unknown",
     "timestamp": "2025-11-11T21:43:48.132022",
     "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Bill Gates",
+    "timestamp": "2025-11-12T00:47:06.733880",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Bill Gates",
+    "timestamp": "2025-11-12T00:47:10.937056",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Bill Gates",
+    "timestamp": "2025-11-12T00:53:36.462981",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Bill Gates",
+    "timestamp": "2025-11-12T00:54:18.510201",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Bill Gates",
+    "timestamp": "2025-11-12T00:56:19.370895",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Bill Gates",
+    "timestamp": "2025-11-12T00:57:04.863901",
+    "action": "time_in"
   }
 ]
