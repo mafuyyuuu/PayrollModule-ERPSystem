@@ -1,0 +1,20 @@
+[
+  {
+    "employee_id": "bill_gates",
+    "name": "Unknown",
+    "timestamp": "2025-11-11T21:42:22.442742",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Unknown",
+    "timestamp": "2025-11-11T21:43:18.707463",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "bill_gates",
+    "name": "Unknown",
+    "timestamp": "2025-11-11T21:43:48.132022",
+    "action": "time_in"
+  }
+]
