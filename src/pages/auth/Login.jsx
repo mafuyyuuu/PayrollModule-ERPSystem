@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../components/UserContext.jsx";
 import * as faceapi from "face-api.js";
-import logo from "../../assets/lenscape.png";
 import "./Login.css";
 
 function Login() {
@@ -108,10 +107,6 @@ function Login() {
 
     return (
         <div className="login-container">
-            <div className="left-container">
-                <img src={logo} alt="Logo" className="logo" />
-            </div>
-
             <div className="right-container">
                 <h2>Facial Recognition Login</h2>
 
