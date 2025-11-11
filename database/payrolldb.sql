@@ -172,6 +172,6 @@ ALTER TABLE Employees
   ADD FOREIGN KEY (department_id) REFERENCES Departments(department_id);
 
 CREATE USER 'payrollsystem'@'%' IDENTIFIED BY 'payroll';
-GRANT ALL PRIVILEGES ON testdb.* TO 'payrollsystem'@'%';
+GRANT ALL PRIVILEGES ON payrollmanagementsystem.* TO 'payrollsystem'@'%';
 FLUSH PRIVILEGES;
 
