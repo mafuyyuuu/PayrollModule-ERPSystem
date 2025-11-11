@@ -25,18 +25,14 @@ export default function EmployeePayoutHistory() {
                 <Typography
                     variant="h5"
                     sx={{
-                        fontSize: "18px",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        fontSize: "20px",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
                         color: "#222",
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
                     }}
                 >
-                    <i
-                        className="ri-money-dollar-circle-line"
-                        style={{ fontSize: 20, color: "#222" }}
-                    ></i>
                     Payout History
                 </Typography>
 
