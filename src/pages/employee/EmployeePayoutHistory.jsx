@@ -166,8 +166,14 @@ export default function EmployeePayoutHistory() {
                                         justifyContent: "center",
                                         transition: "all 0.2s ease",
                                     }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
-                                    onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = "translateY(-3px)";
+                                        e.currentTarget.style.backgroundColor = "#2E3B3D"; // hover color
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = "translateY(0)";
+                                        e.currentTarget.style.backgroundColor = "#3A4F50"; // original color
+                                    }}
                                 >
                                     <i className="ri-download-2-line"></i>
                                 </button>
