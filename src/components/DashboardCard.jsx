@@ -88,10 +88,10 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
                     }}
                 >
                     {showHideButton && !showValue ? (
-                        <span style={{ color: "#3A4F50" }}>••••••</span>
+                        <span style={{ color: "#172224" }}>••••••</span>
                     ) : (
                         <>
-                            <span style={{ color: "#3A4F50" }}>{main}</span>
+                            <span style={{ color: "#172224" }}>{main}</span>
                             {decimal && (
                                 <span
                                     style={{

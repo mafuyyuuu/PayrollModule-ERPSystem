@@ -15,7 +15,7 @@ const EmployeeDashboard = () => {
     return (
         <Box
             width="100%"
-            height="50vh">
+            height="80%">
             <Box
                 display="grid"
                 gridTemplateColumns="repeat(3, 1fr)"
@@ -42,11 +42,10 @@ const EmployeeDashboard = () => {
 
             <Box
                 display="grid"
-                gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
-                gap="20px"
+                gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}                gap="20px"
                 mt="30px"
                 alignItems="stretch"
-                height="100%"
+                height="97.5%"
             >
                 <Box
                     backgroundColor="rgba(255, 255, 255, 0.2)"
@@ -97,7 +96,6 @@ const EmployeeDashboard = () => {
                     backgroundColor="rgba(255, 255, 255, 0.2)"
                     borderRadius="12px"
                     p="24px"
-                    lineHeight={4}
                     color="#222"
                     sx={{
                         fontFamily: "'TTHoves-Regular', sans-serif",
@@ -113,15 +111,15 @@ const EmployeeDashboard = () => {
                     <Typography
                         variant="h5"
                         sx={{
-                            mb: 3,
-                            fontSize: "23px",
+                            mb: 4,
+                            fontSize: "18px",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                             color: "#222",
                         }}
                     >
                         <i
                             className="ri-calendar-2-line"
-                            style={{ fontSize: 23, color: "#222", marginRight: "10px" }}
+                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
                         ></i>
                         Apply for Leave
                     </Typography>
@@ -131,7 +129,7 @@ const EmployeeDashboard = () => {
                         style={{
                             display: "flex",
                             flexDirection: "column",
-                            gap: "20px",
+                            gap: "18px",
                         }}
                     >
                         <Box
@@ -146,14 +144,13 @@ const EmployeeDashboard = () => {
                                     WebkitAppearance: "none",
                                     MozAppearance: "none",
                                     width: "100%",
-                                    height: "45px",
                                     padding: "10px 40px 10px 12px",
                                     borderRadius: "15px",
                                     border: "none",
                                     backgroundColor: "#bdbdbd",
                                     color: "#222",
                                     fontFamily: "inherit",
-                                    fontSize: "16px",
+                                    fontSize: "14px",
                                     cursor: "pointer",
                                     outline: "none",
                                 }}
@@ -185,12 +182,11 @@ const EmployeeDashboard = () => {
                                     flex: 1,
                                     padding: "10px",
                                     borderRadius: "15px",
-                                    height: "45px",
                                     border: "none",
                                     backgroundColor: "#bdbdbd",
                                     color: "#222",
                                     fontFamily: "'TTHoves-Medium', sans-serif'",
-                                    fontSize: "16px",
+                                    fontSize: "14px",
                                     outline: "none",
                                 }}
                             />
@@ -200,12 +196,11 @@ const EmployeeDashboard = () => {
                                     flex: 1,
                                     padding: "10px",
                                     borderRadius: "15px",
-                                    height: "45px",
                                     border: "none",
                                     backgroundColor: "#bdbdbd",
                                     color: "#222",
                                     fontFamily: "'TTHoves-Medium', sans-serif'",
-                                    fontSize: "16px",
+                                    fontSize: "14px",
                                     outline: "none",
                                 }}
                             />
@@ -219,7 +214,7 @@ const EmployeeDashboard = () => {
                                 border: "none",
                                 backgroundColor: "#fff",
                                 color: "#222",
-                                minHeight: "130px",
+                                minHeight: "110px",
                                 fontFamily: "'TTHoves-Medium', sans-serif",
                                 fontSize: "14px",
                                 resize: "none",
@@ -232,18 +227,17 @@ const EmployeeDashboard = () => {
                             component="button"
                             sx={{
                                 mt: "16px",
-                                backgroundColor: "#3A4F50",
+                                fontSize: "16px",
+                                backgroundColor: "#172224",
                                 color: "#fff",
                                 padding: "10px 0",
                                 borderRadius: "20px",
-                                height: "45px",
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
                                 cursor: "pointer",
                                 border: "none",
                                 transition: "all 0.3s ease",
                                 "&:hover": {
-                                    transform: "translateY(-5px)",
-                                    boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+                                    backgroundColor: "#1f2f31",
                                 },
                             }}
                         >

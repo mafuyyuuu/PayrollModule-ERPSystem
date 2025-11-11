@@ -14,19 +14,19 @@ export default function EmployeePayoutHistory() {
     return (
         <Box
             width="100%"
-            height="69vh"
+            height="100%"
         >
             <Box
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
-                mb={3.5}
+                mb={2}
             >
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "18px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                         color: "#222",
                         display: "flex",
                         alignItems: "center",
@@ -40,28 +40,27 @@ export default function EmployeePayoutHistory() {
                     Payout History
                 </Typography>
 
-                {/* Dropdown for payroll filter */}
                 <Box sx={{ position: "relative" }}>
                     <select
+                        defaultValue=""
                         style={{
                             appearance: "none",
                             WebkitAppearance: "none",
                             MozAppearance: "none",
-                            padding: "8px 36px 8px 12px",
-                            borderRadius: "12px",
-                            border: "none",
-                            backgroundColor: "#bdbdbd",
+                            width: 250,
+                            padding: "10px 40px 10px 12px",
+                            borderRadius: "15px",
+                            border: "1px solid rgba(255, 255, 255, 0.4)",
+                            background: "rgba(255, 255, 255, 0.2)",
+                            backdropFilter: "blur(12px)",
                             color: "#222",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            fontSize: "14px",
+                            fontFamily: "inherit",
+                            fontSize: "16px",
                             cursor: "pointer",
                             outline: "none",
                         }}
                     >
                         <option value="">Select Payroll Duration</option>
-                        <option>2025</option>
-                        <option>2024</option>
-                        <option>2023</option>
                     </select>
                     <i
                         className="ri-arrow-down-s-line"
@@ -83,8 +82,9 @@ export default function EmployeePayoutHistory() {
                 borderRadius="12px"
                 p="24px"
                 color="#222"
-                height="100%"
+                height="92%"
                 sx={{
+                    backdropFilter: "blur(12px)",
                     fontFamily: "'TTHoves-Regular', sans-serif",
                     boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
                     border: "1px solid rgba(255, 255, 255, 0.4)",
@@ -120,7 +120,14 @@ export default function EmployeePayoutHistory() {
                         pr: "8px",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "10px", // creates the spacing between “rows”
+                        mt: "5px",
+                        gap: "10px",
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        "&::-webkit-scrollbar": {
+                            width: 0,
+                            height: 0,
+                        },
                     }}
                 >
                     {payrollHistory.map((item, index) => (
@@ -135,7 +142,7 @@ export default function EmployeePayoutHistory() {
                                 backdropFilter: "blur(12px)",
                                 borderRadius: "10px",
                                 padding: "12px",
-                                marginTop: "3px",
+                                marginTop: "10px",
                                 transition: "all 0.3s ease",
                                 border: "1px solid rgba(255,255,255,0.3)",
                                 "&:hover": {
@@ -148,23 +155,23 @@ export default function EmployeePayoutHistory() {
                             <span>{item.duration}</span>
                             <span>{item.amount}</span>
                             <span>{item.ref}</span>
-                            <Box textAlign="center">
+                            <Box textAlign="center" ml="15px">
                                 <button
                                     style={{
                                         backgroundColor: "#3A4F50",
                                         color: "#fff",
                                         border: "none",
-                                        padding: "6px 12px",
-                                        borderRadius: "8px",
+                                        width: "30px",
+                                        height: "30px",
+                                        borderRadius: "50%",
                                         cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
                                         transition: "all 0.2s ease",
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(-3px)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(0)")
-                                    }
+                                    onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
+                                    onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
                                 >
                                     <i className="ri-download-2-line"></i>
                                 </button>

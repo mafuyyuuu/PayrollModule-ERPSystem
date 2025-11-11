@@ -15,11 +15,19 @@ export default function Sidebar() {
         employee: "/employee",
     };
 
-    const handleLogout = () => {
-        // clear user data
-        setUser(null);
-        localStorage.removeItem("user");
-        navigate("/");
+    const handleLogout = async () => {
+        try {
+            // call your backend API here
+            // await fetch("/api/logout", { method: "POST", credentials: "include" });
+
+            // temporary frontend-only logout:
+            setUser(null);
+            localStorage.removeItem("user");
+
+            navigate("/");
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
     };
 
     const basePath = roleBasePath[user?.role] || "";
@@ -33,7 +41,6 @@ export default function Sidebar() {
             { name: "Reports and Analytics", path: "reports", icon: "ri-bar-chart-2-fill" },
             { name: "Payroll Setup", path: "setup", icon: "ri-hand-coin-fill" },
             { name: "Audit Logs", path: "audit", icon: "ri-chat-history-fill" },
-            { name: "Notifications", path: "notifications", icon: "ri-notification-2-fill" },
         ],
         payroll: [
             { name: "Dashboard", path: "dashboard", icon: "ri-home-5-fill" },
@@ -41,7 +48,7 @@ export default function Sidebar() {
             { name: "Process Payroll", path: "payroll", icon: "ri-bank-card-fill" },
             { name: "Pending Request", path: "pending", icon: "ri-clipboard-fill" },
             { name: "Reports and History", path: "reports", icon: "ri-bar-chart-2-fill" },
-            { name: "Tax Contributions", path: "tax", icon: "ri-file-text-fill" },
+            { name: "Tax Contribution", path: "tax", icon: "ri-file-text-fill" },
         ],
         manager: [
             { name: "Dashboard", path: "dashboard", icon: "ri-home-5-fill" },
@@ -49,12 +56,11 @@ export default function Sidebar() {
             { name: "Payroll Management", path: "payroll", icon: "ri-briefcase-fill" },
             { name: "Pending Request", path: "pending", icon: "ri-timer-2-fill" },
             { name: "Reports and Analytics", path: "reports", icon: "ri-bar-chart-2-fill" },
-            { name: "Notifications", path: "notifications", icon: "ri-notification-2-fill" },
         ],
         employee: [
             { name: "Dashboard", path: "dashboard", icon: "ri-home-5-fill" },
             { name: "Payout History", path: "history", icon: "ri-calendar-check-fill" },
-            { name: "Tax and Contributions", path: "tax", icon: "ri-file-text-fill" },
+            { name: "Tax and Contribution", path: "tax", icon: "ri-file-text-fill" },
         ],
     };
 
@@ -86,10 +92,19 @@ export default function Sidebar() {
                 </ul>
             </div>
 
-            <div className="logout-section">
-                <NavLink to={`${basePath}/logout`} className="logout-link">
+            <div className="bottom-section">
+                <NavLink
+                    to={`${basePath}/profile`}
+                    className={({ isActive }) => `profile-link ${isActive ? "active" : ""}`}
+                >
+                    <i className="ri-user-3-fill icon"></i>
+                    <span>User Profile</span>
+                </NavLink>
+
+                <button className="logout-link" onClick={handleLogout}>
                     <i className="ri-logout-box-r-fill icon"></i>
-                    <span onClick={handleLogout}>Logout</span>                </NavLink>
+                    <span>Logout</span>
+                </button>
             </div>
         </nav>
     );

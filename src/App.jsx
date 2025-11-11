@@ -22,7 +22,6 @@ import AdminApprovals from "./pages/admin/AdminApprovals.jsx";
 import AdminReports from "./pages/admin/AdminReports.jsx";
 import AdminPayrollSetup from "./pages/admin/AdminPayrollSetup.jsx";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs.jsx";
-import AdminNotifications from "./pages/admin/AdminNotifications.jsx";
 
 // payroll pages
 import PayrollDashboard from "./pages/payroll/PayrollDashboard.jsx";
@@ -38,12 +37,12 @@ import ManagerTimesheets from "./pages/manager/ManagerTimesheets.jsx";
 import ManagerPayrollManagement from "./pages/manager/ManagerPayrollManagement.jsx";
 import ManagerPendingRequest from "./pages/manager/ManagerPendingRequest.jsx";
 import ManagerReports from "./pages/manager/ManagerReports.jsx";
-import ManagerNotifications from "./pages/manager/ManagerNotifications.jsx";
 
 // employee pages
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard.jsx";
 import EmployeePayoutHistory from "./pages/employee/EmployeePayoutHistory.jsx";
 import EmployeeTax from "./pages/employee/EmployeeTax.jsx";
+import EmployeeProfile from "./pages/employee/EmployeeProfile.jsx";
 
 function App() {
     return (
@@ -69,7 +68,6 @@ function App() {
                                     <Route path="reports" element={<AdminReports />} />
                                     <Route path="setup" element={<AdminPayrollSetup />} />
                                     <Route path="audit" element={<AdminAuditLogs />} />
-                                    <Route path="notifications" element={<AdminNotifications />} />
                                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                                 </Routes>
                             </ProtectedRoute>
@@ -99,7 +97,6 @@ function App() {
                                     <Route path="payroll" element={<ManagerPayrollManagement />} />
                                     <Route path="pending" element={<ManagerPendingRequest />} />
                                     <Route path="reports" element={<ManagerReports />} />
-                                    <Route path="notifications" element={<ManagerNotifications />} />
                                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                                 </Routes>
                             </ProtectedRoute>
@@ -112,6 +109,7 @@ function App() {
                                     <Route path="dashboard" element={<EmployeeDashboard />} />
                                     <Route path="history" element={<EmployeePayoutHistory />} />
                                     <Route path="tax" element={<EmployeeTax />} />
+                                    <Route path="profile" element={<EmployeeProfile />} />
                                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                                 </Routes>
                             </ProtectedRoute>

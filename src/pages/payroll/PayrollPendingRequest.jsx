@@ -147,7 +147,15 @@ export default function PayrollPendingRequest() {
                         pr: "8px",
                         display: "flex",
                         flexDirection: "column",
+                        mt: "5px",
                         gap: "10px",
+                        height: "85%",
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        "&::-webkit-scrollbar": {
+                            width: 0,
+                            height: 0,
+                        },
                     }}
                 >
                     {employeeRequests.map((item, index) => (
@@ -239,7 +247,7 @@ export default function PayrollPendingRequest() {
                         fontSize: "14px",
                         padding: "13px 30px",
                         borderRadius: "50px",
-                        marginRight: "px",
+                        marginRight: "10px",
                         cursor: "pointer",
                         transition: "all 0.2s ease",
                     }}

@@ -88,23 +88,61 @@
 }
 
 /* Logout section */
-.logout-section {
+.bottom-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
     margin-left: 1rem;
     margin-top: auto;
 }
 
-.logout-link {
+.profile-link {
     font-family: "TTHoves-Regular", sans-serif;
-    font-size: 16px;
+    font-size: 17px;
     display: flex;
     align-items: center;
+    text-decoration: none;
     gap: 0.8rem;
     color: #bfc8cb;
-    text-decoration: none;
     transition: all 0.3s ease;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+}
+
+.profile-link:hover {
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.profile-link.active {
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.logout-link {
+    font-family: "TTHoves-Regular", sans-serif;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 0.8rem;
+    color: #bfc8cb;
+    transition: all 0.3s ease;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
 }
 
 .logout-link:hover {
     color: #ff6b6b;
     transform: translateX(5px);
 }
+
+

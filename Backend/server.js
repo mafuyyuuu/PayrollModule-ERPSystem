@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -9,25 +11,39 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Create MySQL connection pool
+// ✅ MySQL connection
 const pool = mysql.createPool({
     host: 'localhost',
-    user: 'root',
-    password: 'root',
-    database: 'Testdb',
+    user: 'payrollsystem',
+    password: 'payroll',
+    database: 'testdb',
     port: 3306
 });
 
-// ✅ Test database connection
+// ✅ Test DB connection
 try {
     const conn = await pool.getConnection();
-    console.log('✅ Connected to MySQL: Testdb');
+    console.log('✅ Connected to MySQL: database');
     conn.release();
 } catch (err) {
     console.error('❌ Database connection failed:', err);
 }
 
-// ---------------------- LOGIN ROUTE ----------------------
+// ✅ Serve React build (add this section)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Path to your frontend build folder (adjust if needed)
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// For all other routes, serve the React index.html
+app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
+
+// ---------------------- API ROUTES ----------------------
+
+// LOGIN ROUTE
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -43,7 +59,7 @@ app.post('/login', async (req, res) => {
             `SELECT ua.user_id, ua.username, ua.email_address, ua.role_id, ua.status,
                     e.first_name, e.last_name
              FROM UserAccounts ua
-             LEFT JOIN Employees e ON ua.employee_id = e.employee_id
+                      LEFT JOIN Employees e ON ua.employee_id = e.employee_id
              WHERE ua.email_address = ? AND ua.password = ?`,
             [email, password]
         );
@@ -68,7 +84,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// ---------------------- CREATE USER ROUTE ----------------------
+// CREATE USER ROUTE
 app.post('/create-user', async (req, res) => {
     const { username, email, password, role_id, employee_id } = req.body;
 

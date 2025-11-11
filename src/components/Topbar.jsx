@@ -3,13 +3,12 @@ import {
     IconButton,
     Typography,
     useTheme,
-    InputBase,
 } from "@mui/material";
 import { useContext } from "react";
 import { ColorModeContext } from "../theme.js";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import SearchIcon from "@mui/icons-material/Search";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 
 const Topbar = () => {
     const theme = useTheme();
@@ -26,10 +25,9 @@ const Topbar = () => {
             sx={{
                 background: isLightMode
                     ? "#E3E3E3"
-                    : "linear-gradient(180deg, rgba(28,35,36,1) 0%, rgba(23,34,36,1) 100%)"
-        }}
+                    : "linear-gradient(180deg, rgba(28,35,36,1) 0%, rgba(23,34,36,1) 100%)",
+            }}
         >
-            {/* Left Section - Greeting */}
             <Box>
                 <Typography
                     variant="h2"
@@ -53,38 +51,16 @@ const Topbar = () => {
                 </Typography>
             </Box>
 
-            {/* Right Section - Search + Toggle */}
             <Box display="flex" alignItems="center" gap="1rem">
-                {/* Search Bar */}
-                <Box
-                    display="flex"
-                    alignItems="center"
-                    bgcolor={isLightMode ? "#F1F3F4" : theme.palette.secondary.main}
-                    borderRadius="9px"
-                    px="15px"
-                    py="5px"
-                    width="450px"
-                >
-                    <SearchIcon
+                <IconButton>
+                    <NotificationsNoneOutlinedIcon
                         sx={{
-                            color: theme.palette.text.primary,
                             fontSize: "1.7rem",
-                            mr: 1,
+                            color: isLightMode ? "#1F2829" : "#EFEFEF",
                         }}
                     />
-                    <InputBase
-                        placeholder="Enter Employee Name"
-                        sx={{
-                            fontFamily: "TT Hoves Pro, sans-serif",
-                            fontWeight: 300,
-                            color: theme.palette.text.primary,
-                            fontSize: "0.95rem",
-                            width: "100%",
-                        }}
-                    />
-                </Box>
+                </IconButton>
 
-                {/* Dark/Light Mode Toggle */}
                 <IconButton onClick={colorMode.toggleColorMode}>
                     {isLightMode ? (
                         <DarkModeOutlinedIcon

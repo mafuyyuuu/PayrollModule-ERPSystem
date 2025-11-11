@@ -146,7 +146,15 @@ export default function PayrollEmployeeRecords() {
                         pr: "8px",
                         display: "flex",
                         flexDirection: "column",
+                        mt: "5px",
                         gap: "10px",
+                        height: "85%",
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        "&::-webkit-scrollbar": {
+                            width: 0,
+                            height: 0,
+                        },
                     }}
                 >
                     {employeeRecords.map((item, index) => (

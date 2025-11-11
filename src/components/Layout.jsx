@@ -17,19 +17,21 @@ export default function Layout() {
                     width="100vw"
                     height="100vh"
                     overflow="hidden"
-                    bgcolor="#C4C3C3"
-                    color="#222"
+                    bgcolor={theme.palette.background.default}
                 >
                     <Sidebar />
 
                     <Box display="flex" flexDirection="column" flex={1} overflow="hidden">
+
                         <Topbar />
 
                         <Box
                             flex={1}
                             p="2rem"
                             sx={{
-                                background: "radial-gradient(circle 170vh at 50% 20%, #c0c2c2, #F0E8E8)",                                overflowY: "auto",
+                                backgroundColor: "#D1D2D2",
+                                color: theme.palette.text.primary,
+                                overflowY: "auto",
                                 width: "100%",
                                 height: "100%",
                             }}
