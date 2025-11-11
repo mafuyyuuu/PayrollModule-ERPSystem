@@ -1,0 +1,28 @@
+.notification-item {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    transform: scale(1.02);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.notification-item h3 {
+    font-family: "TTHoves-DemiBold", sans-serif;
+    font-size: 1rem;
+    color: #1B2223;
+    margin-bottom: 0.3rem;
+}
+
+.notification-item p {
+    font-family: "TTHoves-Regular", sans-serif;
+    font-size: 0.9rem;
+    color: #3A4F50;
+}
