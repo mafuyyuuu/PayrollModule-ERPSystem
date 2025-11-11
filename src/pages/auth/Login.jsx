@@ -1,111 +1,131 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../components/UserContext.jsx';
-import './Login.css';
-import logo from '../../assets/lenscape.png';
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../../components/UserContext.jsx";
+import * as faceapi from "face-api.js";
+import logo from "../../assets/lenscape.png";
+import "./Login.css";
 
 function Login() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
-
+    const videoRef = useRef();
     const navigate = useNavigate();
-    const { setUser } = useUser(); // changed this from `user` to `setUser`
+    const { setUser } = useUser();
+    const [status, setStatus] = useState("Initializing camera...");
+    const [loading, setLoading] = useState(false);
 
-    const handleBack = () => {
-        navigate('/');
-    };
+    // Load face-api models and start webcam
+    useEffect(() => {
+        const loadModels = async () => {
+            try {
+                await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoRef.current.srcObject = stream;
+                setStatus("Camera ready. Please position your face.");
+            } catch (err) {
+                console.error(err);
+                setStatus("Camera access denied or unavailable.");
+            }
+        };
+        loadModels();
+    }, []);
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+    // Capture face and send for recognition
+    const handleFaceLogin = async () => {
+        setLoading(true);
+        setStatus("Detecting face...");
+
+        const detection = await faceapi.detectSingleFace(
+            videoRef.current,
+            new faceapi.TinyFaceDetectorOptions()
+        );
+
+        if (!detection) {
+            setStatus("No face detected. Please try again.");
+            setLoading(false);
+            return;
+        }
+
+        const { x, y, width, height } = detection.box;
+
+        // Crop face
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, width, height);
+
+        const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg"));
+        const formData = new FormData();
+        formData.append("file", blob, "face.jpg");
+        formData.append("action", "time_in"); // optional for attendance
 
         try {
-            const response = await fetch('http://localhost:8080/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+            const response = await fetch("http://127.0.0.1:8000/recognize", {
+                method: "POST",
+                body: formData,
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Invalid email or password');
-            }
+            if (data.matched) {
+                setStatus(`Welcome ${data.name}! Logging you in...`);
 
-            setUser(data);
+                // simulate login by setting the user context
+                const userData = {
+                    name: data.name,
+                    role: data.role || "employee",
+                    employee_id: data.employee_id,
+                };
+                setUser(userData);
 
-            switch (data.role) {
-                case 'admin':
-                    navigate('/admin');
-                    break;
-                case 'manager':
-                    navigate('/manager');
-                    break;
-                case 'payroll':
-                    navigate('/payroll');
-                    break;
-                case 'employee':
-                    navigate('/employee');
-                    break;
-                default:
-                    alert('Unknown role');
+                // redirect based on role
+                setTimeout(() => {
+                    switch (userData.role) {
+                        case "admin":
+                            navigate("/admin/dashboard");
+                            break;
+                        case "manager":
+                            navigate("/manager/dashboard");
+                            break;
+                        case "payroll":
+                            navigate("/payroll/dashboard");
+                            break;
+                        case "employee":
+                        default:
+                            navigate("/employee/dashboard");
+                            break;
+                    }
+                }, 1500);
+            } else {
+                setStatus("Face not recognized. Please try again.");
             }
         } catch (err) {
-            console.error('Login error:', err);
-            setError(err.message);
+            console.error(err);
+            setStatus("Error during face recognition.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="login-container">
             <div className="left-container">
-                <button className="back-icon" onClick={handleBack}>
-                    <i className="bx bx-arrow-back"></i>
-                </button>
                 <img src={logo} alt="Logo" className="logo" />
             </div>
 
             <div className="right-container">
-                <h2>Login</h2>
-                <form onSubmit={handleLogin}>
-                    <div className="input-field">
-                        <label htmlFor="email">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                        <i className="bx bx-envelope"></i>
-                    </div>
+                <h2>Facial Recognition Login</h2>
 
-                    <div className="input-field">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type={showPassword ? 'text' : 'password'}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                        <i className="bx bx-lock"></i>
-                    </div>
+                <video ref={videoRef} autoPlay muted width="400" height="300" style={{ borderRadius: "10px" }} />
+                <p>{status}</p>
 
-                    <div className="show-forgot">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={showPassword}
-                                onChange={() => setShowPassword(!showPassword)}
-                            />
-                            Show Password
-                        </label>
-                        <a href="#">Forgot Password?</a>
-                    </div>
-
-                    <button type="submit" className="login-btn">Login</button>
-                    {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-                </form>
+                <button
+                    onClick={handleFaceLogin}
+                    className="login-btn"
+                    disabled={loading}
+                    style={{ marginTop: "10px" }}
+                >
+                    {loading ? "Processing..." : "Login with Face"}
+                </button>
             </div>
         </div>
     );
