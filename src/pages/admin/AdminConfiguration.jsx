@@ -11,9 +11,9 @@ import {
     TextField,
     Checkbox,
     FormControlLabel,
-    Modal,
 } from "@mui/material";
-import { RiFilter3Line, RiPencilFill, RiEyeFill } from "react-icons/ri";
+import {  RiPencilFill, RiEyeFill } from "react-icons/ri";
+import BoxModal from "../../components/BoxModal";
 
 export default function AdminConfiguration() {
     const [activeTab, setActiveTab] = useState("payrollRules");
@@ -35,29 +35,7 @@ export default function AdminConfiguration() {
         { id: 5, type: "Deduction", description: "Mandatory payroll deductions" },
     ]);
 
-    const [checkedItems, setCheckedItems] = useState({});
-
-    const allChecked =
-        rulesFromDB.length > 0 && rulesFromDB.every((rule) => checkedItems[rule.id]);
-
-    const handleSelectAll = (e) => {
-        const checked = e.target.checked;
-        const newChecked = {};
-        rulesFromDB.forEach((rule) => {
-            newChecked[rule.id] = checked;
-        });
-        setCheckedItems(newChecked);
-    };
-
-    const handleDeleteSelected = () => {
-        const remaining = rulesFromDB.filter((rule) => !checkedItems[rule.id]);
-        setRulesFromDB(remaining);
-        setCheckedItems({});
-    };
-
-    const hasChecked = Object.values(checkedItems).some(Boolean);
-
-    const cutoffsFromDB = [
+    const [cutoffsFromDB, setCutoffsFromDB] = useState([
         { id: 1, period: "January 2025 - 1st Half", startDate: "Jan 1, 2025", endDate: "Jan 15, 2025", frequency: "Bi-Monthly" },
         { id: 2, period: "January 2025 - 2nd Half", startDate: "Jan 16, 2025", endDate: "Jan 31, 2025", frequency: "Bi-Monthly" },
         { id: 3, period: "February 2025 - 1st Half", startDate: "Feb 1, 2025", endDate: "Feb 15, 2025", frequency: "Bi-Monthly" },
@@ -70,7 +48,7 @@ export default function AdminConfiguration() {
         { id: 10, period: "May 2025 - 2nd Half", startDate: "May 16, 2025", endDate: "May 31, 2025", frequency: "Bi-Monthly" },
         { id: 11, period: "June 2025 - 1st Half", startDate: "Jun 1, 2025", endDate: "Jun 15, 2025", frequency: "Bi-Monthly" },
         { id: 12, period: "June 2025 - 2nd Half", startDate: "Jun 16, 2025", endDate: "Jun 30, 2025", frequency: "Bi-Monthly" },
-    ];
+    ]);
 
     const employeeGroupsFromDB = [
         {
@@ -98,6 +76,41 @@ export default function AdminConfiguration() {
             temporary: 2,
         },
     ];
+
+    const [checkedRules, setCheckedRules] = useState({});
+    const [checkedCutoffs, setCheckedCutoffs] = useState({});
+
+    const allRulesChecked = rulesFromDB.every(rule => checkedRules[rule.id]);
+    const allCutoffsChecked = cutoffsFromDB.every(cutoff => checkedCutoffs[cutoff.id]);
+
+    const handleSelectAllRules = (e) => {
+        const checked = e.target.checked;
+        const newChecked = {};
+        rulesFromDB.forEach(rule => newChecked[rule.id] = checked);
+        setCheckedRules(newChecked);
+    };
+
+    const handleSelectAllCutoffs = (e) => {
+        const checked = e.target.checked;
+        const newChecked = {};
+        cutoffsFromDB.forEach(cutoff => newChecked[cutoff.id] = checked);
+        setCheckedCutoffs(newChecked);
+    };
+
+    const handleDeleteSelectedRules = () => {
+        const remaining = rulesFromDB.filter((rule) => !checkedRules[rule.id]);
+        setRulesFromDB(remaining);
+        setCheckedRules({});
+    };
+
+    const handleDeleteSelectedCutoffs = () => {
+        const remaining = cutoffsFromDB.filter((cutoff) => !checkedCutoffs[cutoff.id]);
+        setCutoffsFromDB(remaining);
+        setCheckedCutoffs({});
+    };
+
+    const hasCheckedRules = Object.values(checkedRules).some(Boolean);
+    const hasCheckedCutoffs = Object.values(checkedCutoffs).some(Boolean);
 
     const openModal = (type) => {
         setModalType(type);
@@ -133,8 +146,8 @@ export default function AdminConfiguration() {
                             }}
                         >
                             <Checkbox
-                                checked={allChecked}
-                                onChange={handleSelectAll}
+                                checked={allRulesChecked}
+                                onChange={handleSelectAllRules}
                                 sx={{
                                     p: 0,
                                     mr: "10px",
@@ -185,9 +198,9 @@ export default function AdminConfiguration() {
                                     }}
                                 >
                                     <Checkbox
-                                        checked={!!checkedItems[rule.id]}
+                                        checked={!!checkedRules[rule.id]}
                                         onChange={(e) =>
-                                            setCheckedItems((prev) => ({
+                                            setCheckedRules((prev) => ({
                                                 ...prev,
                                                 [rule.id]: e.target.checked,
                                             }))
@@ -289,8 +302,8 @@ export default function AdminConfiguration() {
                             }}
                         >
                             <Checkbox
-                                checked={allChecked}
-                                onChange={handleSelectAll}
+                                checked={allCutoffsChecked}
+                                onChange={handleSelectAllCutoffs}
                                 sx={{
                                     p: 0,
                                     mr: "10px",
@@ -341,9 +354,9 @@ export default function AdminConfiguration() {
                                     }}
                                 >
                                     <Checkbox
-                                        checked={!!checkedItems[cutoff.id]}
+                                        checked={!!checkedCutoffs[cutoff.id]}
                                         onChange={(e) =>
-                                            setCheckedItems((prev) => ({
+                                            setCheckedCutoffs((prev) => ({
                                                 ...prev,
                                                 [cutoff.id]: e.target.checked,
                                             }))
@@ -447,7 +460,7 @@ export default function AdminConfiguration() {
                                     textAlign: "center",
                                 }}
                             >
-                                <span>Department</span>
+                                <span style={{ marginLeft: "7px", textAlign: "left" }}>Department</span>
                                 <span>Total Employees</span>
                                 <span>Full-Time</span>
                                 <span>Part-Time</span>
@@ -494,7 +507,7 @@ export default function AdminConfiguration() {
                                             textAlign: "center",
                                         }}
                                     >
-                                        <span>{group.department}</span>
+                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>{group.department}</span>
                                         <span>{group.totalEmployees}</span>
                                         <span>{group.fullTime}</span>
                                         <span>{group.partTime}</span>
@@ -555,23 +568,14 @@ export default function AdminConfiguration() {
         switch (modalType) {
             case "rule":
                 return (
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "16px",
-                        }}
-                    >
+                    <>
                         <Typography variant="h6">Config Rule</Typography>
 
                         <Select
                             value={selectedRule}
                             onChange={(e) => setSelectedRule(e.target.value)}
                             displayEmpty
-                            sx={{
-                                bgcolor: "#fff",
-                                borderRadius: "8px",
-                            }}
+                            sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                         >
                             <MenuItem value="" disabled>
                                 Select Rule Type
@@ -583,40 +587,23 @@ export default function AdminConfiguration() {
                             ))}
                         </Select>
 
-                        <TextField
-                            placeholder="Formula or Fixed Amount"
-                            fullWidth
-                            variant="outlined"
-                            size="small"
-                        />
-                        <TextField
-                            placeholder="Description"
-                            fullWidth
-                            variant="outlined"
-                            multiline
-                            rows={3}
-                            size="small"
-                        />
+                        <TextField placeholder="Formula or Fixed Amount" fullWidth variant="outlined" size="small" />
+                        <TextField placeholder="Description" fullWidth variant="outlined" multiline rows={3} size="small" />
 
                         <Box sx={{ display: "flex", gap: "16px" }}>
-                            <Button
-                                onClick={closeModal}
-                                variant="contained"
-                                color="error"
-                                fullWidth
-                            >
+                            <Button onClick={closeModal} variant="contained" color="error" fullWidth>
                                 Remove
                             </Button>
                             <Button variant="contained" fullWidth>
                                 Save
                             </Button>
                         </Box>
-                    </Box>
+                    </>
                 );
 
             case "cutoff":
                 return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <>
                         <Typography variant="h6">Add Cutoff</Typography>
 
                         <Box sx={{ display: "flex", gap: "16px" }}>
@@ -638,10 +625,7 @@ export default function AdminConfiguration() {
                             value={selectedFreq}
                             onChange={(e) => setSelectedFreq(e.target.value)}
                             displayEmpty
-                            sx={{
-                                bgcolor: "#fff",
-                                borderRadius: "8px",
-                            }}
+                            sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                         >
                             <MenuItem value="" disabled>
                                 Select Frequency
@@ -657,10 +641,7 @@ export default function AdminConfiguration() {
                             value={selectedDept}
                             onChange={(e) => setSelectedDept(e.target.value)}
                             displayEmpty
-                            sx={{
-                                bgcolor: "#fff",
-                                borderRadius: "8px",
-                            }}
+                            sx={{ bgcolor: "#fff", borderRadius: "8px" }}
                         >
                             <MenuItem value="" disabled>
                                 Select Department
@@ -672,10 +653,7 @@ export default function AdminConfiguration() {
                             ))}
                         </Select>
 
-                        <FormControlLabel
-                            control={<Checkbox />}
-                            label="Apply to all employees in selected department"
-                        />
+                        <FormControlLabel control={<Checkbox />} label="Apply to all employees in selected department" />
 
                         <Box sx={{ display: "flex", gap: "16px" }}>
                             <Button onClick={closeModal} variant="outlined" fullWidth>
@@ -685,12 +663,12 @@ export default function AdminConfiguration() {
                                 Save
                             </Button>
                         </Box>
-                    </Box>
+                    </>
                 );
 
             case "employee":
                 return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <Typography variant="h6">IT Department</Typography>
                             <TextField placeholder="Enter User Name" size="small" />
@@ -702,11 +680,7 @@ export default function AdminConfiguration() {
                         </Box>
 
                         <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            {[
-                                { name: "Jherwin Jimenez", type: "Full Time" },
-                                { name: "Symon Banana", type: "Part Time" },
-                                { name: "Russell James Vitale", type: "Contract" },
-                            ].map((emp, i) => (
+                            {employeeGroupsFromDB.map((emp, i) => (
                                 <Box
                                     key={i}
                                     sx={{
@@ -731,7 +705,7 @@ export default function AdminConfiguration() {
                         <Button onClick={closeModal} variant="contained" sx={{ mt: "8px" }}>
                             Save
                         </Button>
-                    </Box>
+                    </>
                 );
 
             default:
@@ -861,10 +835,15 @@ export default function AdminConfiguration() {
                                 </Box>
                             )}
 
-                            {(activeTab === "payrollRules" || activeTab === "cutoffDates") && hasChecked && (
+                            {(activeTab === "payrollRules" && hasCheckedRules) ||
+                            (activeTab === "cutoffDates" && hasCheckedCutoffs) ? (
                                 <Box
                                     component="button"
-                                    onClick={handleDeleteSelected}
+                                    onClick={
+                                        activeTab === "payrollRules"
+                                            ? handleDeleteSelectedRules
+                                            : handleDeleteSelectedCutoffs
+                                    }
                                     sx={{
                                         fontSize: "16px",
                                         backgroundColor: "#b22222",
@@ -885,7 +864,7 @@ export default function AdminConfiguration() {
                                 >
                                     Delete Selected
                                 </Box>
-                            )}
+                            ) : null}
                         </Box>
 
                         <Box sx={{ position: "relative" }}>
@@ -927,24 +906,9 @@ export default function AdminConfiguration() {
 
                     {renderCards()}
 
-                    <Modal open={showModal} onClose={closeModal}>
-                        <Box
-                            sx={{
-                                position: "absolute",
-                                top: "50%",
-                                left: "50%",
-                                transform: "translate(-50%, -50%)",
-                                bgcolor: "background.paper",
-                                p: "32px",
-                                borderRadius: "16px",
-                                width: "500px",
-                                maxHeight: "80vh",
-                                overflowY: "auto",
-                            }}
-                        >
-                            {renderModalContent()}
-                        </Box>
-                    </Modal>
+                    <BoxModal open={showModal} onClose={closeModal}>
+                        {renderModalContent()}
+                    </BoxModal>
                 </Box>
             </Box>
         </Box>
