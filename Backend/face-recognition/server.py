@@ -62,42 +62,43 @@ def save_employees():
 # POST /register - Register new employee or add samples
 @app.post("/register")
 async def register_face(
-        file: UploadFile = File(...),
+        files: list[UploadFile] = File(...),
         employee_id: str = Form(...),
         name: str = Form(...)
 ):
     try:
-        # Each employee has their own folder
-        emp_dir = f"faces_db/{employee_id}"
-        os.makedirs(emp_dir, exist_ok=True)
+        os.makedirs(f"faces_db/{employee_id}", exist_ok=True)
+        embeddings_db[employee_id] = []
 
-        # Save uploaded image with timestamp
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        save_path = f"{emp_dir}/{timestamp}.jpg"
-        with open(save_path, "wb") as f:
-            shutil.copyfileobj(file.file, f)
+        all_embeddings = []
 
-        # Generate embedding
-        embedding = DeepFace.represent(
-            img_path=save_path,
-            model_name="VGG-Face",
-            enforce_detection=False
-        )[0]["embedding"]
+        for idx, file in enumerate(files):
+            save_path = f"faces_db/{employee_id}/{employee_id}_{idx}.jpg"
+            with open(save_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
 
-        # Store embedding in the database
-        if employee_id not in embeddings_db:
-            embeddings_db[employee_id] = []
-        embeddings_db[employee_id].append(embedding)
-        save_embeddings()
+            # Extract embedding
+            result = DeepFace.represent(
+                img_path=save_path,
+                model_name="Facenet512",
+                detector_backend="mtcnn",
+                enforce_detection=True
+            )[0]["embedding"]
 
-        # Update employee list
+            emb = np.array(result, dtype=np.float32)
+            emb /= np.linalg.norm(emb)  # normalize
+            all_embeddings.append(emb)
+
+        # Average embeddings for stability
+        mean_embedding = np.mean(all_embeddings, axis=0)
+        embeddings_db[employee_id] = mean_embedding.tolist()
+
+        with open(embeddings_file, "wb") as f:
+            pickle.dump(embeddings_db, f)
+
         employees[employee_id] = name
-        save_employees()
 
-        return {
-            "success": True,
-            "message": f"Added new face sample for {name}. Total samples: {len(embeddings_db[employee_id])}"
-        }
+        return {"success": True, "message": f"Registered {name} with {len(files)} samples."}
 
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -114,35 +115,33 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         if not embeddings_db:
             return {"matched": False, "error": "No employees registered yet."}
 
-        uploaded_embedding = DeepFace.represent(
+        result = DeepFace.represent(
             img_path=path,
-            model_name="VGG-Face",
-            enforce_detection=False
+            model_name="Facenet512",
+            detector_backend="mtcnn",
+            enforce_detection=True
         )[0]["embedding"]
-        uploaded_embedding = np.array(uploaded_embedding)
 
-        if np.any(np.isnan(uploaded_embedding)) or np.any(np.isinf(uploaded_embedding)):
-            return {"matched": False, "error": "Invalid face embedding."}
+        uploaded_embedding = np.array(result, dtype=np.float32)
+        uploaded_embedding /= np.linalg.norm(uploaded_embedding)
 
+        # Compare using cosine similarity
         best_match_id = None
-        min_dist = float("inf")
+        best_score = -1
 
-        for emp_id, embeddings in embeddings_db.items():
-            for emb in embeddings:
-                emb_array = np.array(emb)
-                if np.any(np.isnan(emb_array)) or np.any(np.isinf(emb_array)):
-                    continue
-                dist = np.linalg.norm(emb_array - uploaded_embedding)
-                if dist < min_dist:
-                    min_dist = dist
-                    best_match_id = emp_id
+        for emp_id, emb in embeddings_db.items():
+            emb_array = np.array(emb)
+            sim = np.dot(emb_array, uploaded_embedding) / (np.linalg.norm(emb_array) * np.linalg.norm(uploaded_embedding))
+            if sim > best_score:
+                best_score = sim
+                best_match_id = emp_id
 
-        if best_match_id and math.isfinite(min_dist) and min_dist < 0.6:
+        if best_match_id and best_score > 0.5:
             employee_id = best_match_id
             name = employees.get(employee_id, "Unknown")
 
-            log_file = f"attendance_logs/{employee_id}.json"
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_file = f"attendance_logs/{employee_id}.json"
             log_entry = {"action": action, "timestamp": now}
 
             if os.path.exists(log_file):
@@ -159,20 +158,14 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
                 "matched": True,
                 "employee_id": employee_id,
                 "name": name,
-                "similarity": float(min_dist),
-                "samples": len(embeddings_db[employee_id]),
+                "similarity": float(best_score),
                 "attendance": log_entry
             }
 
-        else:
-            return {
-                "matched": False,
-                "similarity": float(min_dist) if math.isfinite(min_dist) else None
-            }
+        return {"matched": False, "similarity": float(best_score)}
 
     except Exception as e:
         return {"matched": False, "error": str(e)}
-
 
 # GET /attendance/{employee_id} - Fetch logs
 @app.get("/attendance/{employee_id}")
