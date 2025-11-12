@@ -33,7 +33,6 @@ function Login() {
         setStatus("Detecting face...");
 
         try {
-            // Detect face
             const detection = await faceapi.detectSingleFace(
                 videoRef.current,
                 new faceapi.TinyFaceDetectorOptions()
@@ -54,13 +53,13 @@ function Login() {
             const ctx = canvas.getContext("2d");
             ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, width, height);
 
-            // Optional: preview cropped face for debugging
+            // Optional: preview cropped face
             const previewImg = document.getElementById("face-preview");
             if (previewImg) {
                 previewImg.src = canvas.toDataURL("image/jpeg");
             }
 
-            // Convert canvas to blob
+            // Convert face image to Blob
             const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg"));
             if (!blob) {
                 setStatus("Failed to capture face. Please try again.");
@@ -80,10 +79,12 @@ function Login() {
             });
 
             const data = await response.json();
-            console.log("Backend response:", data); // debug exact error
+            console.log("Backend response:", data);
 
+            // Handle backend results
             if (data.matched) {
-                setStatus(`Welcome ${data.name}! Logging you in...`);
+                const confidence = data.confidence || (data.similarity * 100).toFixed(2);
+                setStatus(`✅ Welcome ${data.name}! (Confidence: ${confidence}%)`);
 
                 const userData = {
                     name: data.name,
@@ -92,7 +93,7 @@ function Login() {
                 };
                 setUser(userData);
 
-                // Redirect based on role
+                // Redirect after 1.5s delay
                 setTimeout(() => {
                     switch (userData.role) {
                         case "admin":
@@ -104,19 +105,25 @@ function Login() {
                         case "payroll":
                             navigate("/payroll/dashboard");
                             break;
-                        case "employee":
                         default:
                             navigate("/employee/dashboard");
                             break;
                     }
                 }, 1500);
             } else {
-                const msg = data.message || "Face not recognized. Please try again.";
-                setStatus(msg + (data.similarity ? ` (Similarity: ${data.similarity.toFixed(3)})` : ""));
+                // Handle failed match or low confidence
+                const confidence = data.confidence ? `${data.confidence}%` : "N/A";
+                const msg =
+                    data.message ||
+                    (data.error
+                        ? `Error: ${data.error}`
+                        : "Face not recognized. Please try again.");
+
+                setStatus(`${msg} (Confidence: ${confidence})`);
             }
         } catch (err) {
             console.error("Error during face login:", err);
-            setStatus("Error during face recognition. Check console for details.");
+            setStatus("Error during face recognition. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -127,7 +134,19 @@ function Login() {
             <div className="right-container">
                 <h2>Facial Recognition Login</h2>
 
-                <video ref={videoRef} autoPlay muted width="400" height="300" style={{ borderRadius: "10px" }} />
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    width="400"
+                    height="300"
+                    style={{ borderRadius: "10px", border: "2px solid #ccc" }}
+                />
+                <img
+                    id="face-preview"
+                    alt="Face preview"
+                    style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
+                />
                 <p>{status}</p>
 
                 <button
