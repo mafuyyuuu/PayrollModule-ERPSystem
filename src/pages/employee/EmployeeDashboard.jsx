@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import DashboardCard from "../../components/DashboardCard.jsx";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import DashboardCard from "../../components/DashboardCard.jsx";
 
 const earningsData = [
     { month: "Jan", earnings: 20000 },
