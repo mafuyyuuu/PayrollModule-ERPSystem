@@ -1,12 +1,10 @@
 import { Box, useTheme } from "@mui/material";
-import { tokens } from "../../theme.js";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { BarChart3 } from "lucide-react";
 import "../../components/NotificationItem.css";
 
 const AdminDashboard = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const notifications = [
         { title: "Payroll Updated", message: "The payroll for October 2025 has been successfully processed." },
@@ -49,7 +47,9 @@ const AdminDashboard = () => {
 
             <Box
                 sx={{
-                    backgroundColor: theme.palette.background.paper,
+                    backgroundColor: theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.05)"
+                        : "rgba(255, 255, 255, 0.2)",
                     borderRadius: "12px",
                     p: "24px",
                     color: theme.palette.text.primary,
@@ -132,7 +132,7 @@ const AdminDashboard = () => {
                                 gridTemplateColumns: "1fr",
                                 alignItems: "start",
                                 justifyItems: "start",
-                                backgroundColor: "rgba(255, 255, 255, 0.25)",
+                                bgcolor: "#f0f0f0",
                                 backdropFilter: "blur(12px)",
                                 borderRadius: "10px",
                                 marginTop: "10px",
@@ -145,14 +145,8 @@ const AdminDashboard = () => {
                             }}
                         >
                             <Box className="notification-item">
-                                <h3 style={{ color: theme.palette.text.primary }}>{notif.title}</h3>
-                                <p
-                                    style={{
-                                        color: theme.palette.text.primary,
-                                    }}
-                                >
-                                    {notif.message}
-                                </p>
+                                <h3>{notif.title}</h3>
+                                <p>{notif.message}</p>
                             </Box>
                         </Box>
                     ))}
