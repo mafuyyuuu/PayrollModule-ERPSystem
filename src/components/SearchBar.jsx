@@ -13,17 +13,16 @@ const SearchBar = ({ placeholder = "Search...", width = "450px", onChange }) => 
                 alignItems: "center",
                 borderRadius: "9px",
                 border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor: theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "rgba(255, 255, 255, 0.3)",
                 backdropFilter: "blur(12px)",
                 px: "15px",
                 py: "5px",
                 width: width,
                 transition: "box-shadow 0.3s ease, transform 0.3s ease",
                 "&:hover": {
-                    boxShadow:
-                        theme.palette.mode === "light"
-                            ? "0 4px 20px rgba(0,0,0,0.15)"
-                            : "0 4px 20px rgba(0,0,0,0.3)",
+                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                     transform: "translateY(-2px)",
                 },
             }}

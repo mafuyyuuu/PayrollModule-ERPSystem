@@ -27,7 +27,7 @@ const ActionButton = ({ text = "Button", width = "200px", onClick, sx = {} }) =>
                     backgroundColor:
                         theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.1)"
-                            : "rgba(255, 255, 255, 0.2)",
+                            : "rgba(255, 255, 255, 0.4)",
                     transform: "translateY(-2px)",
                     boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                 },

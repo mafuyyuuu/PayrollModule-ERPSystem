@@ -229,7 +229,7 @@ export default function AdminConfiguration() {
                                             display: "grid",
                                             gridTemplateColumns: "repeat(5, 1fr)",
                                             alignItems: "center",
-                                            bgcolor: "#f0f0f0",
+                                            bgcolor: "#fff",
                                             borderRadius: "8px",
                                             width: "100%",
                                             minHeight: "80px",
@@ -390,7 +390,7 @@ export default function AdminConfiguration() {
                                             display: "grid",
                                             gridTemplateColumns: "repeat(5, 1fr)",
                                             alignItems: "center",
-                                            bgcolor: "#f0f0f0",
+                                            bgcolor: "#fff",
                                             borderRadius: "8px",
                                             width: "100%",
                                             minHeight: "80px",
@@ -510,7 +510,7 @@ export default function AdminConfiguration() {
                                             display: "grid",
                                             gridTemplateColumns: "repeat(6, 1fr)",
                                             alignItems: "center",
-                                            bgcolor: "#f0f0f0",
+                                            bgcolor: "#fff",
                                             borderRadius: "8px",
                                             width: "100%",
                                             minHeight: "80px",
@@ -1025,17 +1025,6 @@ export default function AdminConfiguration() {
                                         onClick={() =>
                                             openModal(activeTab === "payrollRules" ? "rule" : "cutoff")
                                         }
-                                        sx={{
-                                            color: theme.palette.text.primary,
-                                            "&:hover": {
-                                                backgroundColor:
-                                                    theme.palette.mode === "dark"
-                                                        ? "rgba(255, 255, 255, 0.1)"
-                                                        : "rgba(255, 255, 255, 0.2)",
-                                                transform: "translateY(-2px)",
-                                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                            },
-                                        }}
                                     />
                                 )}
 
@@ -1049,16 +1038,6 @@ export default function AdminConfiguration() {
                                                 ? handleDeleteSelectedRules
                                                 : handleDeleteSelectedCutoffs
                                         }
-                                        sx={{
-                                            color: theme.palette.text.primary,
-                                            "&:hover": {
-                                                backgroundColor:
-                                                    theme.palette.mode === "dark"
-                                                        ? "rgba(255, 255, 255, 0.1)"
-                                                        : "rgba(255, 255, 255, 0.2)",                                                transform: "translateY(-2px)",
-                                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                            },
-                                        }}
                                     />
                                 ) : null}
                             </Box>
