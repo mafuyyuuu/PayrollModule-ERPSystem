@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { IconButton, Box, Typography, useTheme } from "@mui/material";
 import { tokens } from "../theme";
+import { IconButton, Box, Typography, useTheme } from "@mui/material";
 
 const DashboardCard = ({ icon, title, value, showHideButton }) => {
     const [showValue, setShowValue] = useState(false);
@@ -11,16 +11,25 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
 
     const formatValue = (val) => {
         if (typeof val !== "string") val = String(val);
-        const [main, decimal] = val.split(".");
-        return { main: main || "", decimal: decimal ? `.${decimal}` : "" };
+
+        const dateMatch = val.match(/^(.+?),\s*(\d{4})$/);
+        if (dateMatch) {
+            return {
+                main: dateMatch[1] + ",",
+                suffix: dateMatch[2],
+                isDate: true,
+            };
+        }
+
+        const [main, suffix] = val.split(".");
+        return {
+            main: main || "",
+            suffix: suffix ? `.${suffix}` : "",
+            isDate: false,
+        };
     };
 
-    const { main, decimal } = formatValue(value);
-
-    const borderColor =
-        theme.palette.mode === "light"
-            ? "rgba(0,0,0,0.1)"
-            : `${colors.green[500]}33`;
+    const { main, suffix, isDate } = formatValue(value);
 
     return (
         <Box
@@ -33,7 +42,7 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
             color={theme.palette.text.primary}
             sx={{
                 fontFamily: theme.typography.fontFamily,
-                border: `1px solid ${borderColor}`,
+                border: `1px solid ${theme.palette.divider}`,
                 transition: "all 0.3s ease",
                 "&:hover": {
                     transform: "scale(1.02)",
@@ -91,22 +100,40 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
                     }}
                 >
                     {showHideButton && !showValue ? (
-                        <span style={{ color: colors.charcoal[500] }}>••••••</span>
+                        <span
+                            style={{
+                                color: theme.palette.mode === "dark"
+                                    ? colors.gallery[500]
+                                    : colors.charcoal[500],
+                            }}
+                        >
+                            ••••••
+                        </span>
                     ) : (
                         <>
-                            <span style={{ color: colors.charcoal[500] }}>{main}</span>
-                            {decimal && (
+                            <span
+                                style={{
+                                    color: theme.palette.mode === "dark"
+                                        ? colors.gallery[500]
+                                        : colors.charcoal[500],
+                                }}
+                            >
+                                {main}
+                            </span>
+
+                            {suffix && (
                                 <span
                                     style={{
                                         color: theme.palette.text.secondary,
-                                        fontSize: "25px",
+                                        fontSize: isDate ? "25px" : "25px",
                                         lineHeight: 1,
                                         verticalAlign: "baseline",
                                         marginBottom: "2px",
+                                        marginLeft: isDate ? "6px" : 0,
                                     }}
                                 >
-                  {decimal}
-                </span>
+                                    {suffix}
+                                </span>
                             )}
                         </>
                     )}
