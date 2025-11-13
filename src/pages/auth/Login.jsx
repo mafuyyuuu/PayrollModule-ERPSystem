@@ -11,49 +11,53 @@ function Login() {
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
-    const { setUser } = useUser(); // changed this from `user` to `setUser`
+    const { setUser } = useUser();
 
     const handleBack = () => {
         navigate('/');
     };
 
-    const handleLogin = async (e) => {
+    const handleLogin = (e) => {
         e.preventDefault();
 
-        try {
-            const response = await fetch('http://localhost:8080/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
+        // ===== HARDCODED LOGIN =====
+        // You can change email/password checks and roles as needed
+        let hardcodedUser = null;
 
-            const data = await response.json();
+        if (email === 'admin@example.com' && password === 'admin123') {
+            hardcodedUser = { id: 1, username: 'Admin', role: 'admin', name: 'Admin User' };
+        } else if (email === 'manager@example.com' && password === 'manager123') {
+            hardcodedUser = { id: 2, username: 'Manager', role: 'manager', name: 'Manager User' };
+        } else if (email === 'payroll@example.com' && password === 'payroll123') {
+            hardcodedUser = { id: 3, username: 'Payroll', role: 'payroll', name: 'Payroll User' };
+        } else if (email === 'employee@example.com' && password === 'employee123') {
+            hardcodedUser = { id: 4, username: 'Employee', role: 'employee', name: 'Employee User' };
+        }
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Invalid email or password');
-            }
+        if (!hardcodedUser) {
+            setError('Invalid email or password');
+            return;
+        }
 
-            setUser(data);
+        // Set user in context
+        setUser(hardcodedUser);
 
-            switch (data.role) {
-                case 'admin':
-                    navigate('/admin');
-                    break;
-                case 'manager':
-                    navigate('/manager');
-                    break;
-                case 'payroll':
-                    navigate('/payroll');
-                    break;
-                case 'employee':
-                    navigate('/employee');
-                    break;
-                default:
-                    alert('Unknown role');
-            }
-        } catch (err) {
-            console.error('Login error:', err);
-            setError(err.message);
+        // Navigate based on role
+        switch (hardcodedUser.role) {
+            case 'admin':
+                navigate('/admin');
+                break;
+            case 'manager':
+                navigate('/manager');
+                break;
+            case 'payroll':
+                navigate('/payroll');
+                break;
+            case 'employee':
+                navigate('/employee');
+                break;
+            default:
+                alert('Unknown role');
         }
     };
 

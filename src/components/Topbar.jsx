@@ -5,7 +5,7 @@ import {
     useTheme,
 } from "@mui/material";
 import { useContext } from "react";
-import { ColorModeContext } from "../theme.js";
+import { ColorModeContext, tokens } from "../theme.js";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
@@ -21,11 +21,11 @@ const Topbar = () => {
             justifyContent="space-between"
             alignItems="center"
             height="16vh"
-            p="4rem 4rem"
+            p="4rem"
             sx={{
                 background: isLightMode
-                    ? "#E3E3E3"
-                    : "linear-gradient(180deg, rgba(28,35,36,1) 0%, rgba(23,34,36,1) 100%)",
+                    ? tokens("light").gray[500]
+                    : `linear-gradient(to right, ${tokens("dark").bunker[500]} 50%, ${tokens("dark")["outer-space"][500]} 85%, ${tokens("dark")["outer-space"][500]} 100%)`, // subtle gradient on right end
             }}
         >
             <Box>
@@ -56,7 +56,9 @@ const Topbar = () => {
                     <NotificationsNoneOutlinedIcon
                         sx={{
                             fontSize: "1.7rem",
-                            color: isLightMode ? "#1F2829" : "#EFEFEF",
+                            color: isLightMode
+                                ? tokens("light").black[500]
+                                : tokens("dark").gallery[500],
                         }}
                     />
                 </IconButton>
@@ -66,16 +68,16 @@ const Topbar = () => {
                         <DarkModeOutlinedIcon
                             sx={{
                                 fontSize: "1.7rem",
-                                color: "#1F2829",
-                                fill: "#1F2829",
+                                color: tokens("light").black[500],
+                                fill: tokens("light").black[500],
                             }}
                         />
                     ) : (
                         <LightModeOutlinedIcon
                             sx={{
                                 fontSize: "1.7rem",
-                                color: "#EFEFEF",
-                                fill: "#EFEFEF",
+                                color: tokens("dark")["white-ice"][100],
+                                fill: tokens("dark")["white-ice"][100],
                             }}
                         />
                     )}
