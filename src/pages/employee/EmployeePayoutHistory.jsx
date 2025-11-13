@@ -1,6 +1,8 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 
 export default function EmployeePayoutHistory() {
+    const theme = useTheme();
+
     const payrollHistory = [
         { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
         { duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930" },
@@ -12,84 +14,78 @@ export default function EmployeePayoutHistory() {
     ];
 
     return (
-        <Box
-            width="100%"
-            height="100%"
-        >
-            <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-            >
+        <Box width="100%" height="100%">
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        fontFamily: theme.typography.fontFamily,
+                        fontWeight: "bold",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Payout History
                 </Typography>
-
-                <Box sx={{ position: "relative" }}>
+                <Box sx={{ position: "relative", width: 250 }}>
                     <select
                         defaultValue=""
                         style={{
                             appearance: "none",
                             WebkitAppearance: "none",
                             MozAppearance: "none",
-                            width: 250,
+                            width: "100%",
                             padding: "10px 40px 10px 12px",
                             borderRadius: "15px",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            background: "rgba(255, 255, 255, 0.2)",
+                            border: `1px solid ${theme.palette.divider}`,
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.05)"
+                                    : "rgba(255, 255, 255, 0.25)",
                             backdropFilter: "blur(12px)",
-                            color: "#222",
-                            fontFamily: "inherit",
+                            color: theme.palette.text.primary,
+                            fontFamily: theme.typography.fontFamily,
                             fontSize: "16px",
                             cursor: "pointer",
                             outline: "none",
                         }}
                     >
                         <option value="">Select Payroll Duration</option>
+                        {payrollHistory.map((item, idx) => (
+                            <option key={idx} value={item.duration}>
+                                {item.duration}
+                            </option>
+                        ))}
                     </select>
                     <i
                         className="ri-arrow-down-s-line"
                         style={{
                             position: "absolute",
-                            right: "10px",
+                            right: "14px",
                             top: "50%",
                             transform: "translateY(-50%)",
                             pointerEvents: "none",
-                            color: "#222",
+                            color: theme.palette.text.primary,
                             fontSize: "18px",
                         }}
-                    ></i>
+                    />
                 </Box>
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="92%"
                 sx={{
-                    backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    backgroundColor: theme.palette.background.paper,
+                    borderRadius: "12px",
+                    p: "24px",
+                    color: theme.palette.text.primary,
+                    height: "92%",
+                    fontFamily: theme.typography.fontFamily,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
-                    gap: "10px",
                 }}
             >
                 <Box
@@ -98,9 +94,8 @@ export default function EmployeePayoutHistory() {
                         gridTemplateColumns: "1fr 1fr 1fr 1fr",
                         alignItems: "center",
                         justifyItems: "center",
-                        border: "none",
-                        padding: "12px",
                         fontWeight: 600,
+                        padding: "10px 0",
                     }}
                 >
                     <span>Payroll Duration</span>
@@ -108,7 +103,6 @@ export default function EmployeePayoutHistory() {
                     <span>Reference Number</span>
                     <span>Action</span>
                 </Box>
-
                 <Box
                     sx={{
                         maxHeight: "100%",
@@ -118,12 +112,9 @@ export default function EmployeePayoutHistory() {
                         flexDirection: "column",
                         mt: "5px",
                         gap: "10px",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        "&::-webkit-scrollbar": {
-                            width: 0,
-                            height: 0,
-                        },
                     }}
                 >
                     {payrollHistory.map((item, index) => (
@@ -134,15 +125,14 @@ export default function EmployeePayoutHistory() {
                                 gridTemplateColumns: "1fr 1fr 1fr 1fr",
                                 alignItems: "center",
                                 justifyItems: "center",
-                                backgroundColor: "rgba(255, 255, 255, 0.25)",
-                                backdropFilter: "blur(12px)",
+                                backgroundColor: theme.palette.action.hover,
                                 borderRadius: "10px",
-                                padding: "12px",
+                                padding: "12px 0",
                                 marginTop: "10px",
                                 transition: "all 0.3s ease",
-                                border: "1px solid rgba(255,255,255,0.3)",
+                                border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
+                                    backgroundColor: theme.palette.action.selected,
                                     transform: "translateY(-2px)",
                                     boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
@@ -154,8 +144,14 @@ export default function EmployeePayoutHistory() {
                             <Box textAlign="center" ml="15px">
                                 <button
                                     style={{
-                                        backgroundColor: "#3A4F50",
-                                        color: "#fff",
+                                        backgroundColor:
+                                            theme.palette.mode === "light"
+                                                ? "#3A4F50"
+                                                : "#EFEFEF",
+                                        color:
+                                            theme.palette.mode === "light"
+                                                ? "#fff"
+                                                : "#1b2223",
                                         border: "none",
                                         width: "30px",
                                         height: "30px",
@@ -168,14 +164,25 @@ export default function EmployeePayoutHistory() {
                                     }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = "translateY(-3px)";
-                                        e.currentTarget.style.backgroundColor = "#2E3B3D"; // hover color
+                                        e.currentTarget.style.backgroundColor =
+                                            theme.palette.mode === "light"
+                                                ? "#2E3B3D"
+                                                : "#bdbdbd";
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.transform = "translateY(0)";
-                                        e.currentTarget.style.backgroundColor = "#3A4F50"; // original color
+                                        e.currentTarget.style.backgroundColor =
+                                            theme.palette.mode === "light"
+                                                ? "#3A4F50"
+                                                : "#EFEFEF";
                                     }}
                                 >
-                                    <i className="ri-download-2-line"></i>
+                                    <i
+                                        className="ri-download-2-line"
+                                        style={{
+                                            color: theme.palette.mode === "light" ? "#fff" : "#1b2223",
+                                        }}
+                                    ></i>
                                 </button>
                             </Box>
                         </Box>
@@ -183,6 +190,5 @@ export default function EmployeePayoutHistory() {
                 </Box>
             </Box>
         </Box>
-
     );
 }
