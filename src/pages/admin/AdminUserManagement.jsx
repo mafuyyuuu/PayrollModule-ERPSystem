@@ -1,6 +1,11 @@
 import React from "react";
-import { Box, Button, IconButton, TextField, Typography, Paper, Stack, useTheme } from "@mui/material";
-import { RiPencilFill, RiSearchLine } from "react-icons/ri";
+import {
+    Box,
+    IconButton,
+    Typography,
+    useTheme,
+} from "@mui/material";
+import { RiPencilFill } from "react-icons/ri";
 import SearchBar from "../../components/SearchBar.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
 
@@ -9,8 +14,8 @@ export default function AdminUserManagement() {
 
     const users = [
         { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
-        { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
-        { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
+        { id: "0100XXX", name: "Sarah Cruz", role: "Manager", access: "Admin", status: "Active" },
+        { id: "0100XXX", name: "Michael Lee", role: "Developer", access: "Limited", status: "Inactive" },
         { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
     ];
 
@@ -41,126 +46,112 @@ export default function AdminUserManagement() {
                     <ActionButton
                         text="Add User"
                         width="200px"
-                        sx={{
-                            color: theme.palette.text.primary,
-                            "&:hover": {
-                                backgroundColor:
-                                    theme.palette.mode === "dark"
-                                        ? "rgba(255, 255, 255, 0.1)"
-                                        : "rgba(255, 255, 255, 0.2)",
-                                transform: "translateY(-2px)",
-                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                            },
-                        }}
                     />
 
                     <ActionButton
                         text="Remove"
                         width="200px"
-                        sx={{
-                            color: theme.palette.text.primary,
-                            "&:hover": {
-                                backgroundColor:
-                                    theme.palette.mode === "dark"
-                                        ? "rgba(255, 255, 255, 0.1)"
-                                        : "rgba(255, 255, 255, 0.2)",
-                                transform: "translateY(-2px)",
-                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                            },
-                        }}
                     />
                 </Box>
 
-                <SearchBar
-                    placeholder="Enter Username"
-                    width="350px"
-                />
+                <SearchBar placeholder="Enter Username" width="350px" />
             </Box>
 
-            <Paper
+            {/* Table Container */}
+            <Box
                 sx={{
-                    p: 2,
-                    borderRadius: "16px",
-                    backdropFilter: "blur(12px)",
+                    height: "83.5%",
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
-                    backgroundColor: theme.palette.background.default,
-                    boxShadow: theme.shadows[4],
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
                 }}
             >
+                {/* Table Header */}
                 <Box
                     sx={{
                         display: "grid",
                         gridTemplateColumns: "repeat(6, 1fr)",
-                        fontWeight: 700,
-                        fontSize: 14,
-                        mb: 1,
                         color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px",
+                        borderRadius: "15px",
+                        width: "100%",
+                        alignItems: "center",
                     }}
                 >
-                    {["User ID", "Name", "Role", "Access Level", "Status", "Actions"].map((header) => (
-                        <Box key={header} sx={{ textAlign: "center" }}>
-                            {header}
-                        </Box>
-                    ))}
+                    <span style={{ textAlign: "center" }}>User ID</span>
+                    <span style={{ textAlign: "center" }}>Name</span>
+                    <span style={{ textAlign: "center" }}>Role</span>
+                    <span style={{ textAlign: "center" }}>Access</span>
+                    <span style={{ textAlign: "center" }}>Status</span>
+                    <span style={{ textAlign: "center" }}>Actions</span>
                 </Box>
 
-                <Stack spacing={1.5}>
-                    {users.map((user, i) => (
-                        <Box
-                            key={i}
-                            sx={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(6, 1fr)",
-                                alignItems: "center",
-                                p: 1.5,
-                                borderRadius: "12px",
-                                boxShadow: theme.shadows[1],
-                                border: `1px solid ${theme.palette.divider}`,
-                                transition: "transform 0.2s, box-shadow 0.2s",
-                                backgroundColor: theme.palette.background.paper,
-                                "&:hover": {
-                                    transform: "translateY(-2px)",
-                                    boxShadow: theme.shadows[4],
-                                },
-                                fontSize: 14,
-                                color: theme.palette.text.primary,
-                            }}
-                        >
-                            <Box sx={{ textAlign: "center" }}>{user.id}</Box>
-                            <Box sx={{ textAlign: "center" }}>{user.name}</Box>
-                            <Box sx={{ textAlign: "center" }}>{user.role}</Box>
-                            <Box sx={{ textAlign: "center" }}>{user.access}</Box>
-                            <Box sx={{ textAlign: "center" }}>{user.status}</Box>
-                            <Box sx={{ display: "flex", justifyContent: "center" }}>
-                                <IconButton
-                                    sx={{
+                {/* User Rows */}
+                {users.map((user, i) => (
+                    <Box
+                        key={i}
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(6, 1fr)",
+                            alignItems: "center",
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.08)"
+                                    : "#fff",
+                            borderRadius: "8px",
+                            width: "100%",
+                            minHeight: "70px",
+                            mt: 1.5,
+                            transition: "all 0.3s ease",
+                            "&:hover": {
+                                transform: "translateY(-2px)",
+                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                            },
+                            color: theme.palette.text.primary,
+                        }}
+                    >
+                        <Box sx={{ textAlign: "center" }}>{user.id}</Box>
+                        <Box sx={{ textAlign: "center" }}>{user.name}</Box>
+                        <Box sx={{ textAlign: "center" }}>{user.role}</Box>
+                        <Box sx={{ textAlign: "center" }}>{user.access}</Box>
+                        <Box sx={{ textAlign: "center" }}>{user.status}</Box>
+                        <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+                            <IconButton
+                                sx={{
+                                    bgcolor:
+                                        theme.palette.mode === "dark"
+                                            ? "#2E3839"
+                                            : "#3A4F50",
+                                    color: "#fff",
+                                    width: "32px",
+                                    height: "32px",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "translateY(-3px)",
                                         bgcolor:
                                             theme.palette.mode === "dark"
-                                                ? "#1b2223"
-                                                : theme.palette.primary.main,
-                                        color: theme.palette.getContrastText(
-                                            theme.palette.mode === "dark"
-                                                ? "#1b2223"
-                                                : theme.palette.primary.main
-                                        ),
-                                        "&:hover": {
-                                            bgcolor:
-                                                theme.palette.mode === "dark"
-                                                    ? "#333"
-                                                    : theme.palette.primary.dark,
-                                            transform: "scale(1.05)",
-                                        },
-                                        width: 36,
-                                        height: 36,
-                                    }}
-                                >
-                                    <RiPencilFill />
-                                </IconButton>
-                            </Box>
+                                                ? "#1f2f31"
+                                                : "#2E3B3D",
+                                    },
+                                }}
+                            >
+                                <RiPencilFill />
+                            </IconButton>
                         </Box>
-                    ))}
-                </Stack>
-            </Paper>
+                    </Box>
+                ))}
+            </Box>
         </Box>
     );
 }

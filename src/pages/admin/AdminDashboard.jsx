@@ -132,7 +132,7 @@ const AdminDashboard = () => {
                                 gridTemplateColumns: "1fr",
                                 alignItems: "start",
                                 justifyItems: "start",
-                                bgcolor: "#f0f0f0",
+                                bgcolor: "#fff",
                                 backdropFilter: "blur(12px)",
                                 borderRadius: "10px",
                                 marginTop: "10px",
