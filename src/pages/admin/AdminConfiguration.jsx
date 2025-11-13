@@ -15,11 +15,10 @@ import {
 import {  RiPencilFill, RiEyeFill } from "react-icons/ri";
 import { useTheme } from "@mui/material/styles";
 import BoxModal from "../../components/BoxModal";
-import { tokens } from "../../theme.js";
+import ActionButton from "../../components/ActionButton.jsx";
 
 export default function AdminConfiguration() {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     const [activeTab, setActiveTab] = useState("payrollRules");
     const [showModal, setShowModal] = useState(false);
@@ -168,6 +167,7 @@ export default function AdminConfiguration() {
                                 sx={{
                                     display: "grid",
                                     gridTemplateColumns: "repeat(5, 1fr)",
+                                    color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     p: "8px",
                                     borderRadius: "15px",
@@ -316,9 +316,11 @@ export default function AdminConfiguration() {
                                 sx={{
                                     p: 0,
                                     mr: "10px",
-                                    color: "#1F2829",
+                                    color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                     borderRadius: "5px",
-                                    "&.Mui-checked": { color: "#1F2829" },
+                                    "&.Mui-checked": {
+                                        color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                    },
                                     "& .MuiSvgIcon-root": { fontSize: 25 },
                                 }}
                             />
@@ -326,6 +328,7 @@ export default function AdminConfiguration() {
                                 sx={{
                                     display: "grid",
                                     gridTemplateColumns: "repeat(5, 1fr)",
+                                    color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     p: "8px",
                                     borderRadius: "15px",
@@ -373,9 +376,11 @@ export default function AdminConfiguration() {
                                         sx={{
                                             p: 0,
                                             mr: "10px",
-                                            color: "#1F2829",
+                                            color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                             borderRadius: "5px",
-                                            "&.Mui-checked": { color: "#1F2829" },
+                                            "&.Mui-checked": {
+                                                color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                            },
                                             "& .MuiSvgIcon-root": { fontSize: 25 },
                                         }}
                                     />
@@ -461,6 +466,7 @@ export default function AdminConfiguration() {
                                 sx={{
                                     display: "grid",
                                     gridTemplateColumns: "repeat(6, 1fr)",
+                                    color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     p: "8px",
                                     borderRadius: "15px",
@@ -529,7 +535,7 @@ export default function AdminConfiguration() {
                                             }}
                                         >
                                             <IconButton
-                                                onClick={() => openModal("employeeGroup", group)}
+                                                onClick={() => openModal("employee", group)}
                                                 sx={{
                                                     bgcolor: "#3A4F50",
                                                     color: "#fff",
@@ -545,7 +551,7 @@ export default function AdminConfiguration() {
                                                 <RiEyeFill />
                                             </IconButton>
                                             <IconButton
-                                                onClick={() => openModal("employeeGroup", group)}
+                                                onClick={() => openModal("employee", group)}
                                                 sx={{
                                                     bgcolor: "#3A4F50",
                                                     color: "#fff",
@@ -577,43 +583,228 @@ export default function AdminConfiguration() {
         switch (modalType) {
             case "rule":
                 return (
-                    <>
-                        <Typography variant="h6">Config Rule</Typography>
-
-                        <Select
-                            value={selectedRule}
-                            onChange={(e) => setSelectedRule(e.target.value)}
-                            displayEmpty
-                            sx={{ bgcolor: "#fff", borderRadius: "8px" }}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                mb: 2,
+                            }}
                         >
-                            <MenuItem value="" disabled>
-                                Select Rule Type
-                            </MenuItem>
-                            {["Overtime", "Deduction", "Bonus", "Allowance"].map((option) => (
-                                <MenuItem key={option} value={option}>
-                                    {option}
+                            Add Rule
+                        </Typography>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
+                                Rule Type
+                            </Typography>
+
+                            <Select
+                                value={selectedRule}
+                                onChange={(e) => setSelectedRule(e.target.value)}
+                                displayEmpty
+                                sx={{
+                                    backgroundColor:
+                                        theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",                                    borderRadius: "13px", // match TextField
+                                    color: "#1e1e1e",
+                                    fontSize: "18px",
+                                    "& .MuiSelect-select": {
+                                        padding: "8px 12px",
+                                    },
+                                    "& .MuiOutlinedInput-notchedOutline": {
+                                        borderColor: "#EFEFEF",
+                                    },
+                                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                                        borderColor:
+                                            theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.5)"
+                                                : "#1F2829",
+                                    },
+                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                        borderColor:
+                                            theme.palette.mode === "dark"
+                                                ? "#fff"
+                                                : "#1F2829",
+                                    },
+                                }}
+                                renderValue={(selected) => {
+                                    if (!selected) return <span style={{ color: "#9e9e9e" }}>Select Rule Type</span>;
+                                    return selected;
+                                }}
+                            >
+                                <MenuItem value="">
+                                    <em style={{ color: "#9e9e9e" }}>Select Rule Type</em>
                                 </MenuItem>
-                            ))}
-                        </Select>
-
-                        <TextField placeholder="Formula or Fixed Amount" fullWidth variant="outlined" size="small" />
-                        <TextField placeholder="Description" fullWidth variant="outlined" multiline rows={3} size="small" />
-
-                        <Box sx={{ display: "flex", gap: "16px" }}>
-                            <Button onClick={closeModal} variant="contained" color="error" fullWidth>
-                                Remove
-                            </Button>
-                            <Button variant="contained" fullWidth>
-                                Save
-                            </Button>
+                                {["Overtime", "Deduction", "Bonus", "Allowance"].map((option) => (
+                                    <MenuItem key={option} value={option} sx={{ color: "#1e1e1e" }}>
+                                        {option}
+                                    </MenuItem>
+                                ))}
+                            </Select>
                         </Box>
-                    </>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
+                                Formula or Fixed Amount
+                            </Typography>
+
+                            <TextField
+                                placeholder="Enter formula or amount"
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor:
+                                            theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
+                                        color: theme.palette.text.primary,
+                                        fontSize: "18px",
+                                        "& fieldset": {
+                                            borderColor:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255, 255, 255, 0.3)"
+                                                    : "rgba(0, 0, 0, 0.23)",
+                                        },
+                                        "&:hover fieldset": {
+                                            borderColor:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255, 255, 255, 0.5)"
+                                                    : "#1F2829",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor:
+                                                theme.palette.mode === "dark"
+                                                    ? "#fff"
+                                                    : "#1F2829",
+                                        },
+                                    },
+                                    "& .MuiInputBase-input": { fontSize: "18px" },
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
+                                Description
+                            </Typography>
+
+                            <TextField
+                                placeholder="Enter description"
+                                fullWidth
+                                variant="outlined"
+                                multiline
+                                rows={3}
+                                size="small"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        fontSize: "18px",
+                                        borderRadius: "13px",
+                                        backgroundColor:
+                                            theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
+                                        color: theme.palette.text.primary,
+                                        "& fieldset": {
+                                            borderColor:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255, 255, 255, 0.3)"
+                                                    : "rgba(0, 0, 0, 0.23)",
+                                        },
+                                        "&:hover fieldset": {
+                                            borderColor:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255, 255, 255, 0.5)"
+                                                    : "#1F2829",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            borderColor:
+                                                theme.palette.mode === "dark"
+                                                    ? "#fff"
+                                                    : "#1F2829",
+                                        },
+                                    },
+                                }}
+                            />
+                        </Box>
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                mt: 3,
+                            }}
+                        >
+                            <Box
+                                component="button"
+                                onClick={closeModal}
+                                sx={{
+                                    fontSize: "16px",
+                                    backgroundColor: "#b22222",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "100%",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#8b1a1a",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Remove
+                            </Box>
+
+                            <Box
+                                component="button"
+                                sx={{
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "100%",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Save
+                            </Box>
+                        </Box>
+                    </Box>
                 );
 
             case "cutoff":
                 return (
                     <>
-                        <Typography variant="h6">Add Cutoff</Typography>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: theme.palette.text.primary,
+                                mb: 2,
+                            }}
+                        >
+                            Add Cutoff
+                        </Typography>
 
                         <Box sx={{ display: "flex", gap: "16px" }}>
                             <DatePicker
@@ -726,7 +917,9 @@ export default function AdminConfiguration() {
         <Box
             width="100%"
             height="100%"
-            sx={{ fontFamily: "'TTHoves-Regular', sans-serif" }}
+            sx={{
+                fontFamily: theme.typography.fontFamily,
+            }}
         >
             <Typography
                 variant="h5"
@@ -746,9 +939,12 @@ export default function AdminConfiguration() {
             <Box
                 sx={{
                     height:"93%",
-                    backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    backgroundColor: theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.05)"
+                        : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
                     pt: "12px",
                     pb: "12px",
                     pl: "24px",
@@ -765,8 +961,10 @@ export default function AdminConfiguration() {
                         display: "flex",
                         gap: "12px",
                         mb: "13px",
-                        backgroundColor: "rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        backgroundColor: theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.2)"
+                            : "rgba(255, 255, 255, 0.3)",
+                        border: `1px solid ${theme.palette.divider}`,
                         p: "12px",
                         borderRadius: "25px",
                     }}
@@ -776,7 +974,7 @@ export default function AdminConfiguration() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             sx={{
-                                bgcolor: activeTab === tab ? "#fff" : "#efeff0",
+                                bgcolor: activeTab === tab ? "#fff" : "#bdbdbd",
                                 color: activeTab === tab ? "#172224" : "#3a4f50",
                                 fontWeight: 700,
                                 textTransform: "none",
@@ -797,15 +995,18 @@ export default function AdminConfiguration() {
                 </Box>
 
                 <Box
-                    backgroundColor="rgba(200, 200, 200, 0.6)"
-                    height={"85%"}
-                    borderRadius="12px"
-                    p="24px"
-                    color="#222"
-                    sx={{
+                    sx={(theme) => ({
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.3)",
+                        height: "85%",
+                        borderRadius: "12px",
+                        p: "24px",
+                        color: "#222",
                         fontFamily: "'TTHoves-Regular', sans-serif",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
-                    }}
+                        border: `1px solid ${theme.palette.divider}`,
+                    })}
                 >
                     <Box
                         sx={{
@@ -816,64 +1017,51 @@ export default function AdminConfiguration() {
                         }}
                     >
                         <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                            {(activeTab === "payrollRules" || activeTab === "cutoffDates") && (
-                                <Box
-                                    component="button"
-                                    onClick={() =>
-                                        openModal(activeTab === "payrollRules" ? "rule" : "cutoff")
-                                    }
-                                    sx={{
-                                        fontSize: "16px",
-                                        backgroundColor: "#172224",
-                                        color: "#fff",
-                                        padding: "10px 0",
-                                        borderRadius: "15px",
-                                        cursor: "pointer",
-                                        border: "none",
-                                        transition: "all 0.3s ease",
-                                        width: "200px",
-                                        fontFamily: "'TTHoves-Regular', sans-serif",
-                                        "&:hover": {
-                                            backgroundColor: "#1f2f31",
-                                            transform: "translateY(-2px)",
-                                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                        },
-                                    }}
-                                >
-                                    {activeTab === "payrollRules" ? "Add Rule" : "Add Cutoff"}
-                                </Box>
-                            )}
+                            <Box sx={{ display: "flex", gap: 2 }}>
+                                {(activeTab === "payrollRules" || activeTab === "cutoffDates") && (
+                                    <ActionButton
+                                        text={activeTab === "payrollRules" ? "Add Rule" : "Add Cutoff"}
+                                        width="200px"
+                                        onClick={() =>
+                                            openModal(activeTab === "payrollRules" ? "rule" : "cutoff")
+                                        }
+                                        sx={{
+                                            color: theme.palette.text.primary,
+                                            "&:hover": {
+                                                backgroundColor:
+                                                    theme.palette.mode === "dark"
+                                                        ? "rgba(255, 255, 255, 0.1)"
+                                                        : "rgba(255, 255, 255, 0.2)",
+                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                            },
+                                        }}
+                                    />
+                                )}
 
-                            {(activeTab === "payrollRules" && hasCheckedRules) ||
-                            (activeTab === "cutoffDates" && hasCheckedCutoffs) ? (
-                                <Box
-                                    component="button"
-                                    onClick={
-                                        activeTab === "payrollRules"
-                                            ? handleDeleteSelectedRules
-                                            : handleDeleteSelectedCutoffs
-                                    }
-                                    sx={{
-                                        fontSize: "16px",
-                                        backgroundColor: "#b22222",
-                                        color: "#fff",
-                                        padding: "10px 0",
-                                        borderRadius: "15px",
-                                        cursor: "pointer",
-                                        border: "none",
-                                        transition: "all 0.3s ease",
-                                        width: "200px",
-                                        fontFamily: "'TTHoves-Regular', sans-serif",
-                                        "&:hover": {
-                                            backgroundColor: "#8b1a1a",
-                                            transform: "translateY(-2px)",
-                                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                        },
-                                    }}
-                                >
-                                    Delete Selected
-                                </Box>
-                            ) : null}
+                                {(activeTab === "payrollRules" && hasCheckedRules) ||
+                                (activeTab === "cutoffDates" && hasCheckedCutoffs) ? (
+                                    <ActionButton
+                                        text="Delete Selected"
+                                        width="200px"
+                                        onClick={
+                                            activeTab === "payrollRules"
+                                                ? handleDeleteSelectedRules
+                                                : handleDeleteSelectedCutoffs
+                                        }
+                                        sx={{
+                                            color: theme.palette.text.primary,
+                                            "&:hover": {
+                                                backgroundColor:
+                                                    theme.palette.mode === "dark"
+                                                        ? "rgba(255, 255, 255, 0.1)"
+                                                        : "rgba(255, 255, 255, 0.2)",                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                            },
+                                        }}
+                                    />
+                                ) : null}
+                            </Box>
                         </Box>
 
                         <Box sx={{ position: "relative" }}>
@@ -886,10 +1074,12 @@ export default function AdminConfiguration() {
                                     width: 100,
                                     padding: "10px 40px 10px 12px",
                                     borderRadius: "20px",
-                                    border: "1px solid rgba(255, 255, 255, 0.4)",
-                                    background: "rgba(255, 255, 255, 0.3)",
-                                    backdropFilter: "blur(12px)",
-                                    color: "#222",
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    backgroundColor:
+                                        theme.palette.mode === "dark"
+                                            ? "rgba(255, 255, 255, 0.05)"
+                                            : "rgba(255, 255, 255, 0.2)",                               backdropFilter: "blur(12px)",
+                                    color: theme.palette.text.primary,
                                     fontFamily: "inherit",
                                     fontSize: "16px",
                                     cursor: "pointer",
@@ -906,7 +1096,7 @@ export default function AdminConfiguration() {
                                     top: "50%",
                                     transform: "translateY(-50%)",
                                     pointerEvents: "none",
-                                    color: "#222",
+                                    color: theme.palette.text.primary,
                                     fontSize: "18px",
                                 }}
                             ></i>
