@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ThemeProvider, CssBaseline, Box } from "@mui/material";
+import { ThemeProvider, CssBaseline } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 
 import { UserProvider } from "./components/UserContext.jsx";
@@ -50,216 +50,81 @@ function App() {
         <ColorModeContext.Provider value={colorMode}>
             <ThemeProvider theme={theme}>
                 <CssBaseline />
-                <Box
-                    sx={(theme) => ({
-                        backgroundColor: theme.palette.background.default,
-                        minHeight: "100vh",
-                        color: theme.palette.text.primary,
-                        fontFamily: theme.typography.fontFamily,
-                    })}
-                >
-                    <UserProvider>
-                        <Router>
-                            <Routes>
-                                {/* Auth routes */}
-                                <Route element={<Auth />}>
-                                    <Route path="/" element={<Landing />} />
-                                    <Route path="/login" element={<Login />} />
-                                </Route>
+                <UserProvider>
+                    <Router>
+                        <Routes>
+                            {/* landing and login */}
+                            <Route element={<Auth />}>
+                                <Route path="/" element={<Landing />} />
+                                <Route path="/login" element={<Login />} />
+                            </Route>
 
-                                {/* Protected routes with Layout */}
-                                <Route element={<Layout />}>
-                                    {/* Admin routes */}
-                                    <Route
-                                        path="/admin/dashboard"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminDashboard />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/admin/configuration"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminConfiguration />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/admin/user"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminUserManagement />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/admin/approvals"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminApprovals />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/admin/reports"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminReports />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/admin/setup"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminPayrollSetup />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/admin/audit"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["admin"]}>
-                                                <AdminAuditLogs />
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                            {/* all protected routes share the same layout */}
+                            <Route element={<Layout />}>
+                                {/* admin routes */}
+                                <Route path="/admin/*" element={
+                                    <ProtectedRoute allowedRoles={["admin"]}>
+                                        <Routes>
+                                            <Route path="dashboard" element={<AdminDashboard />} />
+                                            <Route path="configuration" element={<AdminConfiguration />} />
+                                            <Route path="user" element={<AdminUserManagement />} />
+                                            <Route path="approvals" element={<AdminApprovals />} />
+                                            <Route path="reports" element={<AdminReports />} />
+                                            <Route path="setup" element={<AdminPayrollSetup />} />
+                                            <Route path="audit" element={<AdminAuditLogs />} />
+                                            <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                        </Routes>
+                                    </ProtectedRoute>
+                                } />
 
-                                    {/* Payroll routes */}
-                                    <Route
-                                        path="/payroll/dashboard"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["payroll"]}>
-                                                <PayrollDashboard />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/payroll/employee"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["payroll"]}>
-                                                <PayrollEmployeeRecords />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/payroll/payroll"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["payroll"]}>
-                                                <PayrollProcess />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/payroll/pending"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["payroll"]}>
-                                                <PayrollPendingRequest />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/payroll/reports"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["payroll"]}>
-                                                <PayrollReports />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/payroll/tax"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["payroll"]}>
-                                                <PayrollTaxContribution />
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                                {/* payroll routes */}
+                                <Route path="/payroll/*" element={
+                                    <ProtectedRoute allowedRoles={["payroll"]}>
+                                        <Routes>
+                                            <Route path="dashboard" element={<PayrollDashboard />} />
+                                            <Route path="employee" element={<PayrollEmployeeRecords />} />
+                                            <Route path="payroll" element={<PayrollProcess />} />
+                                            <Route path="pending" element={<PayrollPendingRequest />} />
+                                            <Route path="reports" element={<PayrollReports />} />
+                                            <Route path="tax" element={<PayrollTaxContribution />} />
+                                            <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                        </Routes>
+                                    </ProtectedRoute>
+                                } />
 
-                                    {/* Manager routes */}
-                                    <Route
-                                        path="/manager/dashboard"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["manager"]}>
-                                                <ManagerDashboard />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/manager/timesheets"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["manager"]}>
-                                                <ManagerTimesheets />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/manager/payroll"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["manager"]}>
-                                                <ManagerPayrollManagement />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/manager/pending"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["manager"]}>
-                                                <ManagerPendingRequest />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/manager/reports"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["manager"]}>
-                                                <ManagerReports />
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                                {/* manager routes */}
+                                <Route path="/manager/*" element={
+                                    <ProtectedRoute allowedRoles={["manager"]}>
+                                        <Routes>
+                                            <Route path="dashboard" element={<ManagerDashboard />} />
+                                            <Route path="timesheets" element={<ManagerTimesheets />} />
+                                            <Route path="payroll" element={<ManagerPayrollManagement />} />
+                                            <Route path="pending" element={<ManagerPendingRequest />} />
+                                            <Route path="reports" element={<ManagerReports />} />
+                                            <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                        </Routes>
+                                    </ProtectedRoute>
+                                } />
 
-                                    {/* Employee routes */}
-                                    <Route
-                                        path="/employee/dashboard"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["employee"]}>
-                                                <EmployeeDashboard />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/employee/history"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["employee"]}>
-                                                <EmployeePayoutHistory />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/employee/tax"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["employee"]}>
-                                                <EmployeeTax />
-                                            </ProtectedRoute>
-                                        }
-                                    />
-                                    <Route
-                                        path="/employee/profile"
-                                        element={
-                                            <ProtectedRoute allowedRoles={["employee"]}>
-                                                <EmployeeProfile />
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                                {/* employee routes */}
+                                <Route path="/employee/*" element={
+                                    <ProtectedRoute allowedRoles={["employee"]}>
+                                        <Routes>
+                                            <Route path="dashboard" element={<EmployeeDashboard />} />
+                                            <Route path="history" element={<EmployeePayoutHistory />} />
+                                            <Route path="tax" element={<EmployeeTax />} />
+                                            <Route path="profile" element={<EmployeeProfile />} />
+                                            <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                        </Routes>
+                                    </ProtectedRoute>
+                                } />
 
-                                    {/* Fallback route */}
-                                    <Route path="*" element={<Navigate to="/" replace />} />
-                                </Route>
-                            </Routes>
-                        </Router>
-                    </UserProvider>
-                </Box>
+                                {/* fallback for any unknown route */}
+                                <Route path="*" element={<Navigate to="/" replace />} />
+                            </Route>
+                        </Routes>
+                    </Router>
+                </UserProvider>
             </ThemeProvider>
         </ColorModeContext.Provider>
     );
