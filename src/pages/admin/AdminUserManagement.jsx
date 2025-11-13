@@ -17,6 +17,10 @@ export default function AdminUserManagement() {
         { id: "0100XXX", name: "Sarah Cruz", role: "Manager", access: "Admin", status: "Active" },
         { id: "0100XXX", name: "Michael Lee", role: "Developer", access: "Limited", status: "Inactive" },
         { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
+        { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
+        { id: "0100XXX", name: "Sarah Cruz", role: "Manager", access: "Admin", status: "Active" },
+        { id: "0100XXX", name: "Michael Lee", role: "Developer", access: "Limited", status: "Inactive" },
+        { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
     ];
 
     return (
@@ -57,7 +61,6 @@ export default function AdminUserManagement() {
                 <SearchBar placeholder="Enter Username" width="350px" />
             </Box>
 
-            {/* Table Container */}
             <Box
                 sx={{
                     height: "83.5%",
@@ -70,23 +73,27 @@ export default function AdminUserManagement() {
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
                         transform: "scale(1.02)",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
-                {/* Table Header */}
                 <Box
                     sx={{
                         display: "grid",
                         gridTemplateColumns: "repeat(6, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
-                        p: "8px",
+                        p: "8px 0",
                         borderRadius: "15px",
                         width: "100%",
                         alignItems: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
                     <span style={{ textAlign: "center" }}>User ID</span>
@@ -97,60 +104,62 @@ export default function AdminUserManagement() {
                     <span style={{ textAlign: "center" }}>Actions</span>
                 </Box>
 
-                {/* User Rows */}
-                {users.map((user, i) => (
-                    <Box
-                        key={i}
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(6, 1fr)",
-                            alignItems: "center",
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.08)"
-                                    : "#fff",
-                            borderRadius: "8px",
-                            width: "100%",
-                            minHeight: "70px",
-                            mt: 1.5,
-                            transition: "all 0.3s ease",
-                            "&:hover": {
-                                transform: "translateY(-2px)",
-                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                            },
-                            color: theme.palette.text.primary,
-                        }}
-                    >
-                        <Box sx={{ textAlign: "center" }}>{user.id}</Box>
-                        <Box sx={{ textAlign: "center" }}>{user.name}</Box>
-                        <Box sx={{ textAlign: "center" }}>{user.role}</Box>
-                        <Box sx={{ textAlign: "center" }}>{user.access}</Box>
-                        <Box sx={{ textAlign: "center" }}>{user.status}</Box>
-                        <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
-                            <IconButton
-                                sx={{
-                                    bgcolor:
-                                        theme.palette.mode === "dark"
-                                            ? "#2E3839"
-                                            : "#3A4F50",
-                                    color: "#fff",
-                                    width: "32px",
-                                    height: "32px",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-3px)",
-                                        bgcolor:
-                                            theme.palette.mode === "dark"
-                                                ? "#1f2f31"
-                                                : "#2E3B3D",
-                                    },
-                                }}
-                            >
-                                <RiPencilFill />
-                            </IconButton>
+                <Box
+                    sx={{
+                        overflowY: "auto",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    }}
+                >
+                    {users.map((user, i) => (
+                        <Box
+                            key={i}
+                            sx={{
+                                marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(6, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "80px",
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                },
+                                textAlign: "center",
+                            }}
+                        >
+                            <span>{user.id}</span>
+                            <span>{user.name}</span>
+                            <span>{user.role}</span>
+                            <span>{user.access}</span>
+                            <span>{user.status}</span>
+                            <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+                                <IconButton
+                                    sx={{
+                                        bgcolor: "#3A4F50",
+                                        color: "#fff",
+                                        width: "32px",
+                                        height: "32px",
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            transform: "translateY(-3px)",
+                                            bgcolor: "#2E3B3D",
+                                        },
+                                    }}
+                                >
+                                    <RiPencilFill />
+                                </IconButton>
+                            </Box>
                         </Box>
-                    </Box>
-                ))}
+                    ))}
+                </Box>
             </Box>
         </Box>
     );

@@ -169,13 +169,13 @@ export default function AdminConfiguration() {
                                     gridTemplateColumns: "repeat(5, 1fr)",
                                     color: theme.palette.text.primary,
                                     fontWeight: 700,
-                                    p: "8px",
+                                    p: "8px 0",
                                     borderRadius: "15px",
                                     width: "100%",
                                     alignItems: "center",
                                 }}
                             >
-                                <span style={{ textAlign: "left" }}>Rule Type</span>
+                                <span style={{ marginLeft: "7px", textAlign: "left" }}>Rule Type</span>
                                 <span style={{ textAlign: "left" }}>Description</span>
                                 <span style={{ textAlign: "center" }}>Formula / Value</span>
                                 <span style={{ textAlign: "center" }}>Status</span>
@@ -330,13 +330,13 @@ export default function AdminConfiguration() {
                                     gridTemplateColumns: "repeat(5, 1fr)",
                                     color: theme.palette.text.primary,
                                     fontWeight: 700,
-                                    p: "8px",
+                                    p: "8px 0",
                                     borderRadius: "15px",
                                     width: "100%",
                                     alignItems: "center",
                                 }}
                             >
-                                <span style={{ textAlign: "left" }}>Period</span>
+                                <span style={{ marginLeft: "7px", textAlign: "left" }}>Period</span>
                                 <span style={{ textAlign: "center" }}>Start Date</span>
                                 <span style={{ textAlign: "center" }}>End Date</span>
                                 <span style={{ textAlign: "center" }}>Frequency</span>
@@ -468,7 +468,7 @@ export default function AdminConfiguration() {
                                     gridTemplateColumns: "repeat(6, 1fr)",
                                     color: theme.palette.text.primary,
                                     fontWeight: 700,
-                                    p: "8px",
+                                    p: "8px 0",
                                     borderRadius: "15px",
                                     width: "100%",
                                     alignItems: "center",
