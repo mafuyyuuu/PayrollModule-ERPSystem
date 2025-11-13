@@ -1,5 +1,4 @@
-import { Box } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { Box, useTheme } from "@mui/material";
 import { tokens } from "../../theme.js";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { BarChart3 } from "lucide-react";
@@ -17,10 +16,7 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <Box
-            width="100%"
-            height="80%"
-        >
+        <Box width="100%" height="80%">
             <Box
                 display="grid"
                 gridTemplateColumns="repeat(4, 1fr)"
@@ -47,21 +43,20 @@ const AdminDashboard = () => {
                 <DashboardCard
                     icon="ri-calendar-schedule-line"
                     title="Upcoming Schedules"
-                    value="10/31/25"
+                    value="October 31, 2025"
                 />
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="97.5%"
                 sx={{
+                    backgroundColor: theme.palette.background.paper,
+                    borderRadius: "12px",
+                    p: "24px",
+                    color: theme.palette.text.primary,
+                    height: "97.5%",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    fontFamily: theme.typography.fontFamily,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -71,7 +66,7 @@ const AdminDashboard = () => {
                 }}
             >
                 <Box
-                    style={{
+                    sx={{
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -80,13 +75,14 @@ const AdminDashboard = () => {
                 >
                     <Box
                         className="notif-title"
-                        style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                        sx={{ display: "flex", alignItems: "center", gap: "8px" }}
                     >
-                        <BarChart3 size={20} />
+                        <BarChart3 size={20} color={theme.palette.text.primary} />
                         <span
                             style={{
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
                                 fontSize: "18px",
+                                color: theme.palette.text.primary,
                             }}
                         >
                             System Alerts and Notifications
@@ -97,7 +93,7 @@ const AdminDashboard = () => {
                         className="view-all-btn"
                         style={{
                             background: "transparent",
-                            color: "#1b2223",
+                            color: theme.palette.text.primary,
                             padding: "6px 14px",
                             border: "none",
                             cursor: "pointer",
@@ -141,17 +137,22 @@ const AdminDashboard = () => {
                                 borderRadius: "10px",
                                 marginTop: "10px",
                                 transition: "all 0.3s ease",
-                                border: "1px solid rgba(255,255,255,0.3)",
+                                border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
                                     transform: "translateY(-2px)",
                                     boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
                             }}
                         >
                             <Box className="notification-item">
-                                <h3>{notif.title}</h3>
-                                <p>{notif.message}</p>
+                                <h3 style={{ color: theme.palette.text.primary }}>{notif.title}</h3>
+                                <p
+                                    style={{
+                                        color: theme.palette.text.primary,
+                                    }}
+                                >
+                                    {notif.message}
+                                </p>
                             </Box>
                         </Box>
                     ))}

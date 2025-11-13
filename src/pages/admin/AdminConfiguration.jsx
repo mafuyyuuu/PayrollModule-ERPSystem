@@ -13,9 +13,14 @@ import {
     FormControlLabel,
 } from "@mui/material";
 import {  RiPencilFill, RiEyeFill } from "react-icons/ri";
+import { useTheme } from "@mui/material/styles";
 import BoxModal from "../../components/BoxModal";
+import { tokens } from "../../theme.js";
 
 export default function AdminConfiguration() {
+    const theme = useTheme();
+    const colors = tokens(theme.palette.mode);
+
     const [activeTab, setActiveTab] = useState("payrollRules");
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState("");
@@ -134,7 +139,7 @@ export default function AdminConfiguration() {
                             paddingLeft: "10px",
                             display: "flex",
                             flexDirection: "column",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            fontFamily: theme.typography.fontFamily,
                         }}
                     >
                         <Box
@@ -148,14 +153,16 @@ export default function AdminConfiguration() {
                             <Checkbox
                                 checked={allRulesChecked}
                                 onChange={handleSelectAllRules}
-                                sx={{
+                                sx={(theme) => ({
                                     p: 0,
                                     mr: "10px",
-                                    color: "#1F2829",
+                                    color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                     borderRadius: "5px",
-                                    "&.Mui-checked": { color: "#1F2829" },
+                                    "&.Mui-checked": {
+                                        color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                    },
                                     "& .MuiSvgIcon-root": { fontSize: 25 },
-                                }}
+                                })}
                             />
                             <Box
                                 sx={{
@@ -208,9 +215,11 @@ export default function AdminConfiguration() {
                                         sx={{
                                             p: 0,
                                             mr: "10px",
-                                            color: "#1F2829",
+                                            color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                             borderRadius: "5px",
-                                            "&.Mui-checked": { color: "#1F2829" },
+                                            "&.Mui-checked": {
+                                                color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                            },
                                             "& .MuiSvgIcon-root": { fontSize: 25 },
                                         }}
                                     />
@@ -724,7 +733,7 @@ export default function AdminConfiguration() {
                 sx={{
                     fontSize: "20px",
                     fontFamily: "'TTHoves-Bold', sans-serif",
-                    color: "#222",
+                    color: theme.palette.text.primary,
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",

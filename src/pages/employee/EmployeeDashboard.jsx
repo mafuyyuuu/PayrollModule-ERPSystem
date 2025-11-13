@@ -162,6 +162,8 @@ const EmployeeDashboard = () => {
                             />
                         </Box>
 
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+
                         <Box display="flex" gap="19px">
                             {[...Array(2)].map((_, i) => (
                                 <input
