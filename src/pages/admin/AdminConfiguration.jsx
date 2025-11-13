@@ -384,7 +384,6 @@ export default function AdminConfiguration() {
                                             "& .MuiSvgIcon-root": { fontSize: 25 },
                                         }}
                                     />
-
                                     <Box
                                         sx={{
                                             display: "grid",
@@ -401,18 +400,10 @@ export default function AdminConfiguration() {
                                             },
                                         }}
                                     >
-                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>
-                                            {cutoff.period}
-                                        </span>
-                                                    <span style={{ textAlign: "center" }}>
-                                            {cutoff.startDate}
-                                        </span>
-                                                    <span style={{ textAlign: "center" }}>
-                                            {cutoff.endDate}
-                                        </span>
-                                                    <span style={{ textAlign: "center" }}>
-                                            {cutoff.frequency}
-                                        </span>
+                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>{cutoff.period}</span>
+                                        <span style={{ textAlign: "center" }}>{cutoff.startDate}</span>
+                                        <span style={{ textAlign: "center" }}>{cutoff.endDate}</span>
+                                        <span style={{ textAlign: "center" }}>{cutoff.frequency}</span>
                                         <Box
                                             sx={{
                                                 display: "flex",
@@ -981,7 +972,7 @@ export default function AdminConfiguration() {
                                 borderRadius: "15px",
                                 fontSize: "18px",
                                 fontFamily: "'TTHoves-Bold', sans-serif",
-                                minWidth: "180px",
+                                minWidth: "200px",
                                 minHeight: "50px",
                             }}
                         >

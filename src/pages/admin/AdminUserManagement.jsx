@@ -106,6 +106,7 @@ export default function AdminUserManagement() {
 
                 <Box
                     sx={{
+                        maxHeight: "512px",
                         overflowY: "auto",
                         "&::-webkit-scrollbar": { width: 0, height: 0 },
                         scrollbarWidth: "none",
