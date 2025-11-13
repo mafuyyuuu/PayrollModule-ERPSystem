@@ -68,9 +68,6 @@ export const themeSettings = (mode) => {
             h5: { fontFamily: "'TTHoves-Regular', 'sans-serif'", fontSize: 16, fontWeight: 400 },
             h6: { fontFamily: "'TTHoves-DemiBold', 'sans-serif'", fontSize: 14, fontWeight: 300 },
 
-            body1: { fontFamily: "'TTHoves-Regular', 'sans-serif'", fontWeight: 400 },
-            body2: { fontFamily: "'TTHoves-Regular', 'sans-serif'", fontWeight: 400 },
-
             button: { fontFamily: "'TTHoves-Medium', 'sans-serif'", textTransform: "none", fontWeight: 500 },
         },
     };

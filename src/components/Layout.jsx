@@ -1,10 +1,9 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar.jsx";
-import Topbar from "../components/Topbar.jsx";
 import { ThemeProvider, useTheme, Box } from "@mui/material";
 import { ColorModeContext } from "../theme.js";
 import {useContext} from "react";
-
+import Sidebar from "../components/Sidebar.jsx";
+import Topbar from "../components/Topbar.jsx";
 
 export default function Layout() {
     const theme = useTheme();

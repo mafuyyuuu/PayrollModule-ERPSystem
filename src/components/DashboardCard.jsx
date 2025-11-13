@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { IconButton, Box, Typography, useTheme } from "@mui/material";
 import { tokens } from "../theme";
+import { IconButton, Box, Typography, useTheme } from "@mui/material";
 
 const DashboardCard = ({ icon, title, value, showHideButton }) => {
     const [showValue, setShowValue] = useState(false);

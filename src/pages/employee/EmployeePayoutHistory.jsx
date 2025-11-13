@@ -26,7 +26,6 @@ export default function EmployeePayoutHistory() {
                 >
                     Payout History
                 </Typography>
-
                 <Box sx={{ position: "relative", width: 250 }}>
                     <select
                         defaultValue=""
@@ -71,7 +70,6 @@ export default function EmployeePayoutHistory() {
                     />
                 </Box>
             </Box>
-
             <Box
                 sx={{
                     backgroundColor: theme.palette.background.paper,
