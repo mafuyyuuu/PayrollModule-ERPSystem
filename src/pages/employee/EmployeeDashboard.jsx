@@ -1,7 +1,8 @@
-import { Box, Typography, useTheme } from "@mui/material";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { Box, Typography, TextField } from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 
+// Sample chart data (replace later with backend data)
 const earningsData = [
     { month: "Jan", earnings: 20000 },
     { month: "Feb", earnings: 23000 },
@@ -11,11 +12,13 @@ const earningsData = [
 ];
 
 const EmployeeDashboard = () => {
-    const theme = useTheme();
-
     return (
         <Box width="100%" height="80%">
-            <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px">
+            <Box
+                display="grid"
+                gridTemplateColumns="repeat(3, 1fr)"
+                gap="20px"
+            >
                 <DashboardCard
                     icon="ri-group-line"
                     title="Upcoming Disbursement"
@@ -43,14 +46,16 @@ const EmployeeDashboard = () => {
                 alignItems="stretch"
                 height="97.5%"
             >
+                {/* --- EARNINGS CHART --- */}
                 <Box
+                    backgroundColor="rgba(255, 255, 255, 0.2)"
+                    borderRadius="12px"
+                    p="24px"
+                    color="#222"
                     sx={{
-                        backgroundColor: theme.palette.background.paper,
-                        borderRadius: "12px",
-                        p: "24px",
-                        color: theme.palette.text.primary,
-                        fontFamily: theme.typography.fontFamily,
-                        border: `1px solid ${theme.palette.divider}`,
+                        fontFamily: "'TTHoves-Regular', sans-serif",
+                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
+                        border: "1px solid rgba(255, 255, 255, 0.4)",
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
@@ -62,19 +67,15 @@ const EmployeeDashboard = () => {
                         variant="h5"
                         sx={{
                             mb: 2,
-                            fontFamily: theme.typography.fontFamily,
-                            fontWeight: 500,
-                            color: theme.palette.text.primary,
+                            fontSize: "18px",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: "#222",
                         }}
                     >
                         <i
                             className="ri-bar-chart-2-line"
-                            style={{
-                                fontSize: 18,
-                                color: theme.palette.text.primary,
-                                marginRight: "10px",
-                            }}
-                        />
+                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
+                        ></i>
                         Total Earnings Overview
                     </Typography>
 
@@ -83,7 +84,7 @@ const EmployeeDashboard = () => {
                             <Line
                                 type="monotone"
                                 dataKey="earnings"
-                                stroke={theme.palette.success.main} // dynamic color
+                                stroke="#3A4F50"
                                 strokeWidth={3}
                                 dot={{ r: 4, strokeWidth: 1 }}
                             />
@@ -91,14 +92,16 @@ const EmployeeDashboard = () => {
                     </ResponsiveContainer>
                 </Box>
 
+                {/* --- APPLY FOR LEAVE --- */}
                 <Box
+                    backgroundColor="rgba(255, 255, 255, 0.2)"
+                    borderRadius="12px"
+                    p="24px"
+                    color="#222"
                     sx={{
-                        backgroundColor: theme.palette.background.paper,
-                        borderRadius: "12px",
-                        p: "24px",
-                        color: theme.palette.text.primary,
-                        fontFamily: theme.typography.fontFamily,
-                        border: `1px solid ${theme.palette.divider}`,
+                        fontFamily: "'TTHoves-Regular', sans-serif",
+                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
+                        border: "1px solid rgba(255, 255, 255, 0.4)",
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
@@ -110,112 +113,134 @@ const EmployeeDashboard = () => {
                         variant="h5"
                         sx={{
                             mb: 4,
-                            fontFamily: theme.typography.fontFamily,
-                            fontWeight: 500,
-                            color: theme.palette.text.primary,
+                            fontSize: "18px",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: "#222",
                         }}
                     >
                         <i
                             className="ri-calendar-2-line"
-                            style={{
-                                fontSize: 18,
-                                color: theme.palette.text.primary,
-                                marginRight: "10px",
-                            }}
-                        />
+                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
+                        ></i>
                         Apply for Leave
                     </Typography>
 
-                    <form style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                        <Box sx={{ position: "relative", width: "100%" }}>
-                            <select
-                                style={{
-                                    appearance: "none",
-                                    width: "100%",
-                                    padding: "10px 40px 10px 12px",
-                                    borderRadius: "15px",
-                                    border: "none",
-                                    backgroundColor: theme.palette.background.default,
-                                    color: theme.palette.text.primary,
-                                    fontFamily: theme.typography.fontFamily,
-                                    fontSize: "14px",
-                                    cursor: "pointer",
-                                    outline: "none",
+                    <form
+                        className="leave-form"
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "18px",
+                        }}
+                    >
+                        {/* Leave Type Options */}
+                        <Box
+                            sx={{
+                                display: "flex",
+                                backgroundColor: "#BDBDBD",
+                                flexDirection: "column",
+                                padding: "20px 18px",
+                                gap: "10px",
+                                borderRadius: "15px",
+                                mb: 3,
+                            }}
+                        >
+                            {[
+                                { type: "Sick Leave", remaining: 6 },
+                                { type: "Vacation Leave", remaining: 5 },
+                                { type: "Emergency Leave", remaining: 3 },
+                            ].map((leave, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        backgroundColor: "rgba(245, 245, 245, 0.7)",
+                                        borderRadius: "10px",
+                                        padding: "12px 16px",
+                                    }}
+                                >
+                                    <Box>
+                                        <Typography
+                                            sx={{
+                                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                                color: "#222",
+                                                fontSize: "15px",
+                                            }}
+                                        >
+                                            {leave.type}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: "13px", color: "#172224" }}>
+                                            {leave.remaining} leaves remaining
+                                        </Typography>
+                                    </Box>
+                                    <input type="radio" name="leaveType" />
+                                </Box>
+                            ))}
+                        </Box>
+
+                        {/* Date Pickers */}
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            gap="10px"
+                            mb={2}
+                        >
+                            <TextField
+                                type="date"
+                                fullWidth
+                                variant="outlined"
+                                InputProps={{
+                                    sx: {
+                                        borderRadius: "20px",
+                                        backgroundColor: "#f7f7f7",
+                                    },
                                 }}
-                            >
-                                <option value="">Type of Leave</option>
-                                <option value="sick">Sick Leave</option>
-                                <option value="vacation">Vacation Leave</option>
-                                <option value="emergency">Emergency Leave</option>
-                            </select>
-                            <i
-                                className="ri-arrow-down-s-line"
-                                style={{
-                                    position: "absolute",
-                                    right: "14px",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    pointerEvents: "none",
-                                    color: theme.palette.text.primary,
-                                    fontSize: "18px",
+                            />
+                            <TextField
+                                type="date"
+                                fullWidth
+                                variant="outlined"
+                                InputProps={{
+                                    sx: {
+                                        borderRadius: "20px",
+                                        backgroundColor: "#f7f7f7",
+                                    },
                                 }}
                             />
                         </Box>
 
-                        backgroundColor: "rgba(255, 255, 255, 0.25)",
-
-                        <Box display="flex" gap="19px">
-                            {[...Array(2)].map((_, i) => (
-                                <input
-                                    key={i}
-                                    type="date"
-                                    style={{
-                                        flex: 1,
-                                        padding: "10px",
-                                        borderRadius: "15px",
-                                        border: "none",
-                                        backgroundColor: theme.palette.background.default,
-                                        color: theme.palette.text.primary,
-                                        fontFamily: theme.typography.fontFamily,
-                                        fontSize: "14px",
-                                        outline: "none",
-                                    }}
-                                />
-                            ))}
-                        </Box>
-
-                        <textarea
+                        {/* Reason Field */}
+                        <TextField
                             placeholder="Type your reason..."
-                            style={{
-                                padding: "10px",
-                                borderRadius: "15px",
-                                border: "none",
-                                backgroundColor: theme.palette.background.default,
-                                color: theme.palette.text.primary,
-                                minHeight: "110px",
-                                fontFamily: theme.typography.fontFamily,
-                                fontSize: "14px",
-                                resize: "none",
-                                overflowY: "auto",
-                                outline: "none",
+                            multiline
+                            rows={2}
+                            fullWidth
+                            variant="outlined"
+                            sx={{
+                                borderRadius: "12px",
+                                mb: 2,
+                                backgroundColor: "#f7f7f7",
                             }}
                         />
 
+                        {/* Submit Button */}
                         <Box
                             component="button"
                             sx={{
                                 mt: "16px",
                                 fontSize: "16px",
-                                backgroundColor: theme.palette.primary.main,
-                                color: theme.palette.text.secondary,
+                                backgroundColor: "#172224",
+                                color: "#fff",
                                 padding: "10px 0",
                                 borderRadius: "20px",
-                                fontFamily: theme.typography.fontFamily,
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
                                 cursor: "pointer",
                                 border: "none",
                                 transition: "all 0.3s ease",
                                 "&:hover": {
-                                    backgroundColor: theme.palette.success.dark,
+                                    backgroundColor: "#1f2f31",
                                 },
                             }}
                         >
