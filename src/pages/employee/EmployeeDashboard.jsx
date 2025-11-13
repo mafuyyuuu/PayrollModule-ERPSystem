@@ -112,7 +112,7 @@ const EmployeeDashboard = () => {
                     <Typography
                         variant="h5"
                         sx={{
-                            mb: 4,
+                            mb: 3,
                             fontSize: "18px",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                             color: "#222",
@@ -142,7 +142,6 @@ const EmployeeDashboard = () => {
                                 padding: "20px 18px",
                                 gap: "10px",
                                 borderRadius: "15px",
-                                mb: 3,
                             }}
                         >
                             {[
@@ -159,6 +158,11 @@ const EmployeeDashboard = () => {
                                         backgroundColor: "rgba(245, 245, 245, 0.7)",
                                         borderRadius: "10px",
                                         padding: "12px 16px",
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            transform: "scale(1.02)",
+                                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                                        },
                                     }}
                                 >
                                     <Box>
@@ -184,31 +188,64 @@ const EmployeeDashboard = () => {
                         <Box
                             display="flex"
                             justifyContent="space-between"
-                            gap="10px"
-                            mb={2}
+                            gap="25px"
+                            mb={1}
                         >
+                            <Box
+                                display = "flex" flexDirection = "column" width= "100%">
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#222",
+                                    fontSize: "13px",
+                                    marginLeft: "10px",
+                                    mb: "3px"
+                                }}>
+                                From
+                            </Typography>
                             <TextField
                                 type="date"
                                 fullWidth
                                 variant="outlined"
                                 InputProps={{
                                     sx: {
-                                        borderRadius: "20px",
-                                        backgroundColor: "#f7f7f7",
+                                        height: "50px",
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#222",
+                                        borderRadius: "25px",
+                                        backgroundColor: "#BDBDBD",
                                     },
                                 }}
                             />
-                            <TextField
-                                type="date"
-                                fullWidth
-                                variant="outlined"
-                                InputProps={{
-                                    sx: {
-                                        borderRadius: "20px",
-                                        backgroundColor: "#f7f7f7",
-                                    },
-                                }}
-                            />
+                            </Box>
+
+                            <Box
+                                display = "flex" flexDirection = "column" width= "100%">
+                                <Typography
+                                    sx={{
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#222",
+                                        fontSize: "13px",
+                                        marginLeft: "10px",
+                                        mb: "3px"
+                                    }}>
+                                    To
+                                </Typography>
+                                <TextField
+                                    type="date"
+                                    variant="outlined"
+                                    InputProps={{
+                                        sx: {
+                                            height: "50px",
+                                            width: "100%",
+                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                            color: "#222",
+                                            borderRadius: "25px",
+                                            backgroundColor: "#BDBDBD",
+                                        },
+                                    }}
+                                />
+                            </Box>
                         </Box>
 
                         {/* Reason Field */}
@@ -219,8 +256,8 @@ const EmployeeDashboard = () => {
                             fullWidth
                             variant="outlined"
                             sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
                                 borderRadius: "12px",
-                                mb: 2,
                                 backgroundColor: "#f7f7f7",
                             }}
                         />
@@ -229,7 +266,6 @@ const EmployeeDashboard = () => {
                         <Box
                             component="button"
                             sx={{
-                                mt: "16px",
                                 fontSize: "16px",
                                 backgroundColor: "#172224",
                                 color: "#fff",
