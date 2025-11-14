@@ -33,7 +33,6 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
 
     return (
         <Box
-            backgroundColor={theme.palette.background.paper}
             borderRadius="12px"
             p="24px"
             display="flex"
@@ -41,6 +40,10 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
             justifyContent="space-between"
             color={theme.palette.text.primary}
             sx={{
+                backgroundColor:
+                    theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.05)"
+                        : "rgba(255, 255, 255, 0.3)",
                 fontFamily: theme.typography.fontFamily,
                 border: `1px solid ${theme.palette.divider}`,
                 transition: "all 0.3s ease",
