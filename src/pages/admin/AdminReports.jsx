@@ -1,6 +1,7 @@
 import React from "react";
-import "../styles/AdminReports.css";
+import {Box, Typography, Button, useTheme} from "@mui/material";
 import { RiFilter3Line } from "react-icons/ri";
+import ActionButton from "../../components/ActionButton.jsx";
 
 const deductionData = [
     ["Jhervin Jimenez", "₱1,200", "₱500", "₱400", "₱200", "₱2,300"],
@@ -9,83 +10,313 @@ const deductionData = [
 ];
 
 export default function AdminReports() {
+    const theme = useTheme();
+
     return (
-        <>
-            <div className="report-header-top">
-                <h2 className="report-main-title">Reports and Analytics</h2>
-            </div>
+        <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
+            <Typography
+                variant="h5"
+                sx={{
+                    fontSize: "20px",
+                    fontFamily: "'TTHoves-Bold', sans-serif",
+                    color: theme.palette.text.primary,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "25px",
+                }}
+            >
+                Reports and Analytics
+            </Typography>
 
-            <div className="report-container">
+            <Box
+                sx={{
+                    height: "93%",
+                    backgroundColor: theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.05)"
+                        : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: 2,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        borderRadius: "12px",
+                        p: 2.5,
+                        backgroundColor: theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.2)"
+                            : "rgba(255, 255, 255, 0.3)",
+                        border: `1px solid ${theme.palette.divider}`,
+                        mb: 2,
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontSize: "17px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Payroll Summary Report
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                            <ActionButton
+                                text="Export PDF"
+                                width="150px"
+                            />
+                            <Box sx={{ position: "relative" }}>
+                                <select
+                                    defaultValue=""
+                                    style={{
+                                        appearance: "none",
+                                        WebkitAppearance: "none",
+                                        MozAppearance: "none",
+                                        width: 100,
+                                        padding: "10px 40px 10px 12px",
+                                        borderRadius: "20px",
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        backgroundColor:
+                                            theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.05)"
+                                                : "rgba(255, 255, 255, 0.2)",
+                                        backdropFilter: "blur(12px)",
+                                        color: theme.palette.text.primary,
+                                        fontFamily: "inherit",
+                                        fontSize: "16px",
+                                        cursor: "pointer",
+                                        outline: "none",
+                                    }}
+                                >
+                                    <option value="">Filter</option>
+                                </select>
+                                <i
+                                    className="ri-arrow-down-s-line"
+                                    style={{
+                                        position: "absolute",
+                                        right: "10px",
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        pointerEvents: "none",
+                                        color: theme.palette.text.primary,
+                                        fontSize: "18px",
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+                    </Box>
 
-                <div className="report-card report-summary">
-                    <div className="report-card-header">
-                        <h3>Payroll Summary Report</h3>
-                        <div className="report-card-actions">
-                            <button className="report-filterBtn">
-                                Filter <RiFilter3Line size={16} />
-                            </button>
-                            <button className="report-export">Export PDF</button>
-                        </div>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: 2,
+                            alignItems: "flex-start",
+                            mt: 1,
+                            flexDirection: { xs: "column", md: "row" },
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                flex: 1.2,
+                                height: 220,
+                                background: "rgba(255,255,255,0.2)",
+                                borderRadius: "12px",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                fontStyle: "italic",
+                                border: "1px dashed rgba(255,255,255,0.4)",
+                            }}
+                        >
+                            (Chart/Graph Placeholder)
+                        </Box>
 
-                    </div>
+                        <Box
+                            sx={{
+                                flex: 1.8,
+                                display: "flex",
+                                flexDirection: "column",
+                                minHeight: "24vh",
+                                p: 1,
+                                borderRadius: "10px",
+                                overflowY: "auto",
+                                background: "linear-gradient(to bottom, #d4d3d3, #d7d4d4)",
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    fontWeight: 600,
+                                    fontSize: 13,
+                                    color: "#172224",
+                                    p: 1,
+                                    borderRadius: "8px 8px 0 0",
+                                }}
+                            >
+                                <span>Employee</span>
+                                <span>Tax</span>
+                                <span>SSS</span>
+                                <span>PhilHealth</span>
+                                <span>Pag-IBIG</span>
+                                <span>Total</span>
+                            </Box>
 
-                    <div className="report-summary-wrapper">
+                            <Box sx={{ mt: -0.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                {deductionData.map((row, i) => (
+                                    <Box
+                                        key={i}
+                                        sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(6, 1fr)",
+                                            p: 1,
+                                            background: "#fff",
+                                            borderRadius: "8px",
+                                            border: "1px solid rgba(255,255,255,0.2)",
+                                        }}
+                                    >
+                                        {row.map((cell, j) => (
+                                            <span key={j}>{cell}</span>
+                                        ))}
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
 
-                        <div className="report-placeholder-left">
-                            <p>(Chart/Graph Placeholder)</p>
-                        </div>
+                <Box
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
+                        mt: 2,
+                    }}
+                >
+                    <Box
+                        sx={{
+                            borderRadius: "12px",
+                            p: 2,
+                            background: "#FFFFFFD9",
+                            backdropFilter: "blur(6px)",
+                            boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+                            border: "1px solid rgba(255,255,255,0.27)",
+                            minHeight: 150,
+                            display: "flex",
+                            flexDirection: "column",
+                        }}
+                    >
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                            <Typography variant="h6">Department Summary</Typography>
+                            <Button
+                                sx={{
+                                    background: "#172224",
+                                    color: "#fff",
+                                    px: 2,
+                                    borderRadius: "20px",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    "&:hover": { background: "#1e3932", transform: "scale(1.03)" },
+                                }}
+                            >
+                                Export PDF
+                            </Button>
+                        </Box>
+                        <Box
+                            sx={{
+                                flex: 1,
+                                borderRadius: "10px",
+                                border: "1px dashed rgba(255,255,255,0.4)",
+                                background: "rgba(255,255,255,0.2)",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                fontStyle: "italic",
+                                color: "#555",
+                            }}
+                        >
+                            (Chart/Graph Placeholder)
+                        </Box>
+                    </Box>
 
-                        <div className="report-table-right">
-                            <div className="report-table">
-                                <div className="report-table-header">
-                                    <span>Employee</span>
-                                    <span>Tax</span>
-                                    <span>SSS</span>
-                                    <span>PhilHealth</span>
-                                    <span>Pag-IBIG</span>
-                                    <span>Total</span>
-                                </div>
+                    <Box
+                        sx={{
+                            borderRadius: "12px",
+                            p: 2,
+                            background: "#FFFFFFD9",
+                            backdropFilter: "blur(6px)",
+                            boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+                            border: "1px solid rgba(255,255,255,0.27)",
+                            minHeight: 150,
+                            display: "flex",
+                            flexDirection: "column",
+                        }}
+                    >
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                            <Typography variant="h6">Tax and Compliance</Typography>
+                            <Button
+                                sx={{
+                                    background: "#172224",
+                                    color: "#fff",
+                                    px: 2,
+                                    borderRadius: "20px",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    "&:hover": { background: "#1e3932", transform: "scale(1.03)" },
+                                }}
+                            >
+                                Export PDF
+                            </Button>
+                        </Box>
+                        <Box
+                            sx={{
+                                flex: 1,
+                                borderRadius: "10px",
+                                border: "1px dashed rgba(255,255,255,0.4)",
+                                background: "rgba(255,255,255,0.2)",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                fontStyle: "italic",
+                                color: "#555",
+                            }}
+                        >
+                            (Chart/Graph Placeholder)
+                        </Box>
+                    </Box>
+                </Box>
 
-                                <div className="report-table-body">
-                                    {deductionData.map((row, i) => (
-                                        <div key={i} className="report-row">
-                                            {row.map((cell, j) => (
-                                                <span key={j}>{cell}</span>
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="report-grid">
-                    <div className="report-card">
-                        <div className="report-card-header">
-                            <h3>Department Summary</h3>
-                            <button className="report-export">Export PDF</button>
-                        </div>
-                        <div className="report-placeholder">
-                            <p>(Chart/Graph Placeholder)</p>
-                        </div>
-                    </div>
-
-                    <div className="report-card">
-                        <div className="report-card-header">
-                            <h3>Tax and Compliance</h3>
-                            <button className="report-export">Export PDF</button>
-                        </div>
-                        <div className="report-placeholder">
-                            <p>(Chart/Graph Placeholder)</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="report-footer">
-                    <button className="report-generate-btn">Generate Report</button>
-                </div>
-            </div>
-        </>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                    <Button
+                        sx={{
+                            background: "#172224",
+                            color: "#fff",
+                            px: 3,
+                            py: 1.25,
+                            borderRadius: "12px",
+                            fontSize: 15,
+                            fontWeight: 600,
+                            "&:hover": { background: "#1e3932", transform: "scale(1.03)" },
+                        }}
+                    >
+                        Generate Report
+                    </Button>
+                </Box>
+            </Box>
+        </Box>
     );
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Box,
     IconButton,
@@ -8,6 +8,7 @@ import {
 import { RiPencilFill } from "react-icons/ri";
 import SearchBar from "../../components/SearchBar.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
 
 export default function AdminUserManagement() {
     const theme = useTheme();
@@ -22,6 +23,16 @@ export default function AdminUserManagement() {
         { id: "0100XXX", name: "Michael Lee", role: "Developer", access: "Limited", status: "Inactive" },
         { id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending" },
     ];
+
+    const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+
+    const openModal = (type, data) => {
+        if (type === "userDetails") {
+            setSelectedUser(data);
+            setShowUserDetailsModal(true);
+        }
+    };
 
     return (
         <Box sx={{ width: "100%", height: "100%", fontFamily: theme.typography.fontFamily }}>
@@ -42,7 +53,7 @@ export default function AdminUserManagement() {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    mb: 3,
+                    mb:2,
                     gap: 2,
                 }}
             >
@@ -63,7 +74,7 @@ export default function AdminUserManagement() {
 
             <Box
                 sx={{
-                    height: "83.5%",
+                    height: "85%",
                     backgroundColor:
                         theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.05)"
@@ -106,7 +117,7 @@ export default function AdminUserManagement() {
 
                 <Box
                     sx={{
-                        maxHeight: "512px",
+                        maxHeight: "530px",
                         overflowY: "auto",
                         "&::-webkit-scrollbar": { width: 0, height: 0 },
                         scrollbarWidth: "none",
@@ -127,7 +138,7 @@ export default function AdminUserManagement() {
                                 color: "#1b2223",
                                 borderRadius: "8px",
                                 width: "100%",
-                                minHeight: "80px",
+                                minHeight: "83px",
                                 transition: "all 0.3s ease",
                                 "&:hover": {
                                     transform: "translateY(-2px)",
@@ -143,6 +154,7 @@ export default function AdminUserManagement() {
                             <span>{user.status}</span>
                             <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
                                 <IconButton
+                                    onClick={() => openModal("userDetails", user)}
                                     sx={{
                                         bgcolor: "#3A4F50",
                                         color: "#fff",
@@ -162,6 +174,26 @@ export default function AdminUserManagement() {
                     ))}
                 </Box>
             </Box>
+
+            <BoxModal
+                open={showUserDetailsModal}
+                onClose={() => setShowUserDetailsModal(false)}
+                width="500px"
+            >
+                <Typography sx={{ fontSize: "20px", fontWeight: 600, mb: 2 }}>
+                    User Details
+                </Typography>
+
+                {selectedUser && (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <Typography><strong>ID:</strong> {selectedUser.id}</Typography>
+                        <Typography><strong>Name:</strong> {selectedUser.name}</Typography>
+                        <Typography><strong>Role:</strong> {selectedUser.role}</Typography>
+                        <Typography><strong>Access:</strong> {selectedUser.access}</Typography>
+                        <Typography><strong>Status:</strong> {selectedUser.status}</Typography>
+                    </Box>
+                )}
+            </BoxModal>
         </Box>
     );
 }
