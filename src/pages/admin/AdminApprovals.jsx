@@ -429,45 +429,6 @@ export default function AdminApproval() {
                                 )}
                             </Box>
                         </Box>
-
-                        <Box sx={{ position: "relative" }}>
-                            <select
-                                defaultValue=""
-                                style={{
-                                    appearance: "none",
-                                    WebkitAppearance: "none",
-                                    MozAppearance: "none",
-                                    width: 100,
-                                    padding: "10px 40px 10px 12px",
-                                    borderRadius: "20px",
-                                    border: `1px solid ${theme.palette.divider}`,
-                                    backgroundColor:
-                                        theme.palette.mode === "dark"
-                                            ? "rgba(255, 255, 255, 0.05)"
-                                            : "rgba(255, 255, 255, 0.2)",
-                                    backdropFilter: "blur(12px)",
-                                    color: theme.palette.text.primary,
-                                    fontFamily: "inherit",
-                                    fontSize: "16px",
-                                    cursor: "pointer",
-                                    outline: "none",
-                                }}
-                            >
-                                <option value="">Filter</option>
-                            </select>
-                            <i
-                                className="ri-arrow-down-s-line"
-                                style={{
-                                    position: "absolute",
-                                    right: "10px",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    pointerEvents: "none",
-                                    color: theme.palette.text.primary,
-                                    fontSize: "18px",
-                                }}
-                            />
-                        </Box>
                     </Box>
 
                     {renderTable()}

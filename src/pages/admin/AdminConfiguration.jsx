@@ -16,6 +16,7 @@ import {  RiPencilFill, RiEyeFill } from "react-icons/ri";
 import { useTheme } from "@mui/material/styles";
 import BoxModal from "../../components/BoxModal";
 import ActionButton from "../../components/ActionButton.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
 
 export default function AdminConfiguration() {
     const theme = useTheme();
@@ -129,6 +130,8 @@ export default function AdminConfiguration() {
         setModalType("");
     };
 
+    const [filter, setFilter] = useState("");
+
     const renderCards = () => {
         switch (activeTab) {
             case "payrollRules":
@@ -170,7 +173,6 @@ export default function AdminConfiguration() {
                                     color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     p: "8px 0",
-                                    borderRadius: "15px",
                                     width: "100%",
                                     alignItems: "center",
                                 }}
@@ -331,7 +333,6 @@ export default function AdminConfiguration() {
                                     color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     p: "8px 0",
-                                    borderRadius: "15px",
                                     width: "100%",
                                     alignItems: "center",
                                 }}
@@ -460,13 +461,12 @@ export default function AdminConfiguration() {
                                     color: theme.palette.text.primary,
                                     fontWeight: 700,
                                     p: "8px 0",
-                                    borderRadius: "15px",
                                     width: "100%",
                                     alignItems: "center",
                                     textAlign: "center",
                                 }}
                             >
-                                <span style={{ marginLeft: "7px", textAlign: "left" }}>Department</span>
+                                <span>Department</span>
                                 <span>Total Employees</span>
                                 <span>Full-Time</span>
                                 <span>Part-Time</span>
@@ -513,7 +513,7 @@ export default function AdminConfiguration() {
                                             textAlign: "center",
                                         }}
                                     >
-                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>{group.department}</span>
+                                        <span>{group.department}</span>
                                         <span>{group.totalEmployees}</span>
                                         <span>{group.fullTime}</span>
                                         <span>{group.partTime}</span>
@@ -1017,43 +1017,12 @@ export default function AdminConfiguration() {
                             </Box>
                         </Box>
 
-                        <Box sx={{ position: "relative" }}>
-                            <select
-                                defaultValue=""
-                                style={{
-                                    appearance: "none",
-                                    WebkitAppearance: "none",
-                                    MozAppearance: "none",
-                                    width: 100,
-                                    padding: "10px 40px 10px 12px",
-                                    borderRadius: "20px",
-                                    border: `1px solid ${theme.palette.divider}`,
-                                    backgroundColor:
-                                        theme.palette.mode === "dark"
-                                            ? "rgba(255, 255, 255, 0.05)"
-                                            : "rgba(255, 255, 255, 0.2)",                               backdropFilter: "blur(12px)",
-                                    color: theme.palette.text.primary,
-                                    fontFamily: "inherit",
-                                    fontSize: "16px",
-                                    cursor: "pointer",
-                                    outline: "none",
-                                }}
-                            >
-                                <option value="">Filter</option>
-                            </select>
-                            <i
-                                className="ri-arrow-down-s-line"
-                                style={{
-                                    position: "absolute",
-                                    right: "10px",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    pointerEvents: "none",
-                                    color: theme.palette.text.primary,
-                                    fontSize: "18px",
-                                }}
-                            ></i>
-                        </Box>
+                        <FilterSelect
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            options={[
+                            ]}
+                        />
                     </Box>
 
                     {renderCards()}
