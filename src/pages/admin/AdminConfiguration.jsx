@@ -603,39 +603,42 @@ export default function AdminConfiguration() {
                                 onChange={(e) => setSelectedRule(e.target.value)}
                                 displayEmpty
                                 sx={{
-                                    backgroundColor:
-                                        theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",                                    borderRadius: "13px", // match TextField
-                                    color: "#1e1e1e",
+                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    borderRadius: "13px",
+                                    color: "#fff",
                                     fontSize: "18px",
                                     "& .MuiSelect-select": {
                                         padding: "8px 12px",
                                     },
                                     "& .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "#EFEFEF",
-                                    },
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                        borderColor:
-                                            theme.palette.mode === "dark"
-                                                ? "rgba(255, 255, 255, 0.5)"
-                                                : "#1F2829",
+                                        borderColor: "rgba(255,255,255,0.4)",
                                     },
                                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                        borderColor:
-                                            theme.palette.mode === "dark"
-                                                ? "#fff"
-                                                : "#1F2829",
+                                        borderColor: "rgba(255,255,255,0.9)",
+                                    },
+                                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                                        borderColor: "rgba(255,255,255,0.6)",
+                                    },
+                                    "& .MuiSvgIcon-root": {
+                                        color: "#fff",
                                     },
                                 }}
+                                MenuProps={{
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: "#ffffff",
+                                            color: "#1e1e1e",
+                                        }
+                                    }
+                                }}
                                 renderValue={(selected) => {
-                                    if (!selected) return <span style={{ color: "#9e9e9e" }}>Select Rule Type</span>;
+                                    if (!selected)
+                                        return <span style={{ color: "rgba(255,255,255,0.4" }}>Select Rule Type</span>;
                                     return selected;
                                 }}
                             >
-                                <MenuItem value="">
-                                    <em style={{ color: "#9e9e9e" }}>Select Rule Type</em>
-                                </MenuItem>
                                 {["Overtime", "Deduction", "Bonus", "Allowance"].map((option) => (
-                                    <MenuItem key={option} value={option} sx={{ color: "#1e1e1e" }}>
+                                    <MenuItem key={option} value={option}>
                                         {option}
                                     </MenuItem>
                                 ))}
@@ -655,27 +658,17 @@ export default function AdminConfiguration() {
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: "13px",
-                                        backgroundColor:
-                                            theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
-                                        color: theme.palette.text.primary,
+                                        backgroundColor: "rgba(255,255,255,0.2)",
+                                        color: "#fff",
                                         fontSize: "18px",
                                         "& fieldset": {
-                                            borderColor:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255, 255, 255, 0.3)"
-                                                    : "rgba(0, 0, 0, 0.23)",
+                                            borderColor: "rgba(255,255,255,0.4)",
                                         },
                                         "&:hover fieldset": {
-                                            borderColor:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255, 255, 255, 0.5)"
-                                                    : "#1F2829",
+                                            borderColor: "rgba(255,255,255,0.6)",
                                         },
                                         "&.Mui-focused fieldset": {
-                                            borderColor:
-                                                theme.palette.mode === "dark"
-                                                    ? "#fff"
-                                                    : "#1F2829",
+                                            borderColor: "rgba(255,255,255,0.9)",
                                         },
                                     },
                                     "& .MuiInputBase-input": { fontSize: "18px" },
@@ -699,26 +692,16 @@ export default function AdminConfiguration() {
                                     "& .MuiOutlinedInput-root": {
                                         fontSize: "18px",
                                         borderRadius: "13px",
-                                        backgroundColor:
-                                            theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
-                                        color: theme.palette.text.primary,
+                                        backgroundColor: "rgba(255,255,255,0.2)",
+                                        color: "#fff",
                                         "& fieldset": {
-                                            borderColor:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255, 255, 255, 0.3)"
-                                                    : "rgba(0, 0, 0, 0.23)",
+                                            borderColor: "rgba(255,255,255,0.4)",
                                         },
                                         "&:hover fieldset": {
-                                            borderColor:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255, 255, 255, 0.5)"
-                                                    : "#1F2829",
+                                            borderColor: "rgba(255,255,255,0.6)",
                                         },
                                         "&.Mui-focused fieldset": {
-                                            borderColor:
-                                                theme.palette.mode === "dark"
-                                                    ? "#fff"
-                                                    : "#1F2829",
+                                            borderColor: "rgba(255,255,255,0.9)",
                                         },
                                     },
                                 }}
@@ -990,7 +973,7 @@ export default function AdminConfiguration() {
                         backgroundColor:
                             theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
-                                : "rgba(255, 255, 255, 0.3)",
+                                : "rgba(255, 255, 255, 0.1)",
                         height: "85%",
                         borderRadius: "12px",
                         p: "24px",
