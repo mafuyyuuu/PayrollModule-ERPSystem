@@ -440,10 +440,9 @@ export default function AdminConfiguration() {
                 return (
                     <Box
                         sx={{
-                            paddingLeft: "10px",
                             display: "flex",
                             flexDirection: "column",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            fontFamily: theme.typography.fontFamily,
                         }}
                     >
                         <Box
