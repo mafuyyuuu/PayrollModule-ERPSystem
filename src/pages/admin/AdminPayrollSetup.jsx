@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {Box, Button, IconButton, Typography} from "@mui/material"; // Added Box import
-import "../styles/AdminPayrollSetup.css";
 import { RiPencilFill } from "react-icons/ri";
 import {useTheme} from "@mui/material/styles";
 import ActionButton from "../../components/ActionButton.jsx";

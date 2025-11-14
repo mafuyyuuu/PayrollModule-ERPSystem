@@ -1019,8 +1019,6 @@ export default function AdminConfiguration() {
                         <FilterSelect
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            options={[
-                            ]}
                         />
                     </Box>
 
