@@ -1,6 +1,8 @@
-import { Box, Typography, TextField } from "@mui/material";
+import {InputAdornment, IconButton, Box, Typography, TextField, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { useRef } from "react";
+import { FaRegCalendar } from "react-icons/fa";
 
 // Sample chart data (replace later with backend data)
 const earningsData = [
@@ -12,6 +14,13 @@ const earningsData = [
 ];
 
 const EmployeeDashboard = () => {
+    const theme = useTheme();
+    const fromRef = useRef(null);
+    const toRef = useRef(null);
+
+    const openFromPicker = () => fromRef.current?.showPicker();
+    const openToPicker = () => toRef.current?.showPicker();
+
     return (
         <Box width="100%" height="80%">
             <Box
@@ -42,7 +51,7 @@ const EmployeeDashboard = () => {
                 display="grid"
                 gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
                 gap="20px"
-                mt="30px"
+                mt="25px"
                 alignItems="stretch"
                 height="97.5%"
             >
@@ -51,11 +60,14 @@ const EmployeeDashboard = () => {
                     backgroundColor="rgba(255, 255, 255, 0.2)"
                     borderRadius="12px"
                     p="24px"
-                    color="#222"
                     sx={{
-                        fontFamily: "'TTHoves-Regular', sans-serif",
+                        backgroundColor: theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
                         boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        fontFamily: theme.typography.fontFamily,
+                        color: theme.palette.text.primary,
+                        border: `1px solid ${theme.palette.divider}`,
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
@@ -69,12 +81,12 @@ const EmployeeDashboard = () => {
                             mb: 2,
                             fontSize: "18px",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            color: "#222",
+                            color: theme.palette.text.primary,
                         }}
                     >
                         <i
                             className="ri-bar-chart-2-line"
-                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
+                            style={{ fontSize: 18, marginRight: "10px", color: theme.palette.text.primary }}
                         ></i>
                         Total Earnings Overview
                     </Typography>
@@ -99,9 +111,12 @@ const EmployeeDashboard = () => {
                     p="24px"
                     color="#222"
                     sx={{
+                        backgroundColor: theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
                         fontFamily: "'TTHoves-Regular', sans-serif",
                         boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        border: `1px solid ${theme.palette.divider}`,   
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
@@ -115,12 +130,12 @@ const EmployeeDashboard = () => {
                             mb: 3,
                             fontSize: "18px",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            color: "#222",
+                            color: theme.palette.text.primary,
                         }}
                     >
                         <i
                             className="ri-calendar-2-line"
-                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
+                            style={{ fontSize: 18, color: theme.palette.text.primary, marginRight: "10px" }}
                         ></i>
                         Apply for Leave
                     </Typography>
@@ -137,7 +152,7 @@ const EmployeeDashboard = () => {
                         <Box
                             sx={{
                                 display: "flex",
-                                backgroundColor: "#BDBDBD",
+                                backgroundColor: theme.palette.background.paper,
                                 flexDirection: "column",
                                 padding: "20px 18px",
                                 gap: "10px",
@@ -155,7 +170,7 @@ const EmployeeDashboard = () => {
                                         display: "flex",
                                         justifyContent: "space-between",
                                         alignItems: "center",
-                                        backgroundColor: "rgba(245, 245, 245, 0.7)",
+                                        backgroundColor: theme.palette.background.default,
                                         borderRadius: "10px",
                                         padding: "12px 16px",
                                         transition: "all 0.3s ease",
@@ -168,14 +183,14 @@ const EmployeeDashboard = () => {
                                     <Box>
                                         <Typography
                                             sx={{
-                                                fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                                color: "#222",
+                                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                                color: theme.palette.text.primary,
                                                 fontSize: "15px",
                                             }}
                                         >
                                             {leave.type}
                                         </Typography>
-                                        <Typography sx={{ fontSize: "13px", color: "#172224" }}>
+                                        <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
                                             {leave.remaining} leaves remaining
                                         </Typography>
                                     </Box>
@@ -189,34 +204,46 @@ const EmployeeDashboard = () => {
                             display="flex"
                             justifyContent="space-between"
                             gap="25px"
-                            mb={1}
                         >
                             <Box
                                 display = "flex" flexDirection = "column" width= "100%">
                             <Typography
                                 sx={{
                                     fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#222",
+                                    color: theme.palette.text.primary,
                                     fontSize: "13px",
                                     marginLeft: "10px",
                                     mb: "3px"
                                 }}>
                                 From
                             </Typography>
-                            <TextField
-                                type="date"
-                                fullWidth
-                                variant="outlined"
-                                InputProps={{
-                                    sx: {
-                                        height: "50px",
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        color: "#222",
-                                        borderRadius: "25px",
-                                        backgroundColor: "#BDBDBD",
-                                    },
-                                }}
-                            />
+                                <TextField
+                                    inputRef={fromRef}
+                                    type="date"
+                                    fullWidth
+                                    variant="outlined"
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton onClick={openFromPicker}>
+                                                    <FaRegCalendar style={{ fontSize: "18px", color: theme.palette.text.primary }} />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                        sx: {
+                                            height: "45px",
+                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                            color: theme.palette.text.primary,
+                                            borderRadius: "25px",
+                                            backgroundColor: theme.palette.background.default,
+
+                                            "& input::-webkit-calendar-picker-indicator": {
+                                                opacity: 0,
+                                                display: "none",
+                                            },
+                                        },
+                                    }}
+                                />
                             </Box>
 
                             <Box
@@ -224,7 +251,7 @@ const EmployeeDashboard = () => {
                                 <Typography
                                     sx={{
                                         fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        color: "#222",
+                                        color: theme.palette.text.primary,
                                         fontSize: "13px",
                                         marginLeft: "10px",
                                         mb: "3px"
@@ -232,16 +259,29 @@ const EmployeeDashboard = () => {
                                     To
                                 </Typography>
                                 <TextField
+                                    inputRef={toRef}
                                     type="date"
                                     variant="outlined"
                                     InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton onClick={openToPicker}>
+                                                    <FaRegCalendar style={{ fontSize: "18px", color: theme.palette.text.primary }} />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
                                         sx: {
-                                            height: "50px",
+                                            height: "45px",
                                             width: "100%",
                                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            color: "#222",
+                                            color: theme.palette.text.primary,
                                             borderRadius: "25px",
-                                            backgroundColor: "#BDBDBD",
+                                            backgroundColor: theme.palette.background.default,
+
+                                            "& input::-webkit-calendar-picker-indicator": {
+                                                opacity: 0,
+                                                display: "none",
+                                            },
                                         },
                                     }}
                                 />
@@ -249,6 +289,18 @@ const EmployeeDashboard = () => {
                         </Box>
 
                         {/* Reason Field */}
+                        <Box
+                            display = "flex" flexDirection = "column" width= "100%">
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: theme.palette.text.primary,
+                                    fontSize: "13px",
+                                    marginLeft: "10px",
+                                    mb: "3px"
+                                }}>
+                                Reason
+                            </Typography>
                         <TextField
                             placeholder="Type your reason..."
                             multiline
@@ -258,9 +310,25 @@ const EmployeeDashboard = () => {
                             sx={{
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
                                 borderRadius: "12px",
-                                backgroundColor: "#f7f7f7",
+                                backgroundColor: theme.palette.background.default,
+
+                                // Text color
+                                "& .MuiInputBase-input": {
+                                    color: theme.palette.text.primary,
+                                },
+
+
+                                // Remove outline on hover and focus
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
                             }}
                         />
+                        </Box>    
+
 
                         {/* Submit Button */}
                         <Box
