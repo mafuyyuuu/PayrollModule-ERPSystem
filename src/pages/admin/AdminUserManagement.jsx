@@ -99,7 +99,6 @@ export default function AdminUserManagement() {
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
-                        borderRadius: "15px",
                         width: "100%",
                         alignItems: "center",
                         position: "sticky",
