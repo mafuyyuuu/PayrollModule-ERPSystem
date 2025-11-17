@@ -1,11 +1,10 @@
 import React from "react";
-import { Box, Modal, useTheme } from "@mui/material";
+import {Box, Modal, useTheme} from "@mui/material";
 
-export default function BoxModal({ open, onClose, children, width = 500 }) {
+export default function BoxModal({open, onClose, children, width = 500, height = 400}) {
     const theme = useTheme();
 
-    return (
-        <Modal open={open} onClose={onClose}>
+    return (<Modal open={open} onClose={onClose}>
             <Box
                 sx={{
                     position: "absolute",
@@ -18,17 +17,14 @@ export default function BoxModal({ open, onClose, children, width = 500 }) {
                     p: 4,
                     borderRadius: 10,
                     width: width,
+                    height: height,
                     maxHeight: "90vh",
                     overflowY: "auto",
-                    boxShadow:
-                        theme.palette.mode === "dark"
-                            ? "0 8px 32px rgba(0,0,0,0.6)"
-                            : "0 8px 32px rgba(0,0,0,0.1)",
+                    boxShadow: theme.palette.mode === "dark" ? "0 8px 32px rgba(0,0,0,0.6)" : "0 8px 32px rgba(0,0,0,0.1)",
                     color: theme.palette.text.primary,
                 }}
             >
                 {children}
             </Box>
-        </Modal>
-    );
+        </Modal>);
 }
