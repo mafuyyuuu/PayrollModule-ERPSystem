@@ -1,15 +1,15 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import {Box, Typography} from "@mui/material";
+import {useTheme} from "@mui/material/styles";
 import SearchBar from "../../components/SearchBar.jsx";
 
 export default function AdminAuditLogs() {
     const theme = useTheme();
 
     const logs = [
-        { date: "2025XXXX", user: "Jhervin Jimenez", action: "Dropbox", description: "Pending" },
-        { date: "2025XXXX", user: "Symon Banaag", action: "Dropbox", description: "Pending" },
-        { date: "2025XXXX", user: "Jumiah Zamora", action: "Dropbox", description: "Pending" },
+        {date: "2025XXXX", user: "Jhervin Jimenez", action: "Dropbox", description: "Pending"},
+        {date: "2025XXXX", user: "Symon Banaag", action: "Dropbox", description: "Pending"},
+        {date: "2025XXXX", user: "Jumiah Zamora", action: "Dropbox", description: "Pending"},
     ];
 
     return (
@@ -35,8 +35,8 @@ export default function AdminAuditLogs() {
                 Audit Logs
             </Typography>
 
-            <Box sx={{ display: "flex", mb: 2 }}>
-                <SearchBar placeholder="Enter Username" width="350px" />
+            <Box sx={{display: "flex", mb: 2}}>
+                <SearchBar placeholder="Enter Username" width="350px"/>
             </Box>
 
             <Box
@@ -84,7 +84,7 @@ export default function AdminAuditLogs() {
                     sx={{
                         maxHeight: "530px",
                         overflowY: "auto",
-                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
                         mt: "8px",

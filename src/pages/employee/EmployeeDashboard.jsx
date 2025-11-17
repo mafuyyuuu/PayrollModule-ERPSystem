@@ -1,13 +1,13 @@
-import { Box, Typography, useTheme } from "@mui/material";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import {Box, Typography, useTheme} from "@mui/material";
+import {LineChart, Line, ResponsiveContainer} from "recharts";
 import DashboardCard from "../../components/DashboardCard.jsx";
 
 const earningsData = [
-    { month: "Jan", earnings: 20000 },
-    { month: "Feb", earnings: 23000 },
-    { month: "Mar", earnings: 21000 },
-    { month: "Apr", earnings: 26000 },
-    { month: "May", earnings: 24000 },
+    {month: "Jan", earnings: 20000},
+    {month: "Feb", earnings: 23000},
+    {month: "Mar", earnings: 21000},
+    {month: "Apr", earnings: 26000},
+    {month: "May", earnings: 24000},
 ];
 
 const EmployeeDashboard = () => {
@@ -37,7 +37,7 @@ const EmployeeDashboard = () => {
 
             <Box
                 display="grid"
-                gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
+                gridTemplateColumns={{xs: "1fr", md: "2fr 1fr"}}
                 gap="20px"
                 mt="30px"
                 alignItems="stretch"
@@ -83,9 +83,9 @@ const EmployeeDashboard = () => {
                             <Line
                                 type="monotone"
                                 dataKey="earnings"
-                                stroke={theme.palette.success.main} // dynamic color
+                                stroke={theme.palette.success.main}
                                 strokeWidth={3}
-                                dot={{ r: 4, strokeWidth: 1 }}
+                                dot={{r: 4, strokeWidth: 1}}
                             />
                         </LineChart>
                     </ResponsiveContainer>
@@ -126,8 +126,8 @@ const EmployeeDashboard = () => {
                         Apply for Leave
                     </Typography>
 
-                    <form style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                        <Box sx={{ position: "relative", width: "100%" }}>
+                    <form style={{display: "flex", flexDirection: "column", gap: "18px"}}>
+                        <Box sx={{position: "relative", width: "100%"}}>
                             <select
                                 style={{
                                     appearance: "none",

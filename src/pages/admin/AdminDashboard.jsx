@@ -1,20 +1,23 @@
-import { Box, useTheme } from "@mui/material";
+import {Box, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
-import { BarChart3 } from "lucide-react";
+import {BarChart3} from "lucide-react";
 import "../../components/NotificationItem.css";
 
 const AdminDashboard = () => {
     const theme = useTheme();
 
-    const notifications = [
-        { title: "Payroll Updated", message: "The payroll for October 2025 has been successfully processed." },
-        { title: "System Maintenance", message: "Scheduled maintenance will occur on November 15, 2025, from 12 AM to 2 AM." },
-        { title: "New Employee Added", message: "A new employee has been successfully added to the HR database." },
-        { title: "Policy Reminder", message: "Please review the updated attendance policy by November 20, 2025." },
-    ];
+    const notifications = [{
+        title: "Payroll Updated",
+        message: "The payroll for October 2025 has been successfully processed."
+    }, {
+        title: "System Maintenance",
+        message: "Scheduled maintenance will occur on November 15, 2025, from 12 AM to 2 AM."
+    }, {
+        title: "New Employee Added",
+        message: "A new employee has been successfully added to the HR database."
+    }, {title: "Policy Reminder", message: "Please review the updated attendance policy by November 20, 2025."},];
 
-    return (
-        <Box width="100%" height="80%">
+    return (<Box width="100%" height="80%">
             <Box
                 display="grid"
                 gridTemplateColumns="repeat(4, 1fr)"
@@ -47,9 +50,7 @@ const AdminDashboard = () => {
 
             <Box
                 sx={{
-                    backgroundColor: theme.palette.mode === "dark"
-                        ? "rgba(255, 255, 255, 0.05)"
-                        : "rgba(255, 255, 255, 0.2)",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     borderRadius: "12px",
                     p: "24px",
                     color: theme.palette.text.primary,
@@ -59,25 +60,21 @@ const AdminDashboard = () => {
                     border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                     gap: "10px",
                 }}
             >
                 <Box
                     sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "15px",
+                        display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px",
                     }}
                 >
                     <Box
                         className="notif-title"
-                        sx={{ display: "flex", alignItems: "center", gap: "8px" }}
+                        sx={{display: "flex", alignItems: "center", gap: "8px"}}
                     >
-                        <BarChart3 size={20} color={theme.palette.text.primary} />
+                        <BarChart3 size={20} color={theme.palette.text.primary}/>
                         <span
                             style={{
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
@@ -117,13 +114,11 @@ const AdminDashboard = () => {
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
                         "&::-webkit-scrollbar": {
-                            width: 0,
-                            height: 0,
+                            width: 0, height: 0,
                         },
                     }}
                 >
-                    {notifications.map((notif, index) => (
-                        <Box
+                    {notifications.map((notif, index) => (<Box
                             key={index}
                             className="notification-item-box"
                             sx={{
@@ -139,8 +134,7 @@ const AdminDashboard = () => {
                                 transition: "all 0.3s ease",
                                 border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
                             }}
                         >
@@ -148,12 +142,10 @@ const AdminDashboard = () => {
                                 <h3>{notif.title}</h3>
                                 <p>{notif.message}</p>
                             </Box>
-                        </Box>
-                    ))}
+                        </Box>))}
                 </Box>
             </Box>
-        </Box>
-    );
+        </Box>);
 };
 
 export default AdminDashboard;

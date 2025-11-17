@@ -1,13 +1,8 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
-    Box,
-    Button,
-    IconButton,
-    Typography,
-    useTheme,
-    Checkbox,
+    Box, Button, IconButton, Typography, useTheme, Checkbox,
 } from "@mui/material";
-import { RiSettings3Fill, RiEyeFill } from "react-icons/ri";
+import {RiSettings3Fill, RiEyeFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 
 export default function AdminApproval() {
@@ -18,24 +13,31 @@ export default function AdminApproval() {
     const [showConfigureModal, setShowConfigureModal] = useState(false);
     const [showExceptionModal, setShowExceptionModal] = useState(false);
 
-    const [workflowData, setWorkflowData] = useState([
-        { name: "Payroll Flow", type: "Payroll", approver: "Manager", status: "Active" },
-        { name: "Overtime Flow", type: "Overtime", approver: "Head", status: "Active" },
-        { name: "Leave Flow", type: "Leave", approver: "Supervisor", status: "Inactive" },
-    ]);
+    const [workflowData, setWorkflowData] = useState([{
+        name: "Payroll Flow",
+        type: "Payroll",
+        approver: "Manager",
+        status: "Active"
+    }, {name: "Overtime Flow", type: "Overtime", approver: "Head", status: "Active"}, {
+        name: "Leave Flow",
+        type: "Leave",
+        approver: "Supervisor",
+        status: "Inactive"
+    },]);
 
-    const [exceptionsData] = useState([
-        { id: "EX001", employee: "Jhervin Jimenez", type: "Overtime", date: "Aug. 11, 2025", status: "Approved" },
-        { id: "EX002", employee: "Symon Banana", type: "Leave", date: "Sept. 12, 2025", status: "Pending" },
-    ]);
+    const [exceptionsData] = useState([{
+        id: "EX001",
+        employee: "Jhervin Jimenez",
+        type: "Overtime",
+        date: "Aug. 11, 2025",
+        status: "Approved"
+    }, {id: "EX002", employee: "Symon Banana", type: "Leave", date: "Sept. 12, 2025", status: "Pending"},]);
 
     const [checkedWorkflows, setCheckedWorkflows] = useState([]);
     const hasCheckedRules = checkedWorkflows.length > 0;
 
     const handleDeleteSelectedWorkflows = () => {
-        const remaining = workflowData.filter(
-            (workflow) => !checkedWorkflows.includes(workflow.name)
-        );
+        const remaining = workflowData.filter((workflow) => !checkedWorkflows.includes(workflow.name));
         setWorkflowData(remaining);
         setCheckedWorkflows([]);
     };
@@ -46,8 +48,7 @@ export default function AdminApproval() {
         const isWorkflow = activeTab === "workflow";
         const data = isWorkflow ? workflowData : exceptionsData;
 
-        return (
-            <Box
+        return (<Box
                 sx={{
                     paddingLeft: "10px",
                     display: "flex",
@@ -55,8 +56,7 @@ export default function AdminApproval() {
                     fontFamily: "'TTHoves-Regular', sans-serif",
                 }}
             >
-                {isWorkflow ? (
-                    <Box
+                {isWorkflow ? (<Box
                         sx={{
                             display: "flex",
                             alignItems: "center",
@@ -66,10 +66,7 @@ export default function AdminApproval() {
                     >
                         <Checkbox
                             checked={checkedWorkflows.length === workflowData.length}
-                            indeterminate={
-                                checkedWorkflows.length > 0 &&
-                                checkedWorkflows.length < workflowData.length
-                            }
+                            indeterminate={checkedWorkflows.length > 0 && checkedWorkflows.length < workflowData.length}
                             onChange={(e) => {
                                 if (e.target.checked) {
                                     setCheckedWorkflows(workflowData.map((w) => w.name));
@@ -85,7 +82,7 @@ export default function AdminApproval() {
                                 "&.Mui-checked": {
                                     color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                 },
-                                "& .MuiSvgIcon-root": { fontSize: 25 },
+                                "& .MuiSvgIcon-root": {fontSize: 25},
                             }}
                         />
                         <Box
@@ -100,15 +97,13 @@ export default function AdminApproval() {
                                 alignItems: "center",
                             }}
                         >
-                            <span style={{ marginLeft: "7px", textAlign: "left" }}>Workflow Name</span>
-                            <span style={{ textAlign: "center" }}>Type</span>
-                            <span style={{ textAlign: "center" }}>Approval Role</span>
-                            <span style={{ textAlign: "center" }}>Status</span>
-                            <span style={{ textAlign: "center" }}>Actions</span>
+                            <span style={{marginLeft: "7px", textAlign: "left"}}>Workflow Name</span>
+                            <span style={{textAlign: "center"}}>Type</span>
+                            <span style={{textAlign: "center"}}>Approval Role</span>
+                            <span style={{textAlign: "center"}}>Status</span>
+                            <span style={{textAlign: "center"}}>Actions</span>
                         </Box>
-                    </Box>
-                ) : (
-                    <Box
+                    </Box>) : (<Box
                         sx={{
                             display: "flex",
                             alignItems: "center",
@@ -128,48 +123,39 @@ export default function AdminApproval() {
                                 alignItems: "center",
                             }}
                         >
-                            <span style={{ textAlign: "center" }}>ID</span>
-                            <span style={{ textAlign: "center" }}>Employee Name</span>
-                            <span style={{ textAlign: "center" }}>Type</span>
-                            <span style={{ textAlign: "center" }}>Date</span>
-                            <span style={{ textAlign: "center" }}>Status</span>
-                            <span style={{ textAlign: "center" }}>Actions</span>
+                            <span style={{textAlign: "center"}}>ID</span>
+                            <span style={{textAlign: "center"}}>Employee Name</span>
+                            <span style={{textAlign: "center"}}>Type</span>
+                            <span style={{textAlign: "center"}}>Date</span>
+                            <span style={{textAlign: "center"}}>Status</span>
+                            <span style={{textAlign: "center"}}>Actions</span>
                         </Box>
-                    </Box>
-                )}
+                    </Box>)}
 
                 <Box
                     sx={{
                         maxHeight: "400px",
                         overflowY: "auto",
-                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
-                    {data.map((item) => (
-                        <Box
+                    {data.map((item) => (<Box
                             key={isWorkflow ? item.name : item.id}
                             sx={{
-                                marginTop: "10px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                                mb: "12px",
+                                marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
                             }}
                         >
-                            {isWorkflow ? (
-                                <>
+                            {isWorkflow ? (<>
                                     <Checkbox
                                         checked={checkedWorkflows.includes(item.name)}
                                         onChange={(e) => {
                                             if (e.target.checked) {
                                                 setCheckedWorkflows([...checkedWorkflows, item.name]);
                                             } else {
-                                                setCheckedWorkflows(
-                                                    checkedWorkflows.filter((w) => w !== item.name)
-                                                );
+                                                setCheckedWorkflows(checkedWorkflows.filter((w) => w !== item.name));
                                             }
                                         }}
                                         sx={{
@@ -180,7 +166,7 @@ export default function AdminApproval() {
                                             "&.Mui-checked": {
                                                 color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                             },
-                                            "& .MuiSvgIcon-root": { fontSize: 25 },
+                                            "& .MuiSvgIcon-root": {fontSize: 25},
                                         }}
                                     />
                                     <Box
@@ -194,15 +180,14 @@ export default function AdminApproval() {
                                             minHeight: "80px",
                                             transition: "all 0.3s ease",
                                             "&:hover": {
-                                                transform: "translateY(-2px)",
-                                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                                transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                             },
                                         }}
                                     >
-                                        <span style={{ paddingLeft: "15px", textAlign: "left" }}>{item.name}</span>
-                                        <span style={{ textAlign: "center" }}>{item.type}</span>
-                                        <span style={{ textAlign: "center" }}>{item.approver}</span>
-                                        <span style={{ textAlign: "center" }}>
+                                        <span style={{paddingLeft: "15px", textAlign: "left"}}>{item.name}</span>
+                                        <span style={{textAlign: "center"}}>{item.type}</span>
+                                        <span style={{textAlign: "center"}}>{item.approver}</span>
+                                        <span style={{textAlign: "center"}}>
                                             <Box
                                                 component="span"
                                                 sx={{
@@ -216,7 +201,7 @@ export default function AdminApproval() {
                                             />
                                             {item.status}
                                         </span>
-                                        <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                        <Box sx={{display: "flex", justifyContent: "center"}}>
                                             <IconButton
                                                 onClick={() => setShowConfigureModal(true)}
                                                 sx={{
@@ -226,18 +211,15 @@ export default function AdminApproval() {
                                                     height: "30px",
                                                     transition: "all 0.3s ease",
                                                     "&:hover": {
-                                                        transform: "translateY(-3px)",
-                                                        bgcolor: "#2E3B3D",
+                                                        transform: "translateY(-3px)", bgcolor: "#2E3B3D",
                                                     },
                                                 }}
                                             >
-                                                <RiSettings3Fill />
+                                                <RiSettings3Fill/>
                                             </IconButton>
                                         </Box>
                                     </Box>
-                                </>
-                            ) : (
-                                <Box
+                                </>) : (<Box
                                     sx={{
                                         display: "grid",
                                         gridTemplateColumns: "repeat(6, 1fr)",
@@ -248,16 +230,15 @@ export default function AdminApproval() {
                                         minHeight: "80px",
                                         transition: "all 0.3s ease",
                                         "&:hover": {
-                                            transform: "translateY(-2px)",
-                                            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                            transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                         },
                                     }}
                                 >
-                                    <span style={{ textAlign: "center" }}>{item.id}</span>
-                                    <span style={{ textAlign: "center" }}>{item.employee}</span>
-                                    <span style={{ textAlign: "center" }}>{item.type}</span>
-                                    <span style={{ textAlign: "center" }}>{item.date}</span>
-                                    <span style={{ textAlign: "center" }}>
+                                    <span style={{textAlign: "center"}}>{item.id}</span>
+                                    <span style={{textAlign: "center"}}>{item.employee}</span>
+                                    <span style={{textAlign: "center"}}>{item.type}</span>
+                                    <span style={{textAlign: "center"}}>{item.date}</span>
+                                    <span style={{textAlign: "center"}}>
                                         <Box
                                             component="span"
                                             sx={{
@@ -273,9 +254,7 @@ export default function AdminApproval() {
                                     </span>
                                     <Box
                                         sx={{
-                                            display: "flex",
-                                            gap: "8px",
-                                            justifyContent: "center",
+                                            display: "flex", gap: "8px", justifyContent: "center",
                                         }}
                                     >
                                         <IconButton
@@ -287,25 +266,20 @@ export default function AdminApproval() {
                                                 height: "30px",
                                                 transition: "all 0.3s ease",
                                                 "&:hover": {
-                                                    transform: "translateY(-3px)",
-                                                    bgcolor: "#2E3B3D",
+                                                    transform: "translateY(-3px)", bgcolor: "#2E3B3D",
                                                 },
                                             }}
                                         >
-                                            <RiEyeFill />
+                                            <RiEyeFill/>
                                         </IconButton>
                                     </Box>
-                                </Box>
-                            )}
-                        </Box>
-                    ))}
+                                </Box>)}
+                        </Box>))}
                 </Box>
-            </Box>
-        );
+            </Box>);
     };
 
-    return (
-        <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
+    return (<Box width="100%" height="100%" sx={{fontFamily: theme.typography.fontFamily}}>
             <Typography
                 variant="h5"
                 sx={{
@@ -324,9 +298,7 @@ export default function AdminApproval() {
             <Box
                 sx={{
                     height: "93%",
-                    backgroundColor: theme.palette.mode === "dark"
-                        ? "rgba(255, 255, 255, 0.05)"
-                        : "rgba(255, 255, 255, 0.2)",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
@@ -336,8 +308,7 @@ export default function AdminApproval() {
                     pr: "24px",
                     transition: "all 0.3s ease",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
@@ -346,9 +317,7 @@ export default function AdminApproval() {
                         display: "flex",
                         gap: "12px",
                         mb: "13px",
-                        backgroundColor: theme.palette.mode === "dark"
-                            ? "rgba(255, 255, 255, 0.2)"
-                            : "rgba(255, 255, 255, 0.3)",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0.3)",
                         border: `1px solid ${theme.palette.divider}`,
                         p: "12px",
                         borderRadius: "25px",
@@ -390,10 +359,7 @@ export default function AdminApproval() {
 
                 <Box
                     sx={{
-                        backgroundColor:
-                            theme.palette.mode === "dark"
-                                ? "rgba(255, 255, 255, 0.05)"
-                                : "rgba(255, 255, 255, 0.3)",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.3)",
                         height: "85%",
                         borderRadius: "12px",
                         p: "24px",
@@ -404,29 +370,22 @@ export default function AdminApproval() {
                 >
                     <Box
                         sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: "16px",
+                            display: "flex", justifyContent: "space-between", alignItems: "center", mb: "16px",
                         }}
                     >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                            <Box sx={{ display: "flex", gap: 2 }}>
-                                {activeTab === "workflow" && (
-                                    <ActionButton
+                        <Box sx={{display: "flex", alignItems: "center", gap: "12px"}}>
+                            <Box sx={{display: "flex", gap: 2}}>
+                                {activeTab === "workflow" && (<ActionButton
                                         text="New Workflow"
                                         width="200px"
                                         onClick={() => setShowNewWorkflowModal(true)}
-                                    />
-                                )}
+                                    />)}
 
-                                {activeTab === "workflow" && hasCheckedRules && (
-                                    <ActionButton
+                                {activeTab === "workflow" && hasCheckedRules && (<ActionButton
                                         text="Delete Selected"
                                         width="200px"
                                         onClick={handleDeleteSelectedWorkflows}
-                                    />
-                                )}
+                                    />)}
                             </Box>
                         </Box>
                     </Box>
@@ -434,6 +393,5 @@ export default function AdminApproval() {
                     {renderTable()}
                 </Box>
             </Box>
-        </Box>
-    );
+        </Box>);
 }
