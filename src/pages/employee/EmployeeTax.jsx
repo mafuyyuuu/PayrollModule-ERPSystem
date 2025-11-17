@@ -1,8 +1,9 @@
-import { Box, Typography } from "@mui/material";
+import {Box, Typography, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
 
 export default function EmployeeTax() {
+    const theme = useTheme();
     const employeeContribution = [
         {
             employee: "John Doe",
@@ -76,7 +77,7 @@ export default function EmployeeTax() {
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
+                        color: theme.palette.text.primary,
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
@@ -86,42 +87,6 @@ export default function EmployeeTax() {
                 </Typography>
 
                 <Box display="flex" alignItems="center" gap={2}>
-                    <Box sx={{ position: "relative" }}>
-                        <select
-                            defaultValue=""
-                            style={{
-                                height: "45px",
-                                appearance: "none",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                                width: 250,
-                                padding: "10px 40px 10px 12px",
-                                borderRadius: "15px",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
-                                background: "rgba(255, 255, 255, 0.2)",
-                                backdropFilter: "blur(12px)",
-                                color: "#222",
-                                fontFamily: "inherit",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Select Payroll Duration</option>
-                        </select>
-                        <i
-                            className="ri-arrow-down-s-line"
-                            style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none",
-                                color: "#222",
-                                fontSize: "18px",
-                            }}
-                        ></i>
-                    </Box>
 
                     <SearchBar
                         placeholder="Enter Employee Name"
@@ -131,16 +96,19 @@ export default function EmployeeTax() {
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
                 borderRadius="12px"
                 p="24px"
-                color="#222"
                 height="69%"
                 sx={{
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    color: theme.palette.text.primary,
                     backdropFilter: "blur(12px)",
                     fontFamily: "'TTHoves-Regular', sans-serif",
                     boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -191,7 +159,8 @@ export default function EmployeeTax() {
                                     gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr",
                                     alignItems: "left",
                                     justifyItems: "center",
-                                    backgroundColor: "rgba(255, 255, 255, 0.25)",
+                                    backgroundColor: "#fff",
+                                    color: "#1b2223",
                                     backdropFilter: "blur(12px)",
                                     borderRadius: "10px",
                                     padding: "12px",
@@ -199,18 +168,23 @@ export default function EmployeeTax() {
                                     transition: "all 0.3s ease",
                                     border: "1px solid rgba(255,255,255,0.3)",
                                     "&:hover": {
-                                        backgroundColor: "rgba(255, 255, 255, 0.4)",
                                         transform: "translateY(-2px)",
                                         boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                     },
                                 }}
                             >
-                                <span>{item.employee}</span>
-                                <span>₱{item.SSS.toLocaleString()}</span>
-                                <span>₱{item.PhilHealth.toLocaleString()}</span>
-                                <span>₱{item.PagIBIG.toLocaleString()}</span>
-                                <span>₱{item.WTAX.toLocaleString()}</span>
-                                <span>₱{total.toLocaleString()}</span>
+                                <span  style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                    fontSize: "15px"}}>{item.employee}</span>
+                                <span  style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                    fontSize: "15px"}}>₱{item.SSS.toLocaleString()}</span>
+                                <span  style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                    fontSize: "15px"}}>₱{item.PhilHealth.toLocaleString()}</span>
+                                <span  style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                    fontSize: "15px"}}>₱{item.PagIBIG.toLocaleString()}</span>
+                                <span  style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                    fontSize: "15px"}}>₱{item.WTAX.toLocaleString()}</span>
+                                <span  style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                    fontSize: "15px"}}>₱{total.toLocaleString()}</span>
                             </Box>
                         );
                     })}
