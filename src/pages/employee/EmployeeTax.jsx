@@ -102,6 +102,7 @@ export default function EmployeeTax() {
             >
                 <Typography
                     variant="h5"
+
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
