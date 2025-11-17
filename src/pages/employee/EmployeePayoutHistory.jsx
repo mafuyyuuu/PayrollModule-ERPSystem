@@ -27,6 +27,7 @@ export default function EmployeePayoutHistory() {
                 >
                     Payout History
                 </Typography>
+
                 <Box sx={{ position: "relative", width: 250, transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "translateY(-2px)",

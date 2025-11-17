@@ -40,6 +40,7 @@ const Topbar = () => {
                 >
                     Welcome, Lorem Ipsum.
                 </Typography>
+
                 <Typography
                     variant="h4"
                     sx={{
@@ -50,6 +51,7 @@ const Topbar = () => {
                 >
                     Here’s your dashboard overview.
                 </Typography>
+
             </Box>
 
             <Box display="flex" alignItems="center" gap="1rem">
