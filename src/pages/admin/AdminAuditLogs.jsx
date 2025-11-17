@@ -1,104 +1,125 @@
-import React, { useState } from "react";
-import "../styles/AdminAuditLogs.css";
-import { RiPencilFill } from "react-icons/ri";
-import { RiArrowDownSLine } from "react-icons/ri";
-import { RiSearchLine } from "react-icons/ri";
-
-function GlassDropdown({ label, options }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [selected, setSelected] = useState(label);
-
-    const toggleDropdown = () => setIsOpen(!isOpen);
-    const handleSelect = (option) => {
-        setSelected(option);
-        setIsOpen(false);
-    };
-
-    return (
-        <div className="glass-dropdown">
-            <button className="glass-dropdown-btn" onClick={toggleDropdown}>
-                {selected}
-                <RiArrowDownSLine className={`arrow ${isOpen ? "open" : ""}`} />
-            </button>
-            {isOpen && (
-                <div className="glass-dropdown-menu">
-                    {options.map((opt, i) => (
-                        <div
-                            key={i}
-                            className="glass-dropdown-item"
-                            onClick={() => handleSelect(opt)}
-                        >
-                            {opt}
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
+import React from "react";
+import { Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import SearchBar from "../../components/SearchBar.jsx";
 
 export default function AdminAuditLogs() {
+    const theme = useTheme();
+
     const logs = [
         { date: "2025XXXX", user: "Jhervin Jimenez", action: "Dropbox", description: "Pending" },
         { date: "2025XXXX", user: "Symon Banaag", action: "Dropbox", description: "Pending" },
         { date: "2025XXXX", user: "Jumiah Zamora", action: "Dropbox", description: "Pending" },
-        { date: "2025XXXX", user: "Edrianne Lumabas", action: "Dropbox", description: "Pending" },
-        { date: "2025XXXX", user: "jisa", action: "Dropbox", description: "Pending" },
     ];
 
     return (
-        <div className="audit-container">
-            <div className="audit-header">
-                <h2 className="audit-title">Audit Logs</h2>
-            </div>
+        <Box
+            width="100%"
+            height="100%"
+            sx={{
+                fontFamily: theme.typography.fontFamily,
+            }}
+        >
+            <Typography
+                variant="h5"
+                sx={{
+                    fontSize: "20px",
+                    fontFamily: "'TTHoves-Bold', sans-serif",
+                    color: theme.palette.text.primary,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "25px",
+                }}
+            >
+                Audit Logs
+            </Typography>
 
-            <div className="audit-controls">
-                <div className="audit-filter-group">
-                    <GlassDropdown
-                        label="Date Range"
-                        options={["Today", "This Week", "This Month"]}
-                    />
-                    <GlassDropdown
-                        label="Department"
-                        options={["Department", "Department", "Department"]}
-                    />
-                    <GlassDropdown
-                        label="Action Type"
-                        options={["Action Type", "Action Type", "Action Type"]}
-                    />
-                </div>
+            <Box sx={{ display: "flex", mb: 2 }}>
+                <SearchBar placeholder="Enter Username" width="350px" />
+            </Box>
 
-                <div className="audit-search-box">
-                    <RiSearchLine className="audit-search-icon" />
-                    <input type="text" placeholder="Enter User Name" />
-                </div>
-            </div>
-
-            <div className="audit-table">
-                <div className="audit-table-header">
+            <Box
+                sx={{
+                    height: "85%",
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
+                    transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
+                    "&:hover": {
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        justifyItems: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
+                    }}
+                >
                     <span>Date</span>
                     <span>User</span>
                     <span>Action</span>
                     <span>Description</span>
-                    <span>Actions</span>
-                </div>
+                </Box>
 
-                <div className="audit-table-body">
+                <Box
+                    sx={{
+                        maxHeight: "530px",
+                        overflowY: "auto",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    }}
+                >
                     {logs.map((log, index) => (
-                        <div className="audit-table-row" key={index}>
+                        <Box
+                            key={index}
+                            sx={{
+                                marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(4, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                },
+                                textAlign: "center",
+                            }}
+                        >
                             <span>{log.date}</span>
                             <span>{log.user}</span>
                             <span>{log.action}</span>
                             <span>{log.description}</span>
-                            <span className="audit-icon-cell">
-                                <button className="audit-action-icon">
-                                    <RiPencilFill size={16} />
-                                </button>
-                            </span>
-                        </div>
+                        </Box>
                     ))}
-                </div>
-            </div>
-        </div>
+                </Box>
+            </Box>
+        </Box>
     );
 }

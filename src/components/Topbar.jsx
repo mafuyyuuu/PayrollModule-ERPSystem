@@ -23,7 +23,7 @@ const Topbar = () => {
             height="16vh"
             p="4rem"
             sx={{
-                border: `0.5px solid ${theme.palette.divider}`,
+                border: `0.5px solid rgba(255, 255, 255, 0.05)`,
                 background: isLightMode
                     ? tokens("light").gray[500]
                     : `linear-gradient(to right, ${tokens("dark").bunker[500]} 50%, ${tokens("dark")["outer-space"][500]} 85%, ${tokens("dark")["outer-space"][500]} 100%)`, // subtle gradient on right end
