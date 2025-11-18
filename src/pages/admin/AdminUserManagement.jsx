@@ -25,8 +25,6 @@ export default function AdminUserManagement() {
 
     const handleCloseModal = () => setUserModalOpen(false);
 
-    const [showRemove, setShowRemove] = useState(false);
-
     const users = [{
         id: "0100XXX",
         name: "Jhervin Jimenez",

@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
     Box, Button, Typography, IconButton, Select, MenuItem, TextField, Checkbox, FormControlLabel, InputBase,
@@ -157,7 +156,6 @@ export default function AdminConfiguration() {
     };
 
     const [showRemove, setShowRemove] = useState(false);
-
     const [filter, setFilter] = useState("");
 
     const renderCards = () => {
