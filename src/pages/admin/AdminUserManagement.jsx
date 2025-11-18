@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {
-    Box, IconButton, Typography, useTheme,
+    Box, IconButton, MenuItem, Select, TextField, Typography, useTheme,
 } from "@mui/material";
 import {RiPencilFill} from "react-icons/ri";
 import SearchBar from "../../components/SearchBar.jsx";
@@ -9,6 +9,23 @@ import BoxModal from "../../components/BoxModal.jsx";
 
 export default function AdminUserManagement() {
     const theme = useTheme();
+
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userModalOpen, setUserModalOpen] = useState(false);
+
+    const handleAddUser = () => {
+        setSelectedUser(null);
+        setUserModalOpen(true);
+    };
+
+    const handleEditUser = (user) => {
+        setSelectedUser(user);
+        setUserModalOpen(true);
+    };
+
+    const handleCloseModal = () => setUserModalOpen(false);
+
+    const [showRemove, setShowRemove] = useState(false);
 
     const users = [{
         id: "0100XXX",
@@ -36,16 +53,6 @@ export default function AdminUserManagement() {
         status: "Inactive"
     }, {id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending"},];
 
-    const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-
-    const openModal = (type, data) => {
-        if (type === "userDetails") {
-            setSelectedUser(data);
-            setShowUserDetailsModal(true);
-        }
-    };
-
     return (<Box sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}>
             <Typography
                 variant="h5"
@@ -64,17 +71,7 @@ export default function AdminUserManagement() {
                     display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, gap: 2,
                 }}
             >
-                <Box sx={{display: "flex", gap: 2}}>
-                    <ActionButton
-                        text="Add User"
-                        width="200px"
-                    />
-
-                    <ActionButton
-                        text="Remove"
-                        width="200px"
-                    />
-                </Box>
+                <ActionButton text="Add User" width="200px" onClick={handleAddUser} />
 
                 <SearchBar placeholder="Enter Username" width="350px"/>
             </Box>
@@ -98,7 +95,7 @@ export default function AdminUserManagement() {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(6, 1fr)",
+                        gridTemplateColumns: "repeat(5, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
@@ -112,7 +109,6 @@ export default function AdminUserManagement() {
                     <span style={{textAlign: "center"}}>User ID</span>
                     <span style={{textAlign: "center"}}>Name</span>
                     <span style={{textAlign: "center"}}>Role</span>
-                    <span style={{textAlign: "center"}}>Access</span>
                     <span style={{textAlign: "center"}}>Status</span>
                     <span style={{textAlign: "center"}}>Actions</span>
                 </Box>
@@ -133,7 +129,7 @@ export default function AdminUserManagement() {
                             sx={{
                                 marginTop: "10px",
                                 display: "grid",
-                                gridTemplateColumns: "repeat(6, 1fr)",
+                                gridTemplateColumns: "repeat(5, 1fr)",
                                 alignItems: "center",
                                 bgcolor: "#fff",
                                 color: "#1b2223",
@@ -150,11 +146,10 @@ export default function AdminUserManagement() {
                             <span>{user.id}</span>
                             <span>{user.name}</span>
                             <span>{user.role}</span>
-                            <span>{user.access}</span>
                             <span>{user.status}</span>
                             <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
                                 <IconButton
-                                    onClick={() => openModal("userDetails", user)}
+                                    onClick={() => handleEditUser(user)}
                                     sx={{
                                         bgcolor: "#3A4F50",
                                         color: "#fff",
@@ -174,21 +169,187 @@ export default function AdminUserManagement() {
             </Box>
 
             <BoxModal
-                open={showUserDetailsModal}
-                onClose={() => setShowUserDetailsModal(false)}
-                width="500px"
+                open={userModalOpen}
+                onClose={handleCloseModal}
+                width="450px"
+                height="470"
             >
-                <Typography sx={{fontSize: "20px", fontWeight: 600, mb: 2}}>
-                    User Details
+                <Typography
+                    variant="h5"
+                    sx={{
+                        fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                    }}
+                >
+                    {selectedUser ? "Edit User" : "Add User"}
                 </Typography>
 
-                {selectedUser && (<Box sx={{display: "flex", flexDirection: "column", gap: 2}}>
-                        <Typography><strong>ID:</strong> {selectedUser.id}</Typography>
-                        <Typography><strong>Name:</strong> {selectedUser.name}</Typography>
-                        <Typography><strong>Role:</strong> {selectedUser.role}</Typography>
-                        <Typography><strong>Access:</strong> {selectedUser.access}</Typography>
-                        <Typography><strong>Status:</strong> {selectedUser.status}</Typography>
-                    </Box>)}
+                <Box sx={{ display: "flex", gap: 1 }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                        <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#fff" }}>
+                            User ID
+                        </Typography>
+                        <TextField
+                            placeholder="User ID"
+                            value={selectedUser?.id || ""}
+                            disabled
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                width: "150px",
+                                "& .MuiOutlinedInput-root": {
+                                    fontSize: "16px",
+                                    borderRadius: "13px",
+                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    color: "#fff",
+                                    "& fieldset": { borderColor: "rgba(255,255,255,0.4)" },
+                                    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.6)" },
+                                    "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.9)" },
+                                },
+                            }}
+                        />
+                    </Box>
+
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                        <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#fff" }}>
+                            Full Name
+                        </Typography>
+                        <TextField
+                            placeholder="Enter Full Name"
+                            value={selectedUser?.name || ""}
+                            onChange={(e) => setSelectedUser(prev => ({ ...prev, name: e.target.value }))}                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                width: "228px",
+                                "& .MuiOutlinedInput-root": {
+                                    fontSize: "16px",
+                                    borderRadius: "13px",
+                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    color: "#fff",
+                                    "& fieldset": { borderColor: "rgba(255,255,255,0.4)" },
+                                    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.6)" },
+                                    "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.9)" },
+                                },
+                            }}
+                        />
+                    </Box>
+                </Box>
+
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                    <Typography
+                        sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}
+                    >
+                        Role
+                    </Typography>
+
+                    <Select
+                        value={selectedUser?.role || ""}
+                        onChange={(e) => setSelectedUser(prev => ({ ...prev, role: e.target.value }))}
+                        displayEmpty
+                        sx={{
+                            backgroundColor: "rgba(255,255,255,0.2)",
+                            borderRadius: "13px",
+                            color: "#fff",
+                            fontSize: "18px",
+                            "& .MuiSelect-select": { padding: "8px 12px" },
+                            "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.4)" },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.9)" },
+                            "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.6)" },
+                            "& .MuiSvgIcon-root": { color: "#fff" },
+                        }}
+                        MenuProps={{
+                            PaperProps: { sx: { backgroundColor: "#ffffff", color: "#1e1e1e" } }
+                        }}
+                        renderValue={(selected) => {
+                            if (!selected) return <span style={{ color: "rgba(255,255,255,0.4)" }}>Select Role</span>;
+                            return selected;
+                        }}
+                    >
+                        {["Full Time", "Part Time", "Contract"].map((option) => (
+                            <MenuItem key={option} value={option}>
+                                {option}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </Box>
+
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                    <Typography
+                        sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}
+                    >
+                        Status
+                    </Typography>
+
+                    <Select
+                        value={selectedUser?.status || ""}
+                        onChange={(e) => setSelectedUser(prev => ({ ...prev, status: e.target.value }))}
+                        displayEmpty
+                        sx={{
+                            backgroundColor: "rgba(255,255,255,0.2)",
+                            borderRadius: "13px",
+                            color: "#fff",
+                            fontSize: "18px",
+                            "& .MuiSelect-select": { padding: "8px 12px" },
+                            "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.4)" },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.9)" },
+                            "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.6)" },
+                            "& .MuiSvgIcon-root": { color: "#fff" },
+                        }}
+                        MenuProps={{
+                            PaperProps: { sx: { backgroundColor: "#ffffff", color: "#1e1e1e" } }
+                        }}
+                        renderValue={(selected) => {
+                            if (!selected) return <span style={{ color: "rgba(255,255,255,0.4)" }}>Select Status</span>;
+                            return selected;
+                        }}
+                    >
+                        {["Inactive", "Active"].map((option) => (
+                            <MenuItem key={option} value={option}>
+                                {option}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </Box>
+
+                <Box
+                    sx={{
+                        display: "flex", justifyContent: selectedUser ? "center" : "flex-end", gap: 2, mt: 3,
+                    }}
+                >
+                    {selectedUser && (
+                        <ActionButton
+                            text="Remove"
+                            width="200px"
+                            color="#b22222"
+                            onClick={() => {
+                                handleCloseModal();
+                            }}
+                        />
+                    )}
+                    <Box
+                        component="button"
+                        sx={{
+                            display: "flex-end",
+                            fontSize: "16px",
+                            backgroundColor: "#172224",
+                            color: "#fff",
+                            padding: "10px 0",
+                            borderRadius: "15px",
+                            cursor: "pointer",
+                            border: "none",
+                            transition: "all 0.3s ease",
+                            width: "200px",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            "&:hover": {
+                                backgroundColor: "#1f2f31",
+                                transform: "translateY(-2px)",
+                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                            },
+                        }}
+                    >
+                        Save
+                    </Box>
+                </Box>
             </BoxModal>
         </Box>);
 }
