@@ -15,7 +15,7 @@ export default function AdminUserManagement() {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleAddUser = () => {
-        setSelectedUser({ id: "", name: "", role: "", status: "" });
+        setSelectedUser({id: "", name: "", role: "", status: ""});
         setIsEditing(false);
         setUserModalOpen(true);
     };
@@ -199,16 +199,16 @@ export default function AdminUserManagement() {
 
             <Box sx={{display: "flex", gap: 1}}>
                 <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                    <Typography sx={{fontSize: "14px", fontWeight: 600, color: "#fff"}}>
+                    <Typography
+                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                         User ID
                     </Typography>
                     <TextField
                         placeholder="User ID"
                         value={selectedUser?.id || ""}
                         onChange={(e) =>
-                            !isEditing && setSelectedUser(prev => ({ ...prev, id: e.target.value }))
+                            !isEditing && setSelectedUser(prev => ({...prev, id: e.target.value}))
                         }
-                        disabled={isEditing}
                         variant="outlined"
                         size="small"
                         sx={{
@@ -227,7 +227,8 @@ export default function AdminUserManagement() {
                 </Box>
 
                 <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                    <Typography sx={{fontSize: "14px", fontWeight: 600, color: "#fff"}}>
+                    <Typography
+                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                         Full Name
                     </Typography>
                     <TextField
