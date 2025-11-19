@@ -3,7 +3,7 @@ import {
     Box, Button, IconButton, Typography, useTheme, Checkbox, Tooltip, Switch, Select, MenuItem, TextField
 } from "@mui/material";
 import {styled} from "@mui/material/styles";
-import {RiSettings3Fill, RiEyeFill, RiInformationLine} from "react-icons/ri";
+import {RiSettings3Fill, RiEyeFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
 
@@ -12,7 +12,7 @@ export default function AdminApproval() {
 
     const [activeTab, setActiveTab] = useState("workflow");
     const [openModal, setOpenModal] = useState(false);
-    const [modalType, setModalType] = useState("");   // always "workflow"
+    const [modalType, setModalType] = useState("");
     const [isEditing, setIsEditing] = useState(false);
     const [selectedWorkflow, setSelectedWorkflow] = useState(null);
     const [selectedException, setSelectedException] = useState(null);
@@ -20,11 +20,9 @@ export default function AdminApproval() {
 
     const handleOpenModal = (workflow = null) => {
         if (workflow) {
-            // EDIT mode
             setSelectedWorkflow(workflow);
             setIsEditing(true);
         } else {
-            // ADD mode
             setSelectedWorkflow({name: "", department: "", description: ""});
             setIsEditing(false);
         }

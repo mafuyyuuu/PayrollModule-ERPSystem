@@ -891,14 +891,11 @@ export default function AdminConfiguration() {
                         sx={{
                             color: "#fff"
                         }}
-                        control={
-                            <Checkbox
-                                sx={{
-                                    color: "rgba(255,255,255,0.2)",
-                                    "&.Mui-checked": { color: "#fff" }
-                                }}
-                            />
-                        }
+                        control={<Checkbox
+                            sx={{
+                                color: "rgba(255,255,255,0.2)", "&.Mui-checked": {color: "#fff"}
+                            }}
+                        />}
                         label="Apply to all employees in selected department"
                     />
 
@@ -948,11 +945,7 @@ export default function AdminConfiguration() {
                         }}
                     >
                         <Box sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: 1,
-                            mb: 2
+                            display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, mb: 2
                         }}>
                             <Typography
                                 sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "20px"}}
@@ -1014,8 +1007,7 @@ export default function AdminConfiguration() {
                             flexDirection: "column",
                             gap: "8px"
                         }}>
-                            {employeeGroupsFromDB.map((emp, i) => (
-                                <Box
+                            {employeeGroupsFromDB.map((emp, i) => (<Box
                                     key={i}
                                     sx={{
                                         display: "grid",
@@ -1054,8 +1046,7 @@ export default function AdminConfiguration() {
                                         <MenuItem value="Part Time">Part Time</MenuItem>
                                         <MenuItem value="Contract">Contract</MenuItem>
                                     </Select>
-                                </Box>
-                            ))}
+                                </Box>))}
                         </Box>
 
                         <Box
@@ -1087,8 +1078,7 @@ export default function AdminConfiguration() {
                                 Save
                             </Box>
                         </Box>
-                    </Box>
-                );
+                    </Box>);
 
             default:
                 return null;
@@ -1212,11 +1202,7 @@ export default function AdminConfiguration() {
                     open={showModal}
                     onClose={closeModal}
                     width={modalType === "employee" ? 700 : 500}
-                    height={
-                        modalType === "cutoff" ? 470 :
-                            modalType === "rule" ? 495 :
-                                modalType === "employee" ? 465 : 400
-                    }
+                    height={modalType === "cutoff" ? 470 : modalType === "rule" ? 495 : modalType === "employee" ? 465 : 400}
                 >
                     {renderModalContent()}
                 </BoxModal>

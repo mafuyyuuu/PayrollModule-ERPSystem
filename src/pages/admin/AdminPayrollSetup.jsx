@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import {Box, Button, IconButton, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {RiPencilFill} from "react-icons/ri";
-import {useTheme} from "@mui/material/styles";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal";
 
@@ -244,358 +243,353 @@ export default function AdminPayrollSetup() {
     const renderModalContent = () => {
         switch (modalType) {
             case "integration":
-                return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
-                            }}
-                        >
-                            Integration Settings
-                        </Typography>
-                    </Box>
-                );
-
-            case "taxSettings":
-                return (
-                    <Box
+                return (<Box sx={{display: "flex", flexDirection: "column", gap: 2}}>
+                    <Typography
+                        variant="h5"
                         sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
                         }}
                     >
+                        Integration Settings
+                    </Typography>
+                </Box>);
+
+            case "taxSettings":
+                return (<Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                    }}
+                >
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                        }}
+                    >
+                        Edit Tax Setting
+                    </Typography>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            variant="h5"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
-                            }}
-                        >
-                            Edit Tax Setting
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Tax Type
                         </Typography>
 
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                Tax Type
-                            </Typography>
-
-                            <Select
-                                displayEmpty
-                                sx={{
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    borderRadius: "13px",
-                                    color: "#fff",
-                                    fontSize: "18px",
-                                    "& .MuiSelect-select": {
-                                        padding: "8px 12px",
-                                    },
-                                    "& .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "rgba(255,255,255,0.4)",
-                                    },
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "rgba(255,255,255,0.9)",
-                                    },
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "rgba(255,255,255,0.6)",
-                                    },
-                                    "& .MuiSvgIcon-root": {
-                                        color: "#fff",
-                                    },
-                                }}
-                                MenuProps={{
-                                    PaperProps: {
-                                        sx: {
-                                            backgroundColor: "#ffffff", color: "#1e1e1e",
-                                        }
-                                    }
-                                }}
-                                renderValue={(selected) => {
-                                    if (!selected) return <span
-                                        style={{color: "rgba(255,255,255,0.4"}}>Select Tax Type</span>;
-                                    return selected;
-                                }}
-                            >
-                                {["SSS", "PhilHealth", "Pag-IBIG", "Withholding Tax"].map((option) => (
-                                    <MenuItem key={option} value={option}>
-                                        {option}
-                                    </MenuItem>))}
-                            </Select>
-                        </Box>
-
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                Rate
-                            </Typography>
-
-                            <TextField
-                                placeholder="Enter percentage"
-                                fullWidth
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
-                                        fontSize: "18px",
-                                        "& fieldset": {
-                                            borderColor: "rgba(255,255,255,0.4)",
-                                        },
-                                        "&:hover fieldset": {
-                                            borderColor: "rgba(255,255,255,0.6)",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "rgba(255,255,255,0.9)",
-                                        },
-                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                            />
-                        </Box>
-
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                Date
-                            </Typography>
-
-                            <input
-                                type="date"
-                                style={{
-                                    flex: 1,
-                                    padding: "10px",
-                                    height: "45px",
-                                    borderRadius: "13px",
-                                    fontSize: "18px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
-                                    border: "1px solid rgba(255,255,255,0.4)",
-                                    outline: "none",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    boxSizing: "border-box",
-                                    transition: "border-color 0.25s ease",
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.6)";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.4)";
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.9)";
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.4)";
-                                }}
-                            />
-                        </Box>
-
-                        <Box
+                        <Select
+                            displayEmpty
                             sx={{
-                                display: "flex", justifyContent: "flex-end", gap: 2, mt: 3,
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                borderRadius: "13px",
+                                color: "#fff",
+                                fontSize: "18px",
+                                "& .MuiSelect-select": {
+                                    padding: "8px 12px",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "rgba(255,255,255,0.4)",
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "rgba(255,255,255,0.9)",
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "rgba(255,255,255,0.6)",
+                                },
+                                "& .MuiSvgIcon-root": {
+                                    color: "#fff",
+                                },
+                            }}
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: "#ffffff", color: "#1e1e1e",
+                                    }
+                                }
+                            }}
+                            renderValue={(selected) => {
+                                if (!selected) return <span
+                                    style={{color: "rgba(255,255,255,0.4"}}>Select Tax Type</span>;
+                                return selected;
                             }}
                         >
-                            <ActionButton
-                                text="Remove"
-                                width="200px"
-                                color="#b22222"
-                                onClick={handleCloseModal}
-                            />
-                            <Box
-                                component="button"
-                                sx={{
-                                    display: "flex-end",
-                                    fontSize: "16px",
-                                    backgroundColor: "#172224",
+                            {["SSS", "PhilHealth", "Pag-IBIG", "Withholding Tax"].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>))}
+                        </Select>
+                    </Box>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Rate
+                        </Typography>
+
+                        <TextField
+                            placeholder="Enter percentage"
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "13px",
+                                    backgroundColor: "rgba(255,255,255,0.2)",
                                     color: "#fff",
-                                    padding: "10px 0",
-                                    borderRadius: "15px",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    transition: "all 0.3s ease",
-                                    width: "200px",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    "&:hover": {
-                                        backgroundColor: "#1f2f31",
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        borderColor: "rgba(255,255,255,0.4)",
                                     },
-                                }}
-                            >
-                                Save
-                            </Box>
+                                    "&:hover fieldset": {
+                                        borderColor: "rgba(255,255,255,0.6)",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        borderColor: "rgba(255,255,255,0.9)",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                            }}
+                        />
+                    </Box>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Date
+                        </Typography>
+
+                        <input
+                            type="date"
+                            style={{
+                                flex: 1,
+                                padding: "10px",
+                                height: "45px",
+                                borderRadius: "13px",
+                                fontSize: "18px",
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                color: "#fff",
+                                border: "1px solid rgba(255,255,255,0.4)",
+                                outline: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                boxSizing: "border-box",
+                                transition: "border-color 0.25s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.borderColor = "rgba(255,255,255,0.6)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.borderColor = "rgba(255,255,255,0.4)";
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = "rgba(255,255,255,0.9)";
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = "rgba(255,255,255,0.4)";
+                            }}
+                        />
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display: "flex", justifyContent: "flex-end", gap: 2, mt: 3,
+                        }}
+                    >
+                        <ActionButton
+                            text="Remove"
+                            width="200px"
+                            color="#b22222"
+                            onClick={handleCloseModal}
+                        />
+                        <Box
+                            component="button"
+                            sx={{
+                                display: "flex-end",
+                                fontSize: "16px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "200px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#1f2f31",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Save
                         </Box>
                     </Box>
-                );
+                </Box>);
 
             case "payComponents":
                 return (<Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                    }}
+                >
+                    <Typography
+                        variant="h5"
                         sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
                         }}
                     >
+                        {isEditing ? "Edit Pay Component" : "Add Pay Component"}
+                    </Typography>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            variant="h5"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
-                            }}
-                        >
-                            {isEditing ? "Edit Pay Component" : "Add Pay Component"}
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Formula or Fixed Amount
                         </Typography>
 
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                Formula or Fixed Amount
-                            </Typography>
-
-                            <TextField
-                                placeholder="Component Name"
-                                fullWidth
-                                value={selectedComponent?.name || ""}
-                                onChange={(e) =>
-                                    !isEditing && setSelectedComponent(prev => ({ ...prev, name: e.target.value }))
-                                }
-                                disabled={isEditing}
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
-                                        fontSize: "18px",
-                                        "& fieldset": {
-                                            borderColor: "rgba(255,255,255,0.4)",
-                                        },
-                                        "&:hover fieldset": {
-                                            borderColor: "rgba(255,255,255,0.6)",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            borderColor: "rgba(255,255,255,0.9)",
-                                        },
-                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                            />
-                        </Box>
-
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
-                            >
-                                Type
-                            </Typography>
-
-                            <Select
-                                value={selectedComponent?.type || ""}
-                                onChange={(e) => setSelectedComponent(prev => ({...prev, type: e.target.value}))}
-                                displayEmpty
-                                sx={{
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    borderRadius: "13px",
-                                    color: "#fff",
-                                    fontSize: "18px",
-                                    "& .MuiSelect-select": {padding: "8px 12px"},
-                                    "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "& .MuiSvgIcon-root": {color: "#fff"},
-                                }}
-                                MenuProps={{
-                                    PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
-                                }}
-                                renderValue={(selected) => {
-                                    if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
-                                    return selected;
-                                }}
-                            >
-                                {["Fixed", "Variable", "Manual Entry", "Computed"].map((option) => (
-                                    <MenuItem key={option} value={option}>
-                                        {option}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </Box>
-
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
-                            >
-                                Status
-                            </Typography>
-
-                            <Select
-                                value={selectedComponent?.status || ""}
-                                onChange={(e) => setSelectedComponent(prev => ({...prev, status: e.target.value}))}
-                                displayEmpty
-                                sx={{
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    borderRadius: "13px",
-                                    color: "#fff",
-                                    fontSize: "18px",
-                                    "& .MuiSelect-select": {padding: "8px 12px"},
-                                    "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "& .MuiSvgIcon-root": {color: "#fff"},
-                                }}
-                                MenuProps={{
-                                    PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
-                                }}
-                                renderValue={(selected) => {
-                                    if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
-                                    return selected;
-                                }}
-                            >
-                                {["Fixed", "Variable", "Manual Entry", "Computed"].map((option) => (
-                                    <MenuItem key={option} value={option}>
-                                        {option}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </Box>
-
-                        <Box
+                        <TextField
+                            placeholder="Component Name"
+                            fullWidth
+                            value={selectedComponent?.name || ""}
+                            onChange={(e) => !isEditing && setSelectedComponent(prev => ({
+                                ...prev, name: e.target.value
+                            }))}
+                            disabled={isEditing}
+                            variant="outlined"
+                            size="small"
                             sx={{
-                                display: "flex", justifyContent: showRemove ? "center" : "flex-end", gap: 2, mt: 3,
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "13px",
+                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    color: "#fff",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        borderColor: "rgba(255,255,255,0.4)",
+                                    },
+                                    "&:hover fieldset": {
+                                        borderColor: "rgba(255,255,255,0.6)",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        borderColor: "rgba(255,255,255,0.9)",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                            }}
+                        />
+                    </Box>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                        >
+                            Type
+                        </Typography>
+
+                        <Select
+                            value={selectedComponent?.type || ""}
+                            onChange={(e) => setSelectedComponent(prev => ({...prev, type: e.target.value}))}
+                            displayEmpty
+                            sx={{
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                borderRadius: "13px",
+                                color: "#fff",
+                                fontSize: "18px",
+                                "& .MuiSelect-select": {padding: "8px 12px"},
+                                "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
+                                "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
+                                "& .MuiSvgIcon-root": {color: "#fff"},
+                            }}
+                            MenuProps={{
+                                PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                            }}
+                            renderValue={(selected) => {
+                                if (!selected) return <span
+                                    style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
+                                return selected;
                             }}
                         >
-                            {showRemove && (<ActionButton
-                                text="Remove"
-                                width="200px"
-                                color="#b22222"
-                                onClick={handleCloseModal}
-                            />)}
-                            <Box
-                                component="button"
-                                sx={{
-                                    display: "flex-end",
-                                    fontSize: "16px",
-                                    backgroundColor: "#172224",
-                                    color: "#fff",
-                                    padding: "10px 0",
-                                    borderRadius: "15px",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    transition: "all 0.3s ease",
-                                    width: "200px",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    "&:hover": {
-                                        backgroundColor: "#1f2f31",
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                    },
-                                }}
-                            >
-                                Save
-                            </Box>
+                            {["Fixed", "Variable", "Manual Entry", "Computed"].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>))}
+                        </Select>
+                    </Box>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                        >
+                            Status
+                        </Typography>
+
+                        <Select
+                            value={selectedComponent?.status || ""}
+                            onChange={(e) => setSelectedComponent(prev => ({...prev, status: e.target.value}))}
+                            displayEmpty
+                            sx={{
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                borderRadius: "13px",
+                                color: "#fff",
+                                fontSize: "18px",
+                                "& .MuiSelect-select": {padding: "8px 12px"},
+                                "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
+                                "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
+                                "& .MuiSvgIcon-root": {color: "#fff"},
+                            }}
+                            MenuProps={{
+                                PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                            }}
+                            renderValue={(selected) => {
+                                if (!selected) return <span
+                                    style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
+                                return selected;
+                            }}
+                        >
+                            {["Fixed", "Variable", "Manual Entry", "Computed"].map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>))}
+                        </Select>
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display: "flex", justifyContent: showRemove ? "center" : "flex-end", gap: 2, mt: 3,
+                        }}
+                    >
+                        {showRemove && (<ActionButton
+                            text="Remove"
+                            width="200px"
+                            color="#b22222"
+                            onClick={handleCloseModal}
+                        />)}
+                        <Box
+                            component="button"
+                            sx={{
+                                display: "flex-end",
+                                fontSize: "16px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "200px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#1f2f31",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Save
                         </Box>
                     </Box>
-                );
+                </Box>);
 
             default:
                 return null;
@@ -686,18 +680,16 @@ export default function AdminPayrollSetup() {
                 >
                     <Box sx={{display: "flex", alignItems: "center", gap: "12px"}}>
                         <Box sx={{display: "flex", gap: 2}}>
-                            {activeTab === "payComponents" && (
-                                <ActionButton
-                                    text="Add Pay Component"
-                                    width="200px"
-                                    onClick={() => {
-                                        setSelectedComponent({ name: "", type: "", status: "" });
-                                        setIsEditing(false);
-                                        setModalType("payComponents");
-                                        setOpenModalState(true);
-                                    }}
-                                />
-                            )}
+                            {activeTab === "payComponents" && (<ActionButton
+                                text="Add Pay Component"
+                                width="200px"
+                                onClick={() => {
+                                    setSelectedComponent({name: "", type: "", status: ""});
+                                    setIsEditing(false);
+                                    setModalType("payComponents");
+                                    setOpenModalState(true);
+                                }}
+                            />)}
                         </Box>
                     </Box>
                 </Box>

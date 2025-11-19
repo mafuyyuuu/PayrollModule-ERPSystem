@@ -6,14 +6,19 @@ import SearchBar from "../../components/SearchBar.jsx";
 export default function AdminAuditLogs() {
     const theme = useTheme();
 
-    const logs = [
-        {date: "2025XXXX", user: "Jhervin Jimenez", action: "Dropbox", description: "Pending"},
-        {date: "2025XXXX", user: "Symon Banaag", action: "Dropbox", description: "Pending"},
-        {date: "2025XXXX", user: "Jumiah Zamora", action: "Dropbox", description: "Pending"},
-    ];
+    const logs = [{
+        date: "2025XXXX",
+        user: "Jhervin Jimenez",
+        action: "Dropbox",
+        description: "Pending"
+    }, {date: "2025XXXX", user: "Symon Banaag", action: "Dropbox", description: "Pending"}, {
+        date: "2025XXXX",
+        user: "Jumiah Zamora",
+        action: "Dropbox",
+        description: "Pending"
+    },];
 
-    return (
-        <Box
+    return (<Box
             width="100%"
             height="100%"
             sx={{
@@ -42,10 +47,7 @@ export default function AdminAuditLogs() {
             <Box
                 sx={{
                     height: "85%",
-                    backgroundColor:
-                        theme.palette.mode === "dark"
-                            ? "rgba(255, 255, 255, 0.05)"
-                            : "rgba(255, 255, 255, 0.2)",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
@@ -54,8 +56,7 @@ export default function AdminAuditLogs() {
                     display: "flex",
                     flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
@@ -91,8 +92,7 @@ export default function AdminAuditLogs() {
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
-                    {logs.map((log, index) => (
-                        <Box
+                    {logs.map((log, index) => (<Box
                             key={index}
                             sx={{
                                 marginTop: "10px",
@@ -106,8 +106,7 @@ export default function AdminAuditLogs() {
                                 minHeight: "83px",
                                 transition: "all 0.3s ease",
                                 "&:hover": {
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
                                 textAlign: "center",
                             }}
@@ -116,10 +115,8 @@ export default function AdminAuditLogs() {
                             <span>{log.user}</span>
                             <span>{log.action}</span>
                             <span>{log.description}</span>
-                        </Box>
-                    ))}
+                        </Box>))}
                 </Box>
             </Box>
-        </Box>
-    );
+        </Box>);
 }

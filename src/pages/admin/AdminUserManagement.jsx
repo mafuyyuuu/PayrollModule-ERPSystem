@@ -15,7 +15,7 @@ export default function AdminUserManagement() {
     const [isEditing, setIsEditing] = useState(false);
 
     const handleAddUser = () => {
-        setSelectedUser({ id: "", name: "", role: "", status: "" });
+        setSelectedUser({id: "", name: "", role: "", status: ""});
         setIsEditing(false);
         setUserModalOpen(true);
     };
@@ -207,7 +207,7 @@ export default function AdminUserManagement() {
                         placeholder="User ID"
                         value={selectedUser?.id || ""}
                         onChange={(e) =>
-                            !isEditing && setSelectedUser(prev => ({ ...prev, id: e.target.value }))
+                            !isEditing && setSelectedUser(prev => ({...prev, id: e.target.value}))
                         }
                         variant="outlined"
                         size="small"
