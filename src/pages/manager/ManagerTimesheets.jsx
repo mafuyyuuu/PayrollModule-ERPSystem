@@ -1,8 +1,8 @@
 import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { tokens } from "../../theme";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
 
 
 // Sample data for Manager Timesheet table
@@ -81,8 +81,6 @@ const timesheetData = [
 
 const ManagerTimesheets = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
-
     return (
 
         <Box mb="20px" mr="20px" ml="20px">
@@ -107,42 +105,12 @@ const ManagerTimesheets = () => {
                      justifyContent="flex-end"
                      justifySelf="end"
                      gap="15px">
-                    <Box sx={{ position: "relative" }}>
-                        <select
-                            defaultValue=""
-                            style={{
-                                height: "45px",
-                                appearance: "none",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                                width: "auto",
-                                padding: "10px 40px 10px 12px",
-                                borderRadius: "20px",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
-                                background: "rgba(255, 255, 255, 0.2)",
-                                backdropFilter: "blur(12px)",
-                                color: "#222",
-                                fontFamily: "inherit",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Filter</option>
-                        </select>
-                        <i
-                            class="ri-arrow-drop-down-fill"
-                            style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none",
-                                color: "#222",
-                                fontSize: "32px",
-                            }}
-                        ></i>
-                    </Box>
+
+                    <FilterSelect
+                        placeholder="Filter"
+                        width="90px"
+
+                    />
 
                     <SearchBar
                         placeholder="Enter Employee Name"
@@ -155,15 +123,18 @@ const ManagerTimesheets = () => {
 
             {/* TABLE CONTAINER */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
                 borderRadius="12px"
                 p="20px"
                 sx={{
-                    maxHeight: "600px",
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    maxHeight: "800px",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    color: theme.palette.text.primary,
+                    fontFamily: theme.typography.fontFamily,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -179,10 +150,9 @@ const ManagerTimesheets = () => {
                     gridTemplateColumns="1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 0.9fr"
                     alignItems="space-between"
                     fontWeight={600}
-                    color="#333"
                     p="12px 16px"
                     sx={{
-                        borderBottom: "1px solid #ddd",
+                        color: theme.palette.text.primary,
                         fontFamily: "TTHoves-Bold, sans-serif",
                     }}
                 >
@@ -237,13 +207,13 @@ const ManagerTimesheets = () => {
                         p="16px"
                         mt="10px"
                         borderRadius="10px"
-                        backgroundColor = "rgba(255, 255, 255, 0.25)"
-                        boxShadow="0 1px 4px rgba(0,0,0,0.06)"
                         sx={{
-                            borderBottom: "1px solid #eee",
+                            backgroundColor: "#fff",
+                            color: "#1b2223",
                             fontFamily: "'TT-Hoves Bold', sans-serif",
+                            transition: "all 0.3s ease",
+                            border: `1px solid ${theme.palette.divider}`,
                             "&:hover": {
-                                backgroundColor: "rgba(255, 255, 255, 0.4)",
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                             },
@@ -379,7 +349,10 @@ const ManagerTimesheets = () => {
                         height: "50px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: "#fff !important",
-                        backgroundColor: "#172224",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.2)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",
@@ -397,7 +370,10 @@ const ManagerTimesheets = () => {
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: "#fff !important",
                         height: "50px",
-                        backgroundColor: "#172224",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.2)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",
