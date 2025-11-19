@@ -53,9 +53,14 @@ function App() {
                 <UserProvider>
                     <Router>
                         <Routes>
-                            {/* landing and login */}
-                            <Route element={<Auth />}>
+
+                            {/* <Route element={<Auth />}>
                                 <Route path="/" element={<Landing />} />
+                                <Route path="/login" element={<Login />} />
+                            </Route> */}
+
+                            <Route element={<Auth />}>
+                                <Route path="/" element={<Navigate to="/employee/dashboard" replace />} />
                                 <Route path="/login" element={<Login />} />
                             </Route>
 
