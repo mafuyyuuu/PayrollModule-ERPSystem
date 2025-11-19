@@ -26,34 +26,46 @@ export default function AdminUserManagement() {
         setUserModalOpen(true);
     };
 
-
     const handleCloseModal = () => setUserModalOpen(false);
 
-    const users = [{
-        id: "0100XXX",
-        name: "Jhervin Jimenez",
-        role: "Dropbox",
-        access: "Dropbox",
-        status: "Pending"
-    }, {id: "0100XXX", name: "Sarah Cruz", role: "Manager", access: "Admin", status: "Active"}, {
-        id: "0100XXX",
-        name: "Michael Lee",
-        role: "Developer",
-        access: "Limited",
-        status: "Inactive"
-    }, {id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending"}, {
-        id: "0100XXX",
-        name: "Jhervin Jimenez",
-        role: "Dropbox",
-        access: "Dropbox",
-        status: "Pending"
-    }, {id: "0100XXX", name: "Sarah Cruz", role: "Manager", access: "Admin", status: "Active"}, {
-        id: "0100XXX",
-        name: "Michael Lee",
-        role: "Developer",
-        access: "Limited",
-        status: "Inactive"
-    }, {id: "0100XXX", name: "Jhervin Jimenez", role: "Dropbox", access: "Dropbox", status: "Pending"},];
+    const users = [
+        {
+            id: "010001",
+            name: "Jhervin Jimenez",
+            role: "Dropbox",
+            status: "Pending"
+        },
+        {
+            id: "010002",
+            name: "Sarah Cruz",
+            role: "Manager",
+            status: "Active"
+        },
+        {
+            id: "010003",
+            name: "Michael Lee",
+            role: "Developer",
+            status: "Inactive"
+        },
+        {
+            id: "010004",
+            name: "Jhervin Jimenez",
+            role: "Dropbox",
+            status: "Pending"
+        },
+        {
+            id: "010005",
+            name: "Sarah Cruz",
+            role: "Manager",
+            status: "Active"
+        },
+        {
+            id: "010006",
+            name: "Michael Lee",
+            role: "Developer",
+            status: "Inactive"
+        }
+    ];
 
     return (<Box sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}>
         <Typography
