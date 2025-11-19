@@ -138,27 +138,27 @@ export default function AdminReports() {
                         }}
                         >
                             {deductionData.map((row, i) => (<Box
-                                    key={i}
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(6, 1fr)",
-                                        borderRadius: "8px",
-                                        alignItems: "center",
-                                        minHeight: "45px",
-                                        width: "100%",
-                                        color: "#1b2223",
-                                        bgcolor: "#fff",
-                                        transition: "all 0.3s ease",
-                                        "&:hover": {
-                                            transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                        },
-                                        p: 1,
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    {row.map((cell, j) => (<span key={j}>{cell}</span>))}
-                                </Box>))}
+                                key={i}
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    borderRadius: "8px",
+                                    alignItems: "center",
+                                    minHeight: "45px",
+                                    width: "100%",
+                                    color: "#1b2223",
+                                    bgcolor: "#fff",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    },
+                                    p: 1,
+                                    textAlign: "center",
+                                }}
+                            >
+                                {row.map((cell, j) => (<span key={j}>{cell}</span>))}
+                            </Box>))}
                         </Box>
                     </Box>
                 </Box>

@@ -1,7 +1,6 @@
 import {Box, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import {BarChart3} from "lucide-react";
-import "../../components/NotificationItem.css";
 
 const AdminDashboard = () => {
     const theme = useTheme();
@@ -87,7 +86,6 @@ const AdminDashboard = () => {
                     </Box>
 
                     <button
-                        className="view-all-btn"
                         style={{
                             background: "transparent",
                             color: theme.palette.text.primary,
@@ -98,7 +96,7 @@ const AdminDashboard = () => {
                             fontSize: "18px",
                         }}
                     >
-                        View All
+                        Clear All
                     </button>
                 </Box>
 
@@ -120,7 +118,6 @@ const AdminDashboard = () => {
                 >
                     {notifications.map((notif, index) => (<Box
                             key={index}
-                            className="notification-item-box"
                             sx={{
                                 display: "grid",
                                 width: "100%",
@@ -128,9 +125,10 @@ const AdminDashboard = () => {
                                 alignItems: "start",
                                 justifyItems: "start",
                                 bgcolor: "#fff",
+                                padding: "6px",
                                 backdropFilter: "blur(12px)",
                                 borderRadius: "10px",
-                                marginTop: "10px",
+                                marginTop: "16px",
                                 transition: "all 0.3s ease",
                                 border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
@@ -138,11 +136,29 @@ const AdminDashboard = () => {
                                 },
                             }}
                         >
-                            <Box className="notification-item">
-                                <h3>{notif.title}</h3>
-                                <p>{notif.message}</p>
-                            </Box>
-                        </Box>))}
+                        <Box
+                            sx={{
+                                "& h3": {
+                                    paddingLeft: "16px",
+                                    fontSize: "20px",
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#1b2223",
+                                    marginTop: "15px",
+                                    marginBottom: "1px",
+                                },
+                                "& p": {
+                                    paddingLeft: "16px",
+                                    marginTop: "5px",
+                                    fontSize: "18px",
+                                    lineHeight: 1.4,
+                                    color: "#333",
+                                }
+                            }}
+                        >
+                            <h3>{notif.title}</h3>
+                            <p>{notif.message}</p>
+                        </Box>
+                    </Box>))}
                 </Box>
             </Box>
         </Box>);

@@ -16,6 +16,8 @@ export default function AdminConfiguration() {
     const [activeTab, setActiveTab] = useState("payrollRules");
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState("");
+    const [showRemove, setShowRemove] = useState(false);
+    const [filter, setFilter] = useState("");
 
     const [selectedRule, setSelectedRule] = useState("");
     const [selectedFreq, setSelectedFreq] = useState("");
@@ -109,15 +111,22 @@ export default function AdminConfiguration() {
 
     const [checkedRules, setCheckedRules] = useState({});
     const [checkedCutoffs, setCheckedCutoffs] = useState({});
-
     const allRulesChecked = rulesFromDB.every(rule => checkedRules[rule.id]);
     const allCutoffsChecked = cutoffsFromDB.every(cutoff => checkedCutoffs[cutoff.id]);
+    const hasCheckedRules = Object.values(checkedRules).some(Boolean);
+    const hasCheckedCutoffs = Object.values(checkedCutoffs).some(Boolean);
 
     const handleSelectAllRules = (e) => {
         const checked = e.target.checked;
         const newChecked = {};
         rulesFromDB.forEach(rule => newChecked[rule.id] = checked);
         setCheckedRules(newChecked);
+    };
+
+    const handleDeleteSelectedRules = () => {
+        const remaining = rulesFromDB.filter((rule) => !checkedRules[rule.id]);
+        setRulesFromDB(remaining);
+        setCheckedRules({});
     };
 
     const handleSelectAllCutoffs = (e) => {
@@ -127,20 +136,11 @@ export default function AdminConfiguration() {
         setCheckedCutoffs(newChecked);
     };
 
-    const handleDeleteSelectedRules = () => {
-        const remaining = rulesFromDB.filter((rule) => !checkedRules[rule.id]);
-        setRulesFromDB(remaining);
-        setCheckedRules({});
-    };
-
     const handleDeleteSelectedCutoffs = () => {
         const remaining = cutoffsFromDB.filter((cutoff) => !checkedCutoffs[cutoff.id]);
         setCutoffsFromDB(remaining);
         setCheckedCutoffs({});
     };
-
-    const hasCheckedRules = Object.values(checkedRules).some(Boolean);
-    const hasCheckedCutoffs = Object.values(checkedCutoffs).some(Boolean);
 
     const openModal = (type) => {
         setModalType(type);
@@ -154,9 +154,6 @@ export default function AdminConfiguration() {
         setShowModal(false);
         setModalType("");
     };
-
-    const [showRemove, setShowRemove] = useState(false);
-    const [filter, setFilter] = useState("");
 
     const renderCards = () => {
         switch (activeTab) {
@@ -258,12 +255,12 @@ export default function AdminConfiguration() {
                                     },
                                 }}
                             >
-                                        <span style={{paddingLeft: "15px", textAlign: "left"}}>
-                                            {rule.type}
-                                        </span>
+                                <span style={{paddingLeft: "15px", textAlign: "left"}}>
+                                    {rule.type}
+                                </span>
                                 <span style={{textAlign: "left"}}>
-                                            {rule.description}
-                                        </span>
+                                    {rule.description}
+                                </span>
                                 <span style={{textAlign: "center"}}>10%</span>
                                 <span style={{textAlign: "center"}}>
                                     <Box
@@ -891,13 +888,17 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <FormControlLabel
-                        control={<Checkbox
-                            sx={{
-                                color: "rgba(255,255,255,0.2)", "&.Mui-checked": {
-                                    color: "#fff",
-                                },
-                            }}
-                        />}
+                        sx={{
+                            color: "#fff"
+                        }}
+                        control={
+                            <Checkbox
+                                sx={{
+                                    color: "rgba(255,255,255,0.2)",
+                                    "&.Mui-checked": { color: "#fff" }
+                                }}
+                            />
+                        }
                         label="Apply to all employees in selected department"
                     />
 
