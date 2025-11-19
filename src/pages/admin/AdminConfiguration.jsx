@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
     Box, Button, Typography, IconButton, Select, MenuItem, TextField, Checkbox, FormControlLabel, InputBase,
@@ -157,8 +156,6 @@ export default function AdminConfiguration() {
     };
 
     const [showRemove, setShowRemove] = useState(false);
-
-
     const [filter, setFilter] = useState("");
 
     const renderCards = () => {
@@ -269,19 +266,19 @@ export default function AdminConfiguration() {
                                         </span>
                                 <span style={{textAlign: "center"}}>10%</span>
                                 <span style={{textAlign: "center"}}>
-                                            <Box
-                                                component="span"
-                                                sx={{
-                                                    display: "inline-block",
-                                                    width: "8px",
-                                                    height: "8px",
-                                                    borderRadius: "50%",
-                                                    bgcolor: "#28a745",
-                                                    mr: "4px",
-                                                }}
-                                            />
-                                            Active
-                                        </span>
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            display: "inline-block",
+                                            width: "8px",
+                                            height: "8px",
+                                            borderRadius: "50%",
+                                            bgcolor: "#28a745",
+                                            mr: "4px",
+                                        }}
+                                    />
+                                    Active
+                                </span>
                                 <Box
                                     sx={{
                                         display: "flex", gap: "8px", justifyContent: "center",
@@ -1049,12 +1046,12 @@ export default function AdminConfiguration() {
                                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
-                                            color: "#fff",
+                                            color: "#172224",
                                         }}
                                     >
-                                        <MenuItem>Full Time</MenuItem>
-                                        <MenuItem>Part Time</MenuItem>
-                                        <MenuItem>Contract</MenuItem>
+                                        <MenuItem value="Full Time">Full Time</MenuItem>
+                                        <MenuItem value="Part Time">Part Time</MenuItem>
+                                        <MenuItem value="Contract">Contract</MenuItem>
                                     </Select>
                                 </Box>
                             ))}
@@ -1216,7 +1213,7 @@ export default function AdminConfiguration() {
                     width={modalType === "employee" ? 700 : 500}
                     height={
                         modalType === "cutoff" ? 470 :
-                            modalType === "rule" ? 492 :
+                            modalType === "rule" ? 495 :
                                 modalType === "employee" ? 465 : 400
                     }
                 >
