@@ -1,20 +1,20 @@
-import { Box, Typography, useTheme } from "@mui/material";
-import { tokens } from "../../theme";
+import {Box, Typography, useTheme} from "@mui/material";
+import {tokens} from "../../theme";
 import DashboardCard from "../../components/DashboardCard.jsx";
 
 const PayrollDashboard = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    return (
-        <Box
+    return (<Box
             width="100%"
-            height="50vh"
+            height="80%"
         >
             <Box
                 display="grid"
                 gridTemplateColumns="repeat(4, 1fr)"
                 gap="20px"
+                marginBottom="30px"
             >
                 <DashboardCard
                     icon="ri-group-line"
@@ -40,27 +40,25 @@ const PayrollDashboard = () => {
 
             {/* PAYOUT SCHEDULE TIMELINE */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                mt = "30px"
-                borderRadius="12px"
-                height="100%"
-                p="24px"
-                color="#222"
                 sx={{
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    borderRadius: "12px",
+                    p: "24px",
+                    color: theme.palette.text.primary,
+                    height: "97.5%",
+                    backdropFilter: "blur(12px)",
+                    fontFamily: theme.typography.fontFamily,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    }
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
+                    gap: "10px",
                 }}
             >
                 <Typography variant="h4">Payout Schedule Timeline</Typography>
             </Box>
-        </Box>
-    );
+        </Box>);
 };
 
 export default PayrollDashboard;
