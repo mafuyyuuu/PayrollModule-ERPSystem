@@ -141,7 +141,6 @@ const ManagerTimesheets = () => {
                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                     gap: "10px",
-                    scrollbarWidth: "auto",
                 }}
             >
                 {/* HEADER ROW */}
@@ -192,6 +191,9 @@ const ManagerTimesheets = () => {
                 sx={{
                 maxHeight: "500px",
                 overflowY: "auto",
+                "&::-webkit-scrollbar": { width: 0, height: 0 },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
                 pr: "8px",
                 display: "flex",
                 flexDirection: "column",
@@ -208,6 +210,7 @@ const ManagerTimesheets = () => {
                         mt="10px"
                         borderRadius="10px"
                         sx={{
+
                             backgroundColor: "#fff",
                             color: "#1b2223",
                             fontFamily: "'TT-Hoves Bold', sans-serif",
@@ -225,20 +228,20 @@ const ManagerTimesheets = () => {
                         <Typography ml="-20px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             {row.date}
                         </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                        <Typography ml="-10px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             {row.timeIn}
                         </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                        <Typography ml="-8px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             {row.timeOut}
                         </Typography>
-                        <Typography ml="35px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                        <Typography ml="28px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             {row.totalHours}
                         </Typography>
-                        <Typography ml="35px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                        <Typography ml="25px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             {row.overtime}
                         </Typography>
                         <Typography
-                            ml="-10px"
+                            ml="-25px"
                             sx={{
                                 fontFamily: "'TTHoves-Bold', sans-serif",
                                 color:
@@ -352,7 +355,7 @@ const ManagerTimesheets = () => {
                         backgroundColor:
                             theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
-                                : "rgba(255, 255, 255, 0.2)",
+                                : "rgb(23,34,36)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",
@@ -373,7 +376,7 @@ const ManagerTimesheets = () => {
                         backgroundColor:
                             theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
-                                : "rgba(255, 255, 255, 0.2)",
+                                : "rgb(23,34,36)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",
