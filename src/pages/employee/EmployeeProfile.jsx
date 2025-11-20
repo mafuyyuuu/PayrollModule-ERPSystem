@@ -1,61 +1,69 @@
-import { Box, Typography, Divider, Button } from "@mui/material";
-import { useUser } from "../../components/UserContext.jsx";
-import "remixicon/fonts/remixicon.css";
+import { useState } from "react";
+import {
+    Box,
+    Typography,
+    Button,
+    useTheme,
+    TextField,
+} from "@mui/material";
+import banner from "../../assets/banner.jpg";
+import finn from "../../assets/finn.png";
 
-export default function EmployeeProfile() {
-    const { user } = useUser();
 
-    const mainInfo = [
-        { label: "Birthdate", value: user.birthday },
-        { label: "Age", value: user.age },
-        { label: "Sex", value: user.sex },
-        { label: "Marital Status", value: user.maritalStatus },
-        { label: "Nationality", value: user.nationality },
-        { label: "Address", value: user.address },
-    ];
+const personalInfoData = {
+    address: "Brgy. Malinis, Quezon City",
+    birthdate: "1998-03-15",
+    age: "27",
+    sex: "Male",
+    maritalStatus: "Single",
+    nationality: "Filipino",
+    contactNumber: "0912-345-6789",
 
-    const contactInfo = [
-        { label: "Contact Number", value: user.contactNumber },
-    ];
+    emergencyContactName: "Maria Jimenez",
+    emergencyContactNumber: "0999-888-7777",
+};
 
-    const emergencyContactInfo = [
-        { label: "Contact Name", value: user.emergencyContactName },
-        { label: "Contact Number", value: user.emergencyContactNumber },
-        { label: "Relationship", value: user.emergencyContactRelation },
-    ];
+const employmentDetails = {
+    employmentId: "23-00290",
+    department: "Computer Science",
+    position: "Professor",
+    employmentType: "Part-Time",
+    dateHired: "2025-11-01",
 
-    const employmentInfo = [
-        { label: "Employee ID", value: user.employeeId },
-        { label: "Department", value: user.department },
-        { label: "Position", value: user.position },
-        { label: "Employment Status", value: user.employmentStatus },
-        { label: "Date Hired", value: user.dateHired },
-    ];
+};
+const readOnlyStyle = {
+    pointerEvents: "none",
+    backgroundColor: "rgba(255,255,255,0.6)",
+    borderRadius: "12px",
+    fontFamily: "'TTHoves-Bold', sans-serif"
+};
+
+export default function EmployeeProfileLayout() {
+    const theme = useTheme();
+    const [activeTab, setActiveTab] = useState("personal");
 
     return (
         <Box
-            width="100%"
-            height="100%"
-            display="flex"
-            justifyContent="center"
-            alignItems="flex-start"
-            gap={4}
-            sx={{
-                padding: "20px",
-            }}
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "320px 1fr" }}
+            gap="30px"
+            p="30px"
+            sx={{ height: "75vh" }}
         >
+            {/* LEFT PANEL */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                color="#222"
-                width="40%"
-                height="100%"
                 sx={{
-                    backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
-                    padding: "30px",
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(18px)",
+                    borderRadius: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -63,341 +71,642 @@ export default function EmployeeProfile() {
                     },
                 }}
             >
+                {/* Header Banner */}
                 <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    p={2}
                     sx={{
-                        backgroundColor: "#fff",
-                        borderRadius: "12px",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+                        width: "100%",
+                        height: "110px",
+                        borderRadius: "15px 15px 0 0",
+                        backgroundImage: `url(${banner})`,   // <--- replace with your header image
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        marginBottom: "-90px",   // pulls the profile photo upward like your design
+                    }}
+                />
+
+                {/* User Image */}
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        width: "100%",
+                        position: "relative",
+                        mt: "75px",
                     }}
                 >
-                    <Box display="flex" alignItems="center" gap={2}>
-                        <Box
-                            sx={{
-                                width: 120,
-                                height: 120,
-                                borderRadius: "50%",
-                                backgroundColor: "#e0e0e0",
-                                overflow: "hidden",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            {user?.profilePic ? (
-                                <img
-                                    src={user.profilePic}
-                                    alt={user.name}
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover",
-                                    }}
-                                />
-                            ) : (
-                                <i
-                                    className="ri-user-fill"
-                                    style={{ fontSize: "80px", color: "#666" }}
-                                />
-                            )}
-                        </Box>
-
-                        <Box ml="10px">
-                            <Typography
-                                variant="h5"
-                                sx={{
-                                    fontWeight: "700",
-                                    fontFamily: "'TTHoves-Bold', sans-serif",
-                                    fontSize: "28px",
-                                    color: "#172224",
-                                }}
-                            >
-                                {user?.name || "User Name"}
-                            </Typography>
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    fontWeight: "500",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    fontSize: "14px",
-                                    color: "#666",
-                                }}
-                            >
-                                {user?.email || "email@example.com"}
-                            </Typography>
-                        </Box>
-                    </Box>
+                    <Box
+                        component="img"
+                        src={finn}
+                        alt="User"
+                        sx={{
+                            width: "120px",
+                            height: "120px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            border: `6px solid ${
+                                theme.palette.mode === "dark"
+                                    ? "rgb(35,45,47)"
+                                    : "rgb(218,219,219)"
+                            }`,
+                            position: "relative",
+                            top: "-50px",  // makes the circle overlap the header just like your screenshot
+                        }}
+                    />
                 </Box>
 
-                <Box m={2} display="flex" flexDirection="column">
-                    <Box>
-                        <Typography
-                            sx={{
-                                color: "#172224",
-                                fontSize: "30px",
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                            }}
-                        >
-                            My Profile
-                        </Typography>
-                    </Box>
+                <Box display="flex" flexDirection="column" marginTop="-30px">
+                <Typography variant="h4" sx={{ fontWeight: 600, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    Jherwin Jimenez
+                </Typography>
+                <Typography
+                    variant="body2"
+                    sx={{ color: theme.palette.text.secondary, fontFamily: "'TTHoves-Regular', sans-serif", }}
+                >
+                    jherwin@gmail.com
+                </Typography>
+                </Box>
 
-                    <Divider sx={{ backgroundColor: "#172224", height: "2px", mt: 1, mb: 3 }} />
+                <Box display="flex" flexDirection="column" width="280px" justifyItems="center" alignContent="center">
+                {/* Navigation Buttons */}
+                <Button
+                    fullWidth
+                    onClick={() => setActiveTab("personal")}
+                    sx={{
+                        fontWeight: "bold",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        mt: 4,
+                        padding: "10px",
+                        borderRadius: "12px",
+                        backgroundColor:
+                            activeTab === "personal"
+                                ? "rgb(166,170,178, 0.3)"
+                                : "transparent",
+                        color:
+                            activeTab === "personal"
+                                ? theme.palette.text.primary
+                                : theme.palette.text.primary,
 
-                    <Box display="flex" flexDirection="column" gap={3}>
-                        {mainInfo.map(({ label, value }) => (
-                            <Box
-                                key={label}
-                                display="flex"
-                                justifyContent="space-between"
-                                alignItems="center"
-                            >
-                                <Typography
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        fontSize: "20px",
-                                        color: "#222",
-                                        flex: 1,
-                                    }}
-                                >
-                                    {label}
-                                </Typography>
+                        justifyContent: "flex-start",
+                        paddingLeft: "43px",
+                        textTransform: "none",
+                        fontSize: "16px",
+                        "&:hover": {
+                            backgroundColor: "rgb(166,170,178)"
+                        },
+                    }}
+                >
+                    <i className="ri-user-line" style={{ marginRight: "10px" }}></i>
+                    Personal Information
+                </Button>
 
-                                <Box
-                                    sx={{
-                                        flex: 2,
-                                        textAlign: "left",
-                                        backgroundColor: "rgba(255, 255, 255, 0.8)",
-                                        border: "1px solid rgba(0,0,0,0.1)",
-                                        borderRadius: "8px",
-                                        padding: "6px 8px",
-                                        fontFamily: "'TTHoves-Regular', sans-serif",
-                                        fontSize: "18px",
-                                        color: "#222",
-                                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
-                                    }}
-                                >
-                                    {value || "-"}
-                                </Box>
-                            </Box>
-                        ))}
-                    </Box>
+                <Button
+                    fullWidth
+                    onClick={() => setActiveTab("employment")}
+                    sx={{
+                        fontWeight: "bold",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        mt: 1,
+                        padding: "10px",
+                        borderRadius: "12px",
+                        backgroundColor:
+                            activeTab === "employment"
+                                ? "rgb(166,170,178, 0.3)"
+                                : "transparent",
+                        color:
+                            activeTab === "employment"
+                                ? theme.palette.text.primary
+                                : theme.palette.text.primary,
+                        paddingLeft: "43px",
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        fontSize: "16px",
+                        "&:hover": {
+                            backgroundColor: "rgb(166,170,178)"
+                        },
+                    }}
+                >
+                    <i
+                        className="ri-briefcase-line"
+                        style={{ marginRight: "10px" }}
+                    ></i>
+                    Employment Details
+                </Button>
                 </Box>
             </Box>
 
-            {/* RIGHT SIDE: Contact + Employment Info */}
+            {/* RIGHT SIDE CONTENT PANEL */}
             <Box
-                width="40%"
-                display="flex"
-                flexDirection="column"
-                justifyContent="space-between"
-                gap={2}
                 sx={{
-                    height: "100%",
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(18px)",
+                    borderRadius: "20px",
+                    padding: "35px",
+                    border: `1px solid ${theme.palette.divider}`,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
                 }}
             >
-                {/* Contact Information Card */}
-                <Box
-                    backgroundColor="rgba(255, 255, 255, 0.2)"
-                    borderRadius="12px"
-                    color="#222"
-                    sx={{
-                        height: "100%",
-                        backdropFilter: "blur(12px)",
-                        fontFamily: "'TTHoves-Regular', sans-serif",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
-                        transition: "all 0.3s ease",
-                        "&:hover": {
-                            transform: "scale(1.02)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                {activeTab === "personal" ? (
+                    <PersonalInformationForm />
+                ) : (
+                    <EmploymentDetailsForm />
+                )}
+            </Box>
+        </Box>
+    );
+}
+
+/* --------------------------- PERSONAL INFO FORM --------------------------- */
+
+function PersonalInformationForm() {
+    const theme = useTheme();
+
+    return (
+        <Box>
+            <Box sx={{
+                borderBottom: `3px solid ${theme.palette.divider}`,
+                paddingBottom: "10px",
+                marginBottom: 4,
+            }}>
+                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <i className="ri-user-line" style={{ marginRight: "10px" }}></i>
+                    Personal Information
+                </Typography>
+            </Box>
+            <Box mb = "20px">
+                <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    Address
+                </Typography>
+                <TextField
+                    fullWidth
+                    value={personalInfoData.address}
+                    InputProps={{
+                        readOnly: true,
+                        style: {
+                            height: "50px",
+                            borderRadius: "12px",
+                            backgroundColor: "rgba(255, 255, 255, 0.6)",
+                            color: "#000000",
+                            pointerEvents: "none",
+                            fontFamily: "TTHoves-Regular, sans-serif",
+                            fontSize: "16px"
                         },
                     }}
-                >
-                    <Box m={2} display="flex" flexDirection="column">
-                        <Box
-                            display="flex"
-                            justifyContent="space-between"
-                            alignItems="center"
-                        >
-                            <Typography
-                                sx={{
-                                    color: "#172224",
-                                    fontSize: "30px",
-                                    fontFamily: "'TTHoves-Bold', sans-serif",
-                                    mb: 1,
-                                }}
-                            >
-                                Contact Information
-                            </Typography>
-                        </Box>
+                    sx={{
+                        ...readOnlyStyle,
+                        "& .MuiOutlinedInput-root": {
+                            cursor: "default",
+                        "& fieldset": {
+                            borderRadius: "12px",
+                        },
+                        }
+                    }}
+                />
+            </Box>
 
-                        <Divider sx={{ backgroundColor: "#172224", height: "2px", mb: 1.5 }} />
-
-                        <Box display="flex" flexDirection="column" mb={2}>
-                            {contactInfo.map(({ label, value }) => (
-                                <Box
-                                    key={label}
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
-                                    <Typography
-                                        sx={{
-                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            fontSize: "18px",
-                                            color: "#222",
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {label}:
-                                    </Typography>
-
-                                    <Box
-                                        sx={{
-                                            flex: 2,
-                                            textAlign: "left",
-                                            backgroundColor: "rgba(255, 255, 255, 0.8)",
-                                            border: "1px solid rgba(0,0,0,0.1)",
-                                            borderRadius: "8px",
-                                            padding: "6px 10px",
-                                            fontFamily: "'TTHoves-Regular', sans-serif",
-                                            fontSize: "18px",
-                                            color: "#222",
-                                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
-                                        }}
-                                    >
-                                        {value || "-"}
-                                    </Box>
-                                </Box>
-                            ))}
-                        </Box>
-
-                        <Box display="flex" flexDirection="column" gap={0.3}>
-                            <Typography
-                                sx={{
-                                    color: "#172224",
-                                    fontSize: "20px",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                }}
-                            >
-                                Emergency Contact
-                            </Typography>
-                            {emergencyContactInfo.map(({ label, value }) => (
-                                <Box
-                                    key={label}
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
-                                    <Typography
-                                        sx={{
-                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            fontSize: "18px",
-                                            color: "#222",
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {label}
-                                    </Typography>
-
-                                    <Box
-                                        sx={{
-                                            flex: 2,
-                                            textAlign: "left",
-                                            backgroundColor: "rgba(255, 255, 255, 0.8)",
-                                            border: "1px solid rgba(0,0,0,0.1)",
-                                            borderRadius: "8px",
-                                            padding: "6px 8px",
-                                            fontFamily: "'TTHoves-Regular', sans-serif",
-                                            fontSize: "18px",
-                                            color: "#222",
-                                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
-                                        }}
-                                    >
-                                        {value || "-"}
-                                    </Box>
-                                </Box>
-                            ))}
-                        </Box>
-                    </Box>
+            <Box
+                display="grid"
+                gridTemplateColumns={{ md: "1fr 1fr" }}
+                gap="20px"
+            >
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Birthdate
+                    </Typography>
+                        <TextField
+                            fullWidth
+                            value={personalInfoData.birthdate}
+                            InputProps={{
+                                readOnly: true,
+                                style: {
+                                    height: "50px",
+                                    borderRadius: "12px",
+                                    backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                    color: "#000000",
+                                    pointerEvents: "none",
+                                    fontFamily: "TTHoves-Regular, sans-serif",
+                                    fontSize: "16px",
+                                },
+                            }}
+                            sx={{
+                                ...readOnlyStyle,
+                                "& .MuiOutlinedInput-root": {
+                                    cursor: "default",
+                                    "& fieldset": {
+                                        borderRadius: "12px",
+                                    },
+                                }
+                            }}
+                        />
                 </Box>
 
-                <Box
-                    backgroundColor="rgba(255, 255, 255, 0.2)"
-                    borderRadius="12px"
-                    color="#222"
-                    sx={{
-                        height: "100%",
-                        backdropFilter: "blur(12px)",
-                        fontFamily: "'TTHoves-Regular', sans-serif",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
-                        transition: "all 0.3s ease",
-                        "&:hover": {
-                            transform: "scale(1.02)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                        },
-                    }}
-                >
-                    <Box m={2}>
-                        <Typography
-                            sx={{
-                                color: "#172224",
-                                fontSize: "30px",
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                mb: 1,
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Age
+                    </Typography>
+                        <TextField
+                            fullWidth
+                            value={personalInfoData.age}
+                            InputProps={{
+                                readOnly: true,
+                                style: {
+                                    height: "50px",
+                                    borderRadius: "12px",
+                                    backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                    color: "#000000",
+                                    pointerEvents: "none",
+                                    fontFamily: "TTHoves-Regular, sans-serif",
+                                    fontSize: "16px",
+                                },
                             }}
-                        >
-                            Employment Information
-                        </Typography>
+                            sx={{
+                                ...readOnlyStyle,
+                                "& .MuiOutlinedInput-root": {
+                                    cursor: "default",
+                                    "& fieldset": {
+                                        borderRadius: "12px",
+                                    },
+                                }
+                            }}
+                        />
+                </Box>
 
-                        <Divider sx={{ backgroundColor: "#172224", height: "2px", mb: 1.5 }} />
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Sex
+                    </Typography>
+                        <TextField
+                            fullWidth
+                            value={personalInfoData.sex}
+                            InputProps={{
+                                readOnly: true,
+                                style: {
+                                    height: "50px",
+                                    borderRadius: "12px",
+                                    backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                    color: "#000000",
+                                    pointerEvents: "none",
+                                    fontFamily: "TTHoves-Regular, sans-serif",
+                                    fontSize: "16px",
+                                },
+                            }}
+                            sx={{
+                                ...readOnlyStyle,
+                                "& .MuiOutlinedInput-root": {
+                                    cursor: "default",
+                                    "& fieldset": {
+                                        borderRadius: "12px",
+                                    },
+                                }
+                            }}
+                        />
+                </Box>
 
-                        <Box display="flex" flexDirection="column" gap={0.5}>
-                            {employmentInfo.map(({ label, value }) => (
-                                <Box
-                                    key={label}
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
-                                    <Typography
-                                        sx={{
-                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            fontSize: "18px",
-                                            color: "#222",
-                                            flex: 1,
-                                        }}
-                                    >
-                                        {label}
-                                    </Typography>
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                       Marital Status
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={personalInfoData.maritalStatus}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
 
-                                    <Box
-                                        sx={{
-                                            flex: 2,
-                                            textAlign: "left",
-                                            backgroundColor: "rgba(255, 255, 255, 0.8)",
-                                            border: "1px solid rgba(0,0,0,0.1)",
-                                            borderRadius: "8px",
-                                            padding: "6px 8px",
-                                            fontFamily: "'TTHoves-Regular', sans-serif",
-                                            fontSize: "18px",
-                                            color: "#222",
-                                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
-                                        }}
-                                    >
-                                        {value || "-"}
-                                    </Box>
-                                </Box>
-                            ))}
-                        </Box>
-                    </Box>
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Nationality
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={personalInfoData.nationality}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
+
+
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Contact Number
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={personalInfoData.contactNumber}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                borderRadius: "12px",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
                 </Box>
             </Box>
+
+            <Typography sx={{ mt: 6, mb: 3, fontWeight: 300, fontFamily: "'TTHoves-Regular', sans-serif"}}>
+                Emergency Contact
+            </Typography>
+
+            <Box
+                display="grid"
+                gridTemplateColumns={{ md: "1fr 1fr" }}
+                gap="20px"
+                mb = "10px"
+            >
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Contact Name
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={personalInfoData.emergencyContactName}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={readOnlyStyle}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Contact Number
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={personalInfoData.emergencyContactNumber}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={readOnlyStyle}
+                    />
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
+/* --------------------------- EMPLOYMENT DETAILS FORM --------------------------- */
+
+function EmploymentDetailsForm() {
+    const theme = useTheme();
+
+    return (
+        <Box>
+            <Box sx={{
+                borderBottom: `3px solid ${theme.palette.divider}`,
+                paddingBottom: "10px",
+                marginBottom: 4,
+            }}>
+                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <i className="ri-briefcase-line" style={{ marginRight: "10px" }}></i>
+                    Employment Details
+                </Typography>
+            </Box>
+
+            <Box
+                display="grid"
+                gridTemplateColumns={{ md: "1fr 1fr" }}
+                gap="20px"
+            >
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Employment ID
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={employmentDetails.employmentId}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Department
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={employmentDetails.department}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Position
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={employmentDetails.position}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Employment Type
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={employmentDetails.employmentType}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                        Date Hired
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        value={employmentDetails.dateHired}
+                        InputProps={{
+                            readOnly: true,
+                            style: {
+                                height: "50px",
+                                borderRadius: "12px",
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                                color: "#000000",
+                                pointerEvents: "none",
+                                fontFamily: "TTHoves-Regular, sans-serif",
+                                fontSize: "16px",
+                            },
+                        }}
+                        sx={{
+                            ...readOnlyStyle,
+                            "& .MuiOutlinedInput-root": {
+                                cursor: "default",
+                                "& fieldset": {
+                                    borderRadius: "12px",
+                                },
+                            }
+                        }}
+                    />
+                </Box>
+
+
+                <Box>
+
+                </Box>
+            </Box>
+
         </Box>
     );
 }

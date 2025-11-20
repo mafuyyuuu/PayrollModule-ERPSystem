@@ -20,14 +20,19 @@ export default function EmployeePayoutHistory() {
                     variant="h5"
                     sx={{
                         fontSize: "20px",
-                        fontFamily: theme.typography.fontFamily,
+                        fontFamily: "'TTHoves-Bold', sans-serif",
                         fontWeight: "bold",
                         color: theme.palette.text.primary,
                     }}
                 >
                     Payout History
                 </Typography>
-                <Box sx={{ position: "relative", width: 250 }}>
+
+                <Box sx={{ position: "relative", width: 250, transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                    },}}>
                     <select
                         defaultValue=""
                         style={{
@@ -35,7 +40,7 @@ export default function EmployeePayoutHistory() {
                             WebkitAppearance: "none",
                             MozAppearance: "none",
                             width: "100%",
-                            padding: "10px 40px 10px 12px",
+                            padding: "10px 40px 10px 18px",
                             borderRadius: "15px",
                             border: `1px solid ${theme.palette.divider}`,
                             backgroundColor:
@@ -50,9 +55,17 @@ export default function EmployeePayoutHistory() {
                             outline: "none",
                         }}
                     >
-                        <option value="">Select Payroll Duration</option>
+                        <option
+                            style={{fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: theme.palette.text.primary,
+                            fontSize: "15px",
+                            backgroundColor: theme.palette.background.paper,}} value="">Select Payroll Duration</option>
                         {payrollHistory.map((item, idx) => (
-                            <option key={idx} value={item.duration}>
+                            <option style= {{
+                                color: theme.palette.text.primary,
+                                fontSize: "15px",
+                                backgroundColor: theme.palette.background.paper
+                            }} key={idx} value={item.duration}>
                                 {item.duration}
                             </option>
                         ))}
@@ -74,7 +87,10 @@ export default function EmployeePayoutHistory() {
 
             <Box
                 sx={{
-                    backgroundColor: theme.palette.background.paper,
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
                     borderRadius: "12px",
                     p: "24px",
                     color: theme.palette.text.primary,
@@ -125,62 +141,56 @@ export default function EmployeePayoutHistory() {
                                 gridTemplateColumns: "1fr 1fr 1fr 1fr",
                                 alignItems: "center",
                                 justifyItems: "center",
-                                backgroundColor: theme.palette.action.hover,
+                                backgroundColor: "#fff",
+                                color: "#1b2223",
                                 borderRadius: "10px",
                                 padding: "12px 0",
                                 marginTop: "10px",
                                 transition: "all 0.3s ease",
                                 border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
-                                    backgroundColor: theme.palette.action.selected,
                                     transform: "translateY(-2px)",
                                     boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
                             }}
                         >
-                            <span>{item.duration}</span>
-                            <span>{item.amount}</span>
-                            <span>{item.ref}</span>
+                            <span
+                                style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                fontSize: "15px"}}>{item.duration}
+                            </span>
+                            <span
+                                style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#1b2223",
+                                fontSize: "15px"}}>{item.amount}
+                            </span>
+                            <span
+                                style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                fontSize: "15px"}}>{item.ref}
+                            </span>
                             <Box textAlign="center" ml="15px">
                                 <button
                                     style={{
-                                        backgroundColor:
-                                            theme.palette.mode === "light"
-                                                ? "#3A4F50"
-                                                : "#EFEFEF",
-                                        color:
-                                            theme.palette.mode === "light"
-                                                ? "#fff"
-                                                : "#1b2223",
+                                        backgroundColor: "#3A4F50",
+                                        color: "#fff",
                                         border: "none",
-                                        width: "30px",
-                                        height: "30px",
+                                        width: "32px",
+                                        height: "32px",
                                         borderRadius: "50%",
                                         cursor: "pointer",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        transition: "all 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = "translateY(-3px)";
-                                        e.currentTarget.style.backgroundColor =
-                                            theme.palette.mode === "light"
-                                                ? "#2E3B3D"
-                                                : "#bdbdbd";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "translateY(0)";
-                                        e.currentTarget.style.backgroundColor =
-                                            theme.palette.mode === "light"
-                                                ? "#3A4F50"
-                                                : "#EFEFEF";
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            transform: "translateY(-3px)",
+                                            bgcolor: "#2E3B3D",
+                                        },
                                     }}
                                 >
                                     <i
                                         className="ri-download-2-line"
                                         style={{
-                                            color: theme.palette.mode === "light" ? "#fff" : "#1b2223",
+                                            color: "#fff",
                                         }}
                                     ></i>
                                 </button>
