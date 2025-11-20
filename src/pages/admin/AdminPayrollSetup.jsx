@@ -2,7 +2,8 @@ import React, {useState} from "react";
 import {Box, Button, IconButton, MenuItem, Select, TextField, Typography} from "@mui/material";
 import {RiPencilFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
-import BoxModal from "../../components/BoxModal";
+import BoxModal from "../../components/BoxModal"
+import { useTheme } from '@mui/material/styles';
 
 export default function AdminPayrollSetup() {
     const theme = useTheme();

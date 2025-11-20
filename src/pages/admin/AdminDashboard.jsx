@@ -79,8 +79,8 @@ const AdminDashboard = () => {
                             color: theme.palette.text.primary,
                         }}
                     >
-                            System Alerts and Notifications
-                        </span>
+                        System Alerts and Notifications
+                    </span>
                 </Box>
 
                 <button
