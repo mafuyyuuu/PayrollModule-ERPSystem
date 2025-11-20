@@ -150,12 +150,8 @@ const EmployeeDashboard = () => {
                         <Box
                             sx={{
                                 display: "flex",
-                                border: `1px solid ${theme.palette.divider}`,
-                                backgroundColor: theme.palette.background.paper,
                                 flexDirection: "column",
-                                padding: "20px 18px",
                                 gap: "10px",
-                                borderRadius: "15px",
                             }}
                         >
                             {[
