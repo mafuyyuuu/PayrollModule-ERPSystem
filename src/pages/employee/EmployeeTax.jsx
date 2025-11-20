@@ -108,7 +108,6 @@ export default function EmployeeTax() {
                     color: theme.palette.text.primary,
                     backdropFilter: "blur(12px)",
                     fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {

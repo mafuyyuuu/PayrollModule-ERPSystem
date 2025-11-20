@@ -57,14 +57,12 @@ const EmployeeDashboard = () => {
             >
                 {/* --- EARNINGS CHART --- */}
                 <Box
-                    backgroundColor="rgba(255, 255, 255, 0.2)"
                     borderRadius="12px"
                     p="24px"
                     sx={{
                         backgroundColor: theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.05)"
                             : "rgba(255, 255, 255, 0.2)",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
                         fontFamily: theme.typography.fontFamily,
                         color: theme.palette.text.primary,
                         border: `1px solid ${theme.palette.divider}`,
