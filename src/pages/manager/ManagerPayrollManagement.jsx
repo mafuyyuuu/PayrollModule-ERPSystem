@@ -1,6 +1,5 @@
 import { Box, Typography, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { tokens } from "../../theme";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
 import ManagerDashboard from "./ManagerDashboard.jsx";
@@ -61,10 +60,9 @@ const employeePayrollData = [
 
 const ManagerPayrollSummary = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     return (
-        <Box mb="20px" mr="20px" ml="20px" overflowY="none"
+        <Box mr="20px" ml="20px" overflowY="none"
         >
 
             {/* DASHBOARD CARDS */}
@@ -111,16 +109,19 @@ const ManagerPayrollSummary = () => {
 
             {/* TABLE CONTAINER */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
                 borderRadius="12px"
                 p="20px"
                 paddingBottom="20px"
                 sx={{
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
                     maxHeight: "550px",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    color: theme.palette.text.primary,
+                    fontFamily: theme.typography.fontFamily,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.01)",
@@ -130,14 +131,13 @@ const ManagerPayrollSummary = () => {
             >
                 {/* HEADER ROW */}
                 <Box
+                    justifyItems="space-between"
                     display="grid"
                     gridTemplateColumns="1.5fr 1fr 1fr 1fr 1fr 0.9fr"
-                    alignItems="center"
                     fontWeight= "600px"
-                    color="#333"
                     p="12px 16px"
                     sx={{
-                        borderBottom: "1px solid #ddd",
+                        color: theme.palette.text.primary,
                         fontFamily: "TTHoves-Bold, sans-serif",
                     }}
                 >
@@ -153,14 +153,14 @@ const ManagerPayrollSummary = () => {
                     <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Benefits
                     </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                    <Typography Color="#172224" fontWeight={600} sx={{ ml: "10px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Net
                     </Typography>
                     <Typography
                         Color="#172224"
                         fontWeight={600}
                         textAlign="center"
-                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}
+                        sx={{ ml:"13px",  fontFamily: "'TTHoves-Bold', sans-serif" }}
                     >
                         Action
                     </Typography>
@@ -171,6 +171,9 @@ const ManagerPayrollSummary = () => {
                     sx={{
                         maxHeight: "430px",
                         overflowY: "auto",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
                         pr: "8px",
                         display: "flex",
                         flexDirection: "column",
@@ -190,10 +193,12 @@ const ManagerPayrollSummary = () => {
                             backgroundColor = "rgba(255, 255, 255, 0.25)"
                             boxShadow="0 1px 4px rgba(0,0,0,0.06)"
                             sx={{
+                                color: "#1b2223",
+                                backgroundColor: "#fff",
                                 borderBottom: "1px solid #eee",
                                 fontFamily: "'TT-Hoves Bold', sans-serif",
+                                transition: "all 0.3s ease",
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
                                     transform: "translateY(-2px)",
                                     boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
