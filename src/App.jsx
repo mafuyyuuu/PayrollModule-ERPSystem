@@ -55,7 +55,7 @@ function App() {
                         <Routes>
                             {/* landing and login
 
-                            <Route element={<Auth />}>
+                             <Route element={<Auth />}>
                                 <Route path="/" element={<Landing />} />
                                 <Route path="/login" element={<Login />} />
                             </Route>
