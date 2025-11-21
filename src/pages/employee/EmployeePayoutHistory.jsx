@@ -1,8 +1,11 @@
-import {Box, IconButton, Typography, useTheme} from "@mui/material";
-import React from "react";
+import {Box, IconButton, MenuItem, Select, Typography, useTheme} from "@mui/material";
+import React, { useState } from "react";
 import { RiDownload2Line } from "react-icons/ri";
+
 export default function EmployeePayoutHistory() {
     const theme = useTheme();
+
+    const [selectedPayroll, setSelectedPayroll] = useState("");
 
     const payrollHistory = [
         { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
@@ -21,57 +24,78 @@ export default function EmployeePayoutHistory() {
                     variant="h5"
                     sx={{
                         fontSize: "20px",
-                        fontFamily: theme.typography.fontFamily,
-                        fontWeight: "bold",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
                         color: theme.palette.text.primary,
                     }}
                 >
                     Payout History
                 </Typography>
-                <Box sx={{ position: "relative", width: 250 }}>
-                    <select
-                        defaultValue=""
-                        style={{
-                            appearance: "none",
-                            WebkitAppearance: "none",
-                            MozAppearance: "none",
-                            width: "100%",
-                            padding: "10px 40px 10px 12px",
-                            borderRadius: "15px",
-                            border: `1px solid ${theme.palette.divider}`,
+                <Box
+                    sx={{
+                        display: "inline-block",
+                        borderRadius: "15px",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        "&:hover": {
+                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                        },
+                    }}
+                >
+                    <Select
+                        value={selectedPayroll}
+                        onChange={(e) => setSelectedPayroll(e.target.value)}
+                        displayEmpty
+                        sx={{
+                            fontFamily: theme.typography.fontFamily,
                             backgroundColor:
                                 theme.palette.mode === "dark"
                                     ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.25)",
-                            backdropFilter: "blur(12px)",
+                                    : "rgba(255, 255, 255, 0.3)",
+                            borderRadius: "15px",
+                            width: "250px",
+                            fontSize: "0.95rem",
                             color: theme.palette.text.primary,
-                            fontFamily: theme.typography.fontFamily,
-                            fontSize: "16px",
-                            cursor: "pointer",
-                            outline: "none",
+                            "& .MuiSelect-select": {
+                                padding: "10px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: theme.palette.text.primary,
+                            },
+                        }}
+                        renderValue={(selected) => {
+                            if (!selected)
+                                return (
+                                    <span
+                                        style={{
+                                            color:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255,255,255,0.7)" // placeholder for dark mode
+                                                    : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
+                                        }}
+                                    >
+                                        Select Payroll Duration
+                                    </span>
+                                );
+                            return selected;
                         }}
                     >
-                        <option value="">Select Payroll Duration</option>
-                        {payrollHistory.map((item, idx) => (
-                            <option key={idx} value={item.duration}>
+                        {payrollHistory.map((item) => (
+                            <MenuItem key={item.ref} value={item.duration}>
                                 {item.duration}
-                            </option>
+                            </MenuItem>
                         ))}
-                    </select>
-                    <i
-                        className="ri-arrow-down-s-line"
-                        style={{
-                            position: "absolute",
-                            right: "14px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                            color: theme.palette.text.primary,
-                            fontSize: "18px",
-                        }}
-                    />
+                    </Select>
                 </Box>
             </Box>
+
             <Box
                 sx={{
                     height: "92%",
