@@ -13,13 +13,14 @@ app.use(express.json());
 
 // ✅ MySQL connection
 const pool = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "root",
-    database: "PayrollManagementSystem",
-    port: 3306,
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'PayrollManagementSystem',
+    port: 3306
 });
 
+// ✅ Test DB connection
 try {
     const conn = await pool.getConnection();
     console.log('✅ Connected to MySQL: database');
