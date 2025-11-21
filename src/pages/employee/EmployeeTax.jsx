@@ -1,8 +1,23 @@
-import { Box, Typography } from "@mui/material";
+import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
+import React, { useState } from "react";
 
 export default function EmployeeTax() {
+    const theme = useTheme();
+
+    const [selectedPayroll, setSelectedPayroll] = useState("");
+
+    const payrollHistory = [
+        { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
+        { duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930" },
+        { duration: "Sep 1–15, 2025", amount: "₱20,100.00", ref: "REF20250915" },
+        { duration: "Aug 16–31, 2025", amount: "₱20,000.00", ref: "REF20250831" },
+        { duration: "Aug 1–15, 2025", amount: "₱19,900.00", ref: "REF20250815" },
+        { duration: "Jul 16–31, 2025", amount: "₱19,800.00", ref: "REF20250731" },
+        { duration: "Jul 1–15, 2025", amount: "₱19,700.00", ref: "REF20250715" },
+    ];
+
     const employeeContribution = [
         {
             employee: "John Doe",
@@ -26,7 +41,6 @@ export default function EmployeeTax() {
             WTAX: 5500,
         },
     ];
-
 
     return (
         <Box
@@ -76,51 +90,76 @@ export default function EmployeeTax() {
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Contribution
                 </Typography>
 
                 <Box display="flex" alignItems="center" gap={2}>
-                    <Box sx={{ position: "relative" }}>
-                        <select
-                            defaultValue=""
-                            style={{
-                                height: "45px",
-                                appearance: "none",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                                width: 250,
-                                padding: "10px 40px 10px 12px",
+                    <Box
+                        sx={{
+                            display: "inline-block",
+                            borderRadius: "15px",
+                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                            "&:hover": {
+                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                            },
+                        }}
+                    >
+                        <Select
+                            value={selectedPayroll}
+                            onChange={(e) => setSelectedPayroll(e.target.value)}
+                            displayEmpty
+                            sx={{
+                                fontFamily: theme.typography.fontFamily,
+                                backgroundColor:
+                                    theme.palette.mode === "dark"
+                                        ? "rgba(255, 255, 255, 0.05)"
+                                        : "rgba(255, 255, 255, 0.3)",
                                 borderRadius: "15px",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
-                                background: "rgba(255, 255, 255, 0.2)",
-                                backdropFilter: "blur(12px)",
-                                color: "#222",
-                                fontFamily: "inherit",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                outline: "none",
+                                width: "250px",
+                                fontSize: "0.95rem",
+                                color: theme.palette.text.primary,
+                                "& .MuiSelect-select": {
+                                    padding: "10px 12px",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: theme.palette.divider,
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: theme.palette.divider,
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "& .MuiSvgIcon-root": {
+                                    color: theme.palette.text.primary,
+                                },
+                            }}
+                            renderValue={(selected) => {
+                                if (!selected)
+                                    return (
+                                        <span
+                                            style={{
+                                                color:
+                                                    theme.palette.mode === "dark"
+                                                        ? "rgba(255,255,255,0.7)" // placeholder for dark mode
+                                                        : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
+                                            }}
+                                        >
+                                        Select Payroll Duration
+                                    </span>
+                                    );
+                                return selected;
                             }}
                         >
-                            <option value="">Select Payroll Duration</option>
-                        </select>
-                        <i
-                            className="ri-arrow-down-s-line"
-                            style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none",
-                                color: "#222",
-                                fontSize: "18px",
-                            }}
-                        ></i>
+                            {payrollHistory.map((item) => (
+                                <MenuItem key={item.ref} value={item.duration}>
+                                    {item.duration}
+                                </MenuItem>
+                            ))}
+                        </Select>
                     </Box>
 
                     <SearchBar
@@ -131,33 +170,34 @@ export default function EmployeeTax() {
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="69%"
                 sx={{
+                    height: "69%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr",
-                        alignItems: "left",
-                        justifyItems: "center",
-                        border: "none",
-                        padding: "15px",
-                        fontWeight: 600,
-
+                        gridTemplateColumns: "repeat(6, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
+                        textAlign: "center",
                     }}
                 >
                     <span>Employee</span>
@@ -170,14 +210,13 @@ export default function EmployeeTax() {
 
                 <Box
                     sx={{
-                        maxHeight: "100%",
+                        maxHeight: "530px",
                         overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        height: "85%",
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
                     {employeeContribution.map((item, index) => {
@@ -187,22 +226,20 @@ export default function EmployeeTax() {
                             <Box
                                 key={index}
                                 sx={{
+                                    marginTop: "10px",
                                     display: "grid",
-                                    gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr",
-                                    alignItems: "left",
-                                    justifyItems: "center",
-                                    backgroundColor: "rgba(255, 255, 255, 0.25)",
-                                    backdropFilter: "blur(12px)",
-                                    borderRadius: "10px",
-                                    padding: "12px",
-                                    marginTop: "3px",
+                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    alignItems: "center",
+                                    bgcolor: "#fff",
+                                    color: "#1b2223",
+                                    borderRadius: "8px",
+                                    width: "100%",
+                                    minHeight: "83px",
                                     transition: "all 0.3s ease",
-                                    border: "1px solid rgba(255,255,255,0.3)",
                                     "&:hover": {
-                                        backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                        transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                     },
+                                    textAlign: "center",
                                 }}
                             >
                                 <span>{item.employee}</span>

@@ -1,6 +1,12 @@
-import { Box, Typography } from "@mui/material";
+import {Box, IconButton, MenuItem, Select, Typography, useTheme} from "@mui/material";
+import React, { useState } from "react";
+import { RiDownload2Line } from "react-icons/ri";
 
 export default function EmployeePayoutHistory() {
+    const theme = useTheme();
+
+    const [selectedPayroll, setSelectedPayroll] = useState("");
+
     const payrollHistory = [
         { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
         { duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930" },
@@ -12,177 +18,173 @@ export default function EmployeePayoutHistory() {
     ];
 
     return (
-        <Box
-            width="100%"
-            height="100%"
-        >
-            <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-            >
+        <Box width="100%" height="100%">
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Payout History
                 </Typography>
-
-                <Box sx={{ position: "relative" }}>
-                    <select
-                        defaultValue=""
-                        style={{
-                            appearance: "none",
-                            WebkitAppearance: "none",
-                            MozAppearance: "none",
-                            width: 250,
-                            padding: "10px 40px 10px 12px",
+                <Box
+                    sx={{
+                        display: "inline-block",
+                        borderRadius: "15px",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        "&:hover": {
+                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                        },
+                    }}
+                >
+                    <Select
+                        value={selectedPayroll}
+                        onChange={(e) => setSelectedPayroll(e.target.value)}
+                        displayEmpty
+                        sx={{
+                            fontFamily: theme.typography.fontFamily,
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.05)"
+                                    : "rgba(255, 255, 255, 0.3)",
                             borderRadius: "15px",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            background: "rgba(255, 255, 255, 0.2)",
-                            backdropFilter: "blur(12px)",
-                            color: "#222",
-                            fontFamily: "inherit",
-                            fontSize: "16px",
-                            cursor: "pointer",
-                            outline: "none",
+                            width: "250px",
+                            fontSize: "0.95rem",
+                            color: theme.palette.text.primary,
+                            "& .MuiSelect-select": {
+                                padding: "10px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: theme.palette.text.primary,
+                            },
+                        }}
+                        renderValue={(selected) => {
+                            if (!selected)
+                                return (
+                                    <span
+                                        style={{
+                                            color:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255,255,255,0.7)" // placeholder for dark mode
+                                                    : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
+                                        }}
+                                    >
+                                        Select Payroll Duration
+                                    </span>
+                                );
+                            return selected;
                         }}
                     >
-                        <option value="">Select Payroll Duration</option>
-                    </select>
-                    <i
-                        className="ri-arrow-down-s-line"
-                        style={{
-                            position: "absolute",
-                            right: "10px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                            color: "#222",
-                            fontSize: "18px",
-                        }}
-                    ></i>
+                        {payrollHistory.map((item) => (
+                            <MenuItem key={item.ref} value={item.duration}>
+                                {item.duration}
+                            </MenuItem>
+                        ))}
+                    </Select>
                 </Box>
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="92%"
                 sx={{
+                    height: "92%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
-                    gap: "10px",
                 }}
             >
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
                         alignItems: "center",
-                        justifyItems: "center",
-                        border: "none",
-                        padding: "12px",
-                        fontWeight: 600,
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <span>Payroll Duration</span>
-                    <span>Amount</span>
-                    <span>Reference Number</span>
-                    <span>Action</span>
+                    <span style={{textAlign: "center"}}>Payroll Duration</span>
+                    <span style={{textAlign: "center"}}>Amount</span>
+                    <span style={{textAlign: "center"}}>Reference Number</span>
+                    <span style={{textAlign: "center"}}>Action</span>
                 </Box>
-
                 <Box
                     sx={{
-                        maxHeight: "100%",
+                        maxHeight: "530px",
                         overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        "&::-webkit-scrollbar": {
-                            width: 0,
-                            height: 0,
-                        },
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
                     {payrollHistory.map((item, index) => (
                         <Box
                             key={index}
                             sx={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                                alignItems: "center",
-                                justifyItems: "center",
-                                backgroundColor: "rgba(255, 255, 255, 0.25)",
-                                backdropFilter: "blur(12px)",
-                                borderRadius: "10px",
-                                padding: "12px",
                                 marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(4, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
                                 transition: "all 0.3s ease",
-                                border: "1px solid rgba(255,255,255,0.3)",
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
+                                textAlign: "center",
                             }}
                         >
                             <span>{item.duration}</span>
                             <span>{item.amount}</span>
                             <span>{item.ref}</span>
-                            <Box textAlign="center" ml="15px">
-                                <button
-                                    style={{
-                                        backgroundColor: "#3A4F50",
+                            <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
+                                <IconButton
+                                    sx={{
+                                        bgcolor: "#3A4F50",
                                         color: "#fff",
-                                        border: "none",
-                                        width: "30px",
-                                        height: "30px",
-                                        borderRadius: "50%",
-                                        cursor: "pointer",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        transition: "all 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = "translateY(-3px)";
-                                        e.currentTarget.style.backgroundColor = "#2E3B3D"; // hover color
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "translateY(0)";
-                                        e.currentTarget.style.backgroundColor = "#3A4F50"; // original color
+                                        width: "32px",
+                                        height: "32px",
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                        },
                                     }}
                                 >
-                                    <i className="ri-download-2-line"></i>
-                                </button>
+                                    <RiDownload2Line />
+                                </IconButton>
                             </Box>
                         </Box>
                     ))}
                 </Box>
             </Box>
         </Box>
-
     );
 }
