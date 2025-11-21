@@ -4,6 +4,9 @@ import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
 import ManagerDashboard from "./ManagerDashboard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
+import ViewTextField from "../../components/ViewTextField.jsx";
+import { useState } from "react";
 
 
 const employeePayrollData = [
@@ -59,6 +62,14 @@ const employeePayrollData = [
 
 
 const ManagerPayrollSummary = () => {
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    const handleView = (row) => {
+        setSelectedRow(row);
+        setOpenModal(true);
+    };
+
     const theme = useTheme();
 
     return (
@@ -117,7 +128,7 @@ const ManagerPayrollSummary = () => {
                         theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.05)"
                             : "rgba(255, 255, 255, 0.2)",
-                    maxHeight: "550px",
+                    maxHeight: "500px",
                     backdropFilter: "blur(12px)",
                     color: theme.palette.text.primary,
                     fontFamily: theme.typography.fontFamily,
@@ -169,7 +180,7 @@ const ManagerPayrollSummary = () => {
                 {/* DATA ROWS */}
                 <Box
                     sx={{
-                        maxHeight: "430px",
+                        maxHeight: "400px",
                         overflowY: "auto",
                         "&::-webkit-scrollbar": { width: 0, height: 0 },
                         scrollbarWidth: "none",
@@ -225,6 +236,7 @@ const ManagerPayrollSummary = () => {
                                 {row.net}
                             </Typography>
                             <Button
+                                onClick={() => handleView(row)}
                                 disableRipple
                                 sx={{
                                     ml: "100px",
@@ -254,7 +266,83 @@ const ManagerPayrollSummary = () => {
 
                 </Box>
             </Box>
+            <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
+                {selectedRow && (
+                    <>
+                        <Typography variant="h3" mb={3} sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                        }}>
+                            Employee Payroll Details
+                        </Typography>
 
+                        {/* Employee Field */}
+                        <Box mb="10px">
+                            <Typography sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                mb: "5px"
+                            }}>
+                                Employee
+                            </Typography>
+                            <ViewTextField value={selectedRow.name} />
+                        </Box>
+
+                        {/* Grid for other fields */}
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{ md: "1fr 1fr" }}
+                            gap="20px"
+                            mb="18px"
+                        >
+                            {/* Gross */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Gross
+                                </Typography>
+                                <ViewTextField value={selectedRow.gross} label="Gross" />
+                            </Box>
+
+                            {/* Deductions */}
+                            <Box>
+                                <Typography sx={{
+                                    color: "#fff",
+                                    fontWeight: 500,
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Deductions
+                                </Typography>
+                                <ViewTextField value={selectedRow.deductions} label="Deductions" />
+                            </Box>
+
+                            {/* Benefits */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Benefits
+                                </Typography>
+                                <ViewTextField value={selectedRow.benefits} label="Benefits" />
+                            </Box>
+
+                            {/* Net */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Net
+                                </Typography>
+                                <ViewTextField value={selectedRow.net} label="Net" />
+                            </Box>
+
+                        </Box>
+                    </>
+                )}
+            </BoxModal>
         </Box>
 
 
