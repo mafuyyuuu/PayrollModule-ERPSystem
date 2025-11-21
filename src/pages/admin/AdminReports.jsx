@@ -3,7 +3,6 @@ import {Box, Typography, useTheme} from "@mui/material";
 import ActionButton from "../../components/ActionButton.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 
-
 export default function AdminReports() {
     const theme = useTheme();
 
