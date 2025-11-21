@@ -298,9 +298,9 @@ export default function AdminApproval() {
                         }}
                     >
                         <span style={{textAlign: "center"}}>{item.id}</span>
-                        <span style={{textAlign: "center"}}>{item.employee}</span>
+                        <span style={{textAlign: "center"}}>{item.name}</span>
                         <span style={{textAlign: "center"}}>{item.type}</span>
-                        <span style={{textAlign: "center"}}>{item.date}</span>
+                        <span style={{textAlign: "center"}}>{item.period}</span>
                         <span style={{textAlign: "center"}}>
                                 <Box
                                     component="span"

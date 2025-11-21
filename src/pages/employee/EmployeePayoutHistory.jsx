@@ -133,7 +133,6 @@ export default function EmployeePayoutHistory() {
                 </Box>
                 <Box
                     sx={{
-                        maxHeight: "530px",
                         overflowY: "auto",
                         "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
