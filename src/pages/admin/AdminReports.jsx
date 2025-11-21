@@ -25,7 +25,6 @@ export default function AdminReports() {
                 overflow: "hidden",
             }}
         >
-            {/* Header */}
             <Typography
                 variant="h5"
                 sx={{
@@ -37,7 +36,6 @@ export default function AdminReports() {
                 Reports and Analytics
             </Typography>
 
-            {/* Main Content */}
             <Box
                 sx={{
                     display: "flex",
@@ -76,7 +74,6 @@ export default function AdminReports() {
                     </Box>
                 </Box>
 
-                {/* Charts and Table */}
                 <Box
                     sx={{
                         display: "flex",
@@ -86,7 +83,6 @@ export default function AdminReports() {
                         overflow: "hidden",
                     }}
                 >
-                    {/* Chart Placeholder */}
                     <Box
                         sx={{
                             flex: 1.2,
@@ -106,7 +102,6 @@ export default function AdminReports() {
                         (Chart/Graph Placeholder)
                     </Box>
 
-                    {/* Table */}
                     <Box
                         sx={{
                             flex: 1.8,
@@ -141,7 +136,6 @@ export default function AdminReports() {
                             )}
                         </Box>
 
-                        {/* Table Body */}
                         <Box
                             sx={{
                                 mt: 1,
@@ -184,7 +178,6 @@ export default function AdminReports() {
                     </Box>
                 </Box>
 
-                {/* Bottom charts */}
                 <Box
                     sx={{
                         display: "grid",
@@ -194,7 +187,6 @@ export default function AdminReports() {
                         overflow: "hidden",
                     }}
                 >
-                    {/* Department Summary */}
                     <Box
                         sx={{
                             display: "flex",
@@ -236,7 +228,6 @@ export default function AdminReports() {
                         </Box>
                     </Box>
 
-                    {/* Tax and Compliance */}
                     <Box
                         sx={{
                             display: "flex",
@@ -278,7 +269,6 @@ export default function AdminReports() {
                     </Box>
                 </Box>
 
-                {/* Generate Report Button */}
                 <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                     <ActionButton text="Generate Report" width="180px" />
                 </Box>
