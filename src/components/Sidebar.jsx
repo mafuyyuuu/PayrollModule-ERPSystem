@@ -19,7 +19,6 @@ export default function Sidebar() {
         try {
             // call your backend API here
             // await fetch("/api/logout", { method: "POST", credentials: "include" });
-
             // temporary frontend-only logout:
             setUser(null);
             localStorage.removeItem("user");
@@ -93,14 +92,15 @@ export default function Sidebar() {
             </div>
 
             <div className="bottom-section">
-                <NavLink
-                    to={`${basePath}/profile`}
-                    className={({ isActive }) => `profile-link ${isActive ? "active" : ""}`}
-                >
-                    <i className="ri-user-3-fill icon"></i>
-                    <span>User Profile</span>
-                </NavLink>
-
+                {user?.role === "employee" && (
+                    <NavLink
+                        to={`${basePath}/profile`}
+                        className={({ isActive }) => `profile-link ${isActive ? "active" : ""}`}
+                    >
+                        <i className="ri-user-3-fill icon"></i>
+                        <span>User Profile</span>
+                    </NavLink>
+                )}
                 <button className="logout-link" onClick={handleLogout}>
                     <i className="ri-logout-box-r-fill icon"></i>
                     <span>Logout</span>

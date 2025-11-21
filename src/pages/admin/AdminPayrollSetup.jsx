@@ -81,7 +81,6 @@ export default function AdminPayrollSetup() {
                             <span>Action</span>
                         </Box>
                     </Box>
-
                     <Box
                         sx={{
                             maxHeight: "400px",

@@ -1,8 +1,7 @@
-import {InputAdornment, IconButton, Box, Typography, TextField, useTheme} from "@mui/material";
+import {Box, Typography, TextField, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
-import { useRef } from "react";
-import { FaRegCalendar } from "react-icons/fa";
+import {useState} from "react";
 
 const earningsData = [
     { month: "Jan", earnings: 20000 },
@@ -14,11 +13,8 @@ const earningsData = [
 
 const EmployeeDashboard = () => {
     const theme = useTheme();
-    const fromRef = useRef(null);
-    const toRef = useRef(null);
 
-    const openFromPicker = () => fromRef.current?.showPicker();
-    const openToPicker = () => toRef.current?.showPicker();
+    const [selectedLeave, setSelectedLeave] = useState("");
 
     return (
         <Box width="100%" height="80%">
@@ -45,7 +41,6 @@ const EmployeeDashboard = () => {
                     showHideButton={true}
                 />
             </Box>
-
             <Box
                 display="grid"
                 gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
@@ -110,7 +105,6 @@ const EmployeeDashboard = () => {
                             ? "rgba(255, 255, 255, 0.05)"
                             : "rgba(255, 255, 255, 0.2)",
                         fontFamily: "'TTHoves-Regular', sans-serif",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
                         border: `1px solid ${theme.palette.divider}`,
                         transition: "all 0.3s ease",
                         "&:hover": {
@@ -122,7 +116,7 @@ const EmployeeDashboard = () => {
                     <Typography
                         variant="h5"
                         sx={{
-                            mb: 3,
+                            mb: 2,
                             fontSize: "18px",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                             color: theme.palette.text.primary,
@@ -136,63 +130,57 @@ const EmployeeDashboard = () => {
                     </Typography>
 
                     <form
-                        className="leave-form"
                         style={{
                             display: "flex",
                             flexDirection: "column",
-                            gap: "18px",
+                            gap: "10px",
                         }}
                     >
-                        <Box
-                            sx={{
-                                display: "flex",
-                                border: `1px solid ${theme.palette.divider}`,
-                                backgroundColor: theme.palette.background.paper,
-                                flexDirection: "column",
-                                padding: "20px 18px",
-                                gap: "10px",
-                                borderRadius: "15px",
-                            }}
-                        >
-                            {[
-                                { type: "Sick Leave", remaining: 6 },
-                                { type: "Vacation Leave", remaining: 5 },
-                                { type: "Emergency Leave", remaining: 3 },
-                            ].map((leave, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        backgroundColor: theme.palette.background.default,
-                                        borderRadius: "10px",
-                                        padding: "12px 16px",
-                                        transition: "all 0.3s ease",
-                                        "&:hover": {
-                                            transform: "scale(1.02)",
-                                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                                        },
-                                    }}
-                                >
-                                    <Box>
-                                        <Typography
-                                            sx={{
-                                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                                color: theme.palette.text.primary,
-                                                fontSize: "15px",
-                                            }}
-                                        >
-                                            {leave.type}
-                                        </Typography>
-                                        <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
-                                            {leave.remaining} leaves remaining
-                                        </Typography>
-                                    </Box>
-                                    <input type="radio" name="leaveType" />
+                        {[
+                            { type: "Sick Leave", remaining: 6 },
+                            { type: "Vacation Leave", remaining: 5 },
+                            { type: "Emergency Leave", remaining: 3 },
+                        ].map((leave, index) => (
+                            <Box
+                                key={index}
+                                onClick={() => setSelectedLeave(leave.type)}
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    backgroundColor: theme.palette.background.default,
+                                    borderRadius: "10px",
+                                    padding: "12px 16px",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "scale(1.02)",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                                    },
+                                }}
+                            >
+                                <Box>
+                                    <Typography
+                                        sx={{
+                                            fontFamily: "'TTHoves-Bold', sans-serif",
+                                            color: theme.palette.text.primary,
+                                            fontSize: "15px",
+                                        }}
+                                    >
+                                        {leave.type}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
+                                        {leave.remaining} leaves remaining
+                                    </Typography>
                                 </Box>
-                            ))}
-                        </Box>
+                                <input
+                                    type="radio"
+                                    name="leaveType"
+                                    value={leave.type}
+                                    checked={selectedLeave === leave.type}
+                                    onChange={() => setSelectedLeave(leave.type)}
+                                />
+                            </Box>
+                        ))}
 
                         <Box
                             display="flex"
@@ -212,29 +200,30 @@ const EmployeeDashboard = () => {
                                     From
                                 </Typography>
                                 <TextField
-                                    inputRef={fromRef}
                                     type="date"
                                     fullWidth
                                     variant="outlined"
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton onClick={openFromPicker}>
-                                                    <FaRegCalendar style={{ fontSize: "18px", color: theme.palette.text.primary }} />
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                        sx: {
-                                            height: "45px",
-                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            color: theme.palette.text.primary,
+                                    size="small"
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
                                             borderRadius: "25px",
                                             backgroundColor: theme.palette.background.default,
-
-                                            "& input::-webkit-calendar-picker-indicator": {
-                                                opacity: 0,
-                                                display: "none",
-                                            },
+                                            color: theme.palette.text.primary,
+                                            fontSize: "18px",
+                                        },
+                                        "& fieldset": {
+                                            border: "none",
+                                        },
+                                        "&:hover fieldset": {
+                                            border: "none",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            border: "none",
+                                        },
+                                        "& .MuiInputBase-input": {
+                                            fontSize: "18px",
+                                            color: theme.palette.text.primary,
+                                            border: "none",
                                         },
                                     }}
                                 />
@@ -252,31 +241,30 @@ const EmployeeDashboard = () => {
                                     }}>
                                     To
                                 </Typography>
-
                                 <TextField
-                                    inputRef={toRef}
                                     type="date"
+                                    fullWidth
                                     variant="outlined"
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton onClick={openToPicker}>
-                                                    <FaRegCalendar style={{ fontSize: "18px", color: theme.palette.text.primary }} />
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                        sx: {
-                                            height: "45px",
-                                            width: "100%",
-                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            color: theme.palette.text.primary,
+                                    size="small"
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
                                             borderRadius: "25px",
                                             backgroundColor: theme.palette.background.default,
-
-                                            "& input::-webkit-calendar-picker-indicator": {
-                                                opacity: 0,
-                                                display: "none",
+                                            color: theme.palette.text.primary,
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
                                             },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        },
+                                        "& .MuiInputBase-input": {
+                                            fontSize: "18px",
+                                            color: theme.palette.text.primary,
                                         },
                                     }}
                                 />
@@ -298,20 +286,27 @@ const EmployeeDashboard = () => {
                             <TextField
                                 placeholder="Type your reason..."
                                 multiline
-                                rows={2}
                                 fullWidth
                                 variant="outlined"
                                 sx={{
                                     fontFamily: "'TTHoves-DemiBold', sans-serif",
                                     borderRadius: "12px",
                                     backgroundColor: theme.palette.background.default,
+                                    "& .MuiInputBase-root": {
+                                        minHeight: "100px",
+                                        alignItems: "flex-start",
+                                        paddingTop: "12px",
+                                    },
                                     "& .MuiInputBase-input": {
                                         color: theme.palette.text.primary,
                                     },
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    "& fieldset": {
                                         border: "none",
                                     },
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    "&:hover fieldset": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused fieldset": {
                                         border: "none",
                                     },
                                 }}
