@@ -109,7 +109,7 @@ const ManagerPendingRequest = () => {
                         theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.05)"
                             : "rgba(255, 255, 255, 0.2)",
-                    maxHeight: "600px",
+                    maxHeight: "580px",
                     backdropFilter: "blur(12px)",
                     fontFamily: "'TTHoves-Regular', sans-serif",
                     border: `1px solid ${theme.palette.divider}`,
@@ -163,7 +163,7 @@ const ManagerPendingRequest = () => {
                         "&::-webkit-scrollbar": { width: 0, height: 0 },
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        maxHeight: "500px",
+                        maxHeight: "480px",
                         pr: "8px",
                         display: "flex",
                         flexDirection: "column",
@@ -310,7 +310,7 @@ const ManagerPendingRequest = () => {
             </Box>
 
             {/* EXPORT BUTTONS */}
-            <Box display="flex" justifyContent="flex-end" gap="15px" mt="30px">
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
                 <Button
                     variant="contained"
                     sx={{

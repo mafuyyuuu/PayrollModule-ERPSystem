@@ -3,6 +3,9 @@ import { useTheme } from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
+import ViewTextField from "../../components/ViewTextField.jsx";
+import { useState } from "react";
 
 
 // Sample data for Manager Timesheet table
@@ -15,7 +18,7 @@ const timesheetData = [
         timeOut: "05:00 PM",
         totalHours: "9",
         overtime: "1",
-        status: "● Approved",
+        status: "Approved",
     },
     {
         id: 2,
@@ -25,7 +28,7 @@ const timesheetData = [
         timeOut: "06:00 PM",
         totalHours: "9",
         overtime: "0",
-        status: "● Pending",
+        status: "Pending",
     },
     {
         id: 3,
@@ -35,7 +38,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 4,
@@ -45,7 +48,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 5,
@@ -55,7 +58,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 6,
@@ -65,7 +68,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 7,
@@ -75,15 +78,22 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
 ];
 
 const ManagerTimesheets = () => {
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    const handleView = (row) => {
+        setSelectedRow(row);
+        setOpenModal(true);
+    };
     const theme = useTheme();
     return (
 
-        <Box mb="20px" mr="20px" ml="20px">
+        <Box mr="20px" ml="20px">
 
             {/* FILTER BAR */}
             <Box
@@ -241,13 +251,13 @@ const ManagerTimesheets = () => {
                             {row.overtime}
                         </Typography>
                         <Typography
-                            ml="-25px"
+                            ml="-20px"
                             sx={{
                                 fontFamily: "'TTHoves-Bold', sans-serif",
                                 color:
-                                    row.status === "● Approved"
+                                    row.status === "Approved"
                                         ? "#4CAF50"
-                                        : row.status === "● Rejected"
+                                        : row.status === "Rejected"
                                             ? "#F44336"
                                             : "#FFC107",
                                 fontWeight: 500,
@@ -255,8 +265,8 @@ const ManagerTimesheets = () => {
                         >
                             {row.status}
                         </Typography>
-                        <Box textAlign="center" ml="20px" display="flex" justifyContent="center" gap="8px">
-                            {row.status === "● Pending" ? (
+                        <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
+                            {row.status === "Pending" ? (
                                 <>
                                     {/*Accept Button */}
                                     <Button
@@ -314,6 +324,7 @@ const ManagerTimesheets = () => {
                                 // 👁 Default "View" Button
                                 <Button
                                     disableRipple
+                                    onClick={() => handleView(row)}
                                     sx={{
                                         backgroundColor: "#172224",
                                         color: "#fff",
@@ -343,6 +354,105 @@ const ManagerTimesheets = () => {
 
             </Box>
             </Box>
+
+            <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
+                {selectedRow && (
+                    <>
+                        <Typography variant="h3" mb={3} sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                        }}>
+                            Timesheet Approval Details
+                        </Typography>
+
+                        {/* Employee Field */}
+                        <Box mb="10px">
+                            <Typography sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                mb: "5px"
+                            }}>
+                                Employee
+                            </Typography>
+                            <ViewTextField value={selectedRow.employee} />
+                        </Box>
+
+                        {/* Grid for other fields */}
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{ md: "1fr 1fr" }}
+                            gap="20px"
+                            mb="18px"
+                        >
+                            {/* Date */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Date
+                                </Typography>
+                                <ViewTextField value={selectedRow.date} label="Date" />
+                            </Box>
+
+                            {/* Status */}
+                            <Box>
+                                <Typography sx={{
+                                    color: "#fff",
+                                    fontWeight: 500,
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Status
+                                </Typography>
+                                <ViewTextField value={selectedRow.status} label="Status" />
+                            </Box>
+
+                            {/* Time In */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Time In
+                                </Typography>
+                                <ViewTextField value={selectedRow.timeIn} label="Time In" />
+                            </Box>
+
+                            {/* Time Out */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Time Out
+                                </Typography>
+                                <ViewTextField value={selectedRow.timeOut} label="Time Out" />
+                            </Box>
+
+                            {/* Total Hours */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Total Hours
+                                </Typography>
+                                <ViewTextField value={selectedRow.totalHours} label="Total Hours" />
+                            </Box>
+
+                            {/* Overtime */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Overtime
+                                </Typography>
+                                <ViewTextField value={selectedRow.overtime} label="Overtime" />
+                            </Box>
+                        </Box>
+                    </>
+                )}
+            </BoxModal>
 
             {/* EXPORT BUTTONS */}
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">

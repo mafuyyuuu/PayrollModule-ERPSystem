@@ -15,7 +15,7 @@ export default function ManagerReports() {
     return (
         <Box mr="20px" ml="20px">
             {/* HEADER */}
-            <Box display= "flex" justifyContent="space-between" alignItems="center" mb="20px">
+            <Box display= "flex" justifyContent="space-between" alignItems="center" mb="15px">
                 <Typography
                     Color="#172224"
                     fontSize="20px"
@@ -119,7 +119,7 @@ export default function ManagerReports() {
                     <Box
                         display= "flex"
                         width= "auto"
-                        height= "225px"
+                        height= "220px"
                         justifyContent= "space-between"
                         align-items= "flex-start"
                         gap= "10px">
@@ -232,7 +232,7 @@ export default function ManagerReports() {
                 <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap="20px" >
                     {/* DEPARTMENT SUMMARY */}
                     <Box
-                        height= "330px"
+                        height= "310px"
                         borderRadius="12px"
                         p="20px"
                         sx={{

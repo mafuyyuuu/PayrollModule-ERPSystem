@@ -1,5 +1,4 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import { tokens } from "../../theme";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import {Line, LineChart, ResponsiveContainer} from "recharts";
 
@@ -13,9 +12,8 @@ const earningsData = [
 
 const ManagerDashboard = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     return (
-        <Box mb="20px" mr="20px" ml="20px" >
+        <Box  mr="20px" ml="20px" >
             {/* DASHBOARD CARDS */}
             <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap="20px">
                 <DashboardCard
@@ -66,7 +64,7 @@ const ManagerDashboard = () => {
                     }}
                 >
 
-                    <Typography variant="h6" mb="15px">
+                    <Typography fontFamily="'TTHoves-Demibold', sans-serif" fontSize="18px">
                         Top Performing Employees
                     </Typography>
                 </Box>
@@ -89,10 +87,10 @@ const ManagerDashboard = () => {
                         },
                     }}
                 >
-                    <Typography variant="h6" mb="15px">
+                    <Typography fontFamily="'TTHoves-Demibold', sans-serif" fontSize="18px" mb={"30px"}>
                         Total Earning
                     </Typography>
-                    <ResponsiveContainer width="100%" height={185}>
+                    <ResponsiveContainer width="100%" height={185} mt="10px">
                         <LineChart data={earningsData}>
                             <Line
                                 type="monotone"
