@@ -8,38 +8,17 @@ import {
 } from "@mui/material";
 import banner from "../../assets/banner.jpg";
 import finn from "../../assets/finn.png";
+import ViewTextField from "../../components/ViewTextField";
+import { useUser } from "../../components/UserContext";
 
-
-const personalInfoData = {
-    address: "Brgy. Malinis, Quezon City",
-    birthdate: "1998-03-15",
-    age: "27",
-    sex: "Male",
-    maritalStatus: "Single",
-    nationality: "Filipino",
-    contactNumber: "0912-345-6789",
-
-    emergencyContactName: "Maria Jimenez",
-    emergencyContactNumber: "0999-888-7777",
-};
-
-const employmentDetails = {
-    employmentId: "23-00290",
-    department: "Computer Science",
-    position: "Professor",
-    employmentType: "Part-Time",
-    dateHired: "2025-11-01",
-
-};
-const readOnlyStyle = {
-    pointerEvents: "none",
-    backgroundColor: "rgba(255,255,255,0.6)",
-    borderRadius: "12px",
-    fontFamily: "'TTHoves-Bold', sans-serif"
-};
 
 export default function EmployeeProfileLayout() {
     const theme = useTheme();
+    const { user } = useUser();
+    const nameEmail = {
+        name: user.name,
+        email: user.email,
+    };
     const [activeTab, setActiveTab] = useState("personal");
 
     return (
@@ -47,8 +26,10 @@ export default function EmployeeProfileLayout() {
             display="grid"
             gridTemplateColumns={{ xs: "1fr", md: "320px 1fr" }}
             gap="30px"
-            p="30px"
-            sx={{ height: "75vh" }}
+            sx={{ height: "75vh",
+                "&::-webkit-scrollbar": { width: 0, height: 0 },
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",}}
         >
             {/* LEFT PANEL */}
             <Box
@@ -116,13 +97,13 @@ export default function EmployeeProfileLayout() {
 
                 <Box display="flex" flexDirection="column" marginTop="-30px">
                 <Typography variant="h4" sx={{ fontWeight: 600, fontFamily: "'TTHoves-Bold', sans-serif",}}>
-                    Jherwin Jimenez
+                    {nameEmail.name}
                 </Typography>
                 <Typography
                     variant="body2"
                     sx={{ color: theme.palette.text.secondary, fontFamily: "'TTHoves-Regular', sans-serif", }}
                 >
-                    jherwin@gmail.com
+                    {nameEmail.email}
                 </Typography>
                 </Box>
 
@@ -226,10 +207,23 @@ export default function EmployeeProfileLayout() {
 
 function PersonalInformationForm() {
     const theme = useTheme();
+    const { user } = useUser();
 
+    const personalInfoData = {
+        address: user.address,
+        birthdate: user.birthday,
+        age: user.age,
+        sex: user.sex,
+        maritalStatus: user.maritalStatus,
+        nationality: user.nationality,
+        contactNumber: user.contactNumber,
+        emergencyContactName: user.emergencyContactName,
+        emergencyContactNumber: user.emergencyContactNumber,
+    };
     return (
         <Box>
             <Box sx={{
+                overflowX: "auto",
                 borderBottom: `3px solid ${theme.palette.divider}`,
                 paddingBottom: "10px",
                 marginBottom: 4,
@@ -243,30 +237,8 @@ function PersonalInformationForm() {
                 <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                     Address
                 </Typography>
-                <TextField
-                    fullWidth
+                <ViewTextField
                     value={personalInfoData.address}
-                    InputProps={{
-                        readOnly: true,
-                        style: {
-                            height: "50px",
-                            borderRadius: "12px",
-                            backgroundColor: "rgba(255, 255, 255, 0.6)",
-                            color: "#000000",
-                            pointerEvents: "none",
-                            fontFamily: "TTHoves-Regular, sans-serif",
-                            fontSize: "16px"
-                        },
-                    }}
-                    sx={{
-                        ...readOnlyStyle,
-                        "& .MuiOutlinedInput-root": {
-                            cursor: "default",
-                        "& fieldset": {
-                            borderRadius: "12px",
-                        },
-                        }
-                    }}
                 />
             </Box>
 
@@ -279,123 +251,35 @@ function PersonalInformationForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Birthdate
                     </Typography>
-                        <TextField
-                            fullWidth
-                            value={personalInfoData.birthdate}
-                            InputProps={{
-                                readOnly: true,
-                                style: {
-                                    height: "50px",
-                                    borderRadius: "12px",
-                                    backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                    color: "#000000",
-                                    pointerEvents: "none",
-                                    fontFamily: "TTHoves-Regular, sans-serif",
-                                    fontSize: "16px",
-                                },
-                            }}
-                            sx={{
-                                ...readOnlyStyle,
-                                "& .MuiOutlinedInput-root": {
-                                    cursor: "default",
-                                    "& fieldset": {
-                                        borderRadius: "12px",
-                                    },
-                                }
-                            }}
-                        />
+                    <ViewTextField
+                        value={personalInfoData.birthdate}
+                    />
                 </Box>
 
                 <Box>
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Age
                     </Typography>
-                        <TextField
-                            fullWidth
-                            value={personalInfoData.age}
-                            InputProps={{
-                                readOnly: true,
-                                style: {
-                                    height: "50px",
-                                    borderRadius: "12px",
-                                    backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                    color: "#000000",
-                                    pointerEvents: "none",
-                                    fontFamily: "TTHoves-Regular, sans-serif",
-                                    fontSize: "16px",
-                                },
-                            }}
-                            sx={{
-                                ...readOnlyStyle,
-                                "& .MuiOutlinedInput-root": {
-                                    cursor: "default",
-                                    "& fieldset": {
-                                        borderRadius: "12px",
-                                    },
-                                }
-                            }}
-                        />
+                    <ViewTextField
+                        value={personalInfoData.age}
+                    />
                 </Box>
 
                 <Box>
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Sex
                     </Typography>
-                        <TextField
-                            fullWidth
-                            value={personalInfoData.sex}
-                            InputProps={{
-                                readOnly: true,
-                                style: {
-                                    height: "50px",
-                                    borderRadius: "12px",
-                                    backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                    color: "#000000",
-                                    pointerEvents: "none",
-                                    fontFamily: "TTHoves-Regular, sans-serif",
-                                    fontSize: "16px",
-                                },
-                            }}
-                            sx={{
-                                ...readOnlyStyle,
-                                "& .MuiOutlinedInput-root": {
-                                    cursor: "default",
-                                    "& fieldset": {
-                                        borderRadius: "12px",
-                                    },
-                                }
-                            }}
-                        />
+                    <ViewTextField
+                        value={personalInfoData.sex}
+                    />
                 </Box>
 
                 <Box>
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                        Marital Status
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={personalInfoData.maritalStatus}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
@@ -403,30 +287,8 @@ function PersonalInformationForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Nationality
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={personalInfoData.nationality}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
@@ -435,30 +297,8 @@ function PersonalInformationForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Contact Number
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={personalInfoData.contactNumber}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                borderRadius: "12px",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
             </Box>
@@ -477,22 +317,8 @@ function PersonalInformationForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Contact Name
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={personalInfoData.emergencyContactName}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={readOnlyStyle}
                     />
                 </Box>
 
@@ -500,22 +326,8 @@ function PersonalInformationForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Contact Number
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={personalInfoData.emergencyContactNumber}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={readOnlyStyle}
                     />
                 </Box>
             </Box>
@@ -527,6 +339,15 @@ function PersonalInformationForm() {
 
 function EmploymentDetailsForm() {
     const theme = useTheme();
+    const { user } = useUser(); // ⬅ GET USER DATA HERE
+
+    const employmentDetails = {
+        employmentId: user.employeeId,
+        department: user.department ?? "—",
+        position: user.position ?? "—",
+        employmentType: user.employmentType ?? "—",
+        dateHired: user.dateHired ?? "—",
+    };
 
     return (
         <Box>
@@ -550,30 +371,8 @@ function EmploymentDetailsForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Employment ID
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={employmentDetails.employmentId}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
@@ -581,30 +380,8 @@ function EmploymentDetailsForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Department
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={employmentDetails.department}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
@@ -612,30 +389,8 @@ function EmploymentDetailsForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Position
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={employmentDetails.position}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
@@ -643,30 +398,8 @@ function EmploymentDetailsForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Employment Type
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={employmentDetails.employmentType}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
@@ -674,30 +407,8 @@ function EmploymentDetailsForm() {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
                         Date Hired
                     </Typography>
-                    <TextField
-                        fullWidth
+                    <ViewTextField
                         value={employmentDetails.dateHired}
-                        InputProps={{
-                            readOnly: true,
-                            style: {
-                                height: "50px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                                color: "#000000",
-                                pointerEvents: "none",
-                                fontFamily: "TTHoves-Regular, sans-serif",
-                                fontSize: "16px",
-                            },
-                        }}
-                        sx={{
-                            ...readOnlyStyle,
-                            "& .MuiOutlinedInput-root": {
-                                cursor: "default",
-                                "& fieldset": {
-                                    borderRadius: "12px",
-                                },
-                            }
-                        }}
                     />
                 </Box>
 
