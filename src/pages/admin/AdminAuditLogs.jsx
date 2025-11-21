@@ -51,7 +51,7 @@ export default function AdminAuditLogs() {
 
         <Box
             sx={{
-                height: "85%",
+                height: "90.9%",
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: "15px",

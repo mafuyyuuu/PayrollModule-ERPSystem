@@ -2,6 +2,7 @@ import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
 import React, { useState } from "react";
+import ActionButton from "../../components/ActionButton.jsx";
 
 export default function EmployeeTax() {
     const theme = useTheme();
@@ -20,21 +21,35 @@ export default function EmployeeTax() {
 
     const employeeContribution = [
         {
-            employee: "John Doe",
+            employee: "Jhervis Jimenez",
             SSS: 20500,
             PhilHealth: 19500,
             PagIBIG: 15000,
             WTAX: 5000,
         },
         {
-            employee: "Jane Smith",
+            employee: "Alwyn Richards",
             SSS: 18200,
             PhilHealth: 17300,
             PagIBIG: 14000,
             WTAX: 4200,
         },
         {
-            employee: "Michael Tan",
+            employee: "Sisa Marie",
+            SSS: 22000,
+            PhilHealth: 20500,
+            PagIBIG: 16500,
+            WTAX: 5500,
+        },
+        {
+            employee: "Ed Caluag",
+            SSS: 22000,
+            PhilHealth: 20500,
+            PagIBIG: 16500,
+            WTAX: 5500,
+        },
+        {
+            employee: "Symon Banana",
             SSS: 22000,
             PhilHealth: 20500,
             PagIBIG: 16500,
@@ -96,82 +111,75 @@ export default function EmployeeTax() {
                     Contribution
                 </Typography>
 
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Box
+                <Box
+                    sx={{
+                        display: "inline-block",
+                        borderRadius: "15px",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        "&:hover": {
+                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                        },
+                    }}
+                >
+                    <Select
+                        value={selectedPayroll}
+                        onChange={(e) => setSelectedPayroll(e.target.value)}
+                        displayEmpty
                         sx={{
-                            display: "inline-block",
+                            fontFamily: theme.typography.fontFamily,
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.05)"
+                                    : "rgba(255, 255, 255, 0.3)",
                             borderRadius: "15px",
-                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                            "&:hover": {
-                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                            width: "250px",
+                            fontSize: "0.95rem",
+                            color: theme.palette.text.primary,
+                            "& .MuiSelect-select": {
+                                padding: "10px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: theme.palette.divider,
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: theme.palette.text.primary,
                             },
                         }}
-                    >
-                        <Select
-                            value={selectedPayroll}
-                            onChange={(e) => setSelectedPayroll(e.target.value)}
-                            displayEmpty
-                            sx={{
-                                fontFamily: theme.typography.fontFamily,
-                                backgroundColor:
-                                    theme.palette.mode === "dark"
-                                        ? "rgba(255, 255, 255, 0.05)"
-                                        : "rgba(255, 255, 255, 0.3)",
-                                borderRadius: "15px",
-                                width: "250px",
-                                fontSize: "0.95rem",
-                                color: theme.palette.text.primary,
-                                "& .MuiSelect-select": {
-                                    padding: "10px 12px",
-                                },
-                                "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: theme.palette.divider,
-                                },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: theme.palette.divider,
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "& .MuiSvgIcon-root": {
-                                    color: theme.palette.text.primary,
-                                },
-                            }}
-                            renderValue={(selected) => {
-                                if (!selected)
-                                    return (
-                                        <span
-                                            style={{
-                                                color:
-                                                    theme.palette.mode === "dark"
-                                                        ? "rgba(255,255,255,0.7)" // placeholder for dark mode
-                                                        : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
-                                            }}
-                                        >
+                        renderValue={(selected) => {
+                            if (!selected)
+                                return (
+                                    <span
+                                        style={{
+                                            color:
+                                                theme.palette.mode === "dark"
+                                                    ? "rgba(255,255,255,0.7)" // placeholder for dark mode
+                                                    : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
+                                        }}
+                                    >
                                         Select Payroll Duration
                                     </span>
-                                    );
-                                return selected;
-                            }}
-                        >
-                            {payrollHistory.map((item) => (
-                                <MenuItem key={item.ref} value={item.duration}>
-                                    {item.duration}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </Box>
-
-                    <SearchBar
-                        placeholder="Enter Employee Name"
-                        width="450px"
-                    />
+                                );
+                            return selected;
+                        }}
+                    >
+                        {payrollHistory.map((item) => (
+                            <MenuItem key={item.ref} value={item.duration}>
+                                {item.duration}
+                            </MenuItem>
+                        ))}
+                    </Select>
                 </Box>
             </Box>
 
             <Box
                 sx={{
-                    height: "69%",
+                    height: "60%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
@@ -188,7 +196,7 @@ export default function EmployeeTax() {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(6, 1fr)",
+                        gridTemplateColumns: "repeat(5, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
@@ -200,7 +208,6 @@ export default function EmployeeTax() {
                         textAlign: "center",
                     }}
                 >
-                    <span>Employee</span>
                     <span>SSS</span>
                     <span>PhilHealth</span>
                     <span>Pag-IBIG</span>
@@ -210,7 +217,6 @@ export default function EmployeeTax() {
 
                 <Box
                     sx={{
-                        maxHeight: "530px",
                         overflowY: "auto",
                         "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
@@ -228,7 +234,7 @@ export default function EmployeeTax() {
                                 sx={{
                                     marginTop: "10px",
                                     display: "grid",
-                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    gridTemplateColumns: "repeat(5, 1fr)",
                                     alignItems: "center",
                                     bgcolor: "#fff",
                                     color: "#1b2223",
@@ -242,7 +248,6 @@ export default function EmployeeTax() {
                                     textAlign: "center",
                                 }}
                             >
-                                <span>{item.employee}</span>
                                 <span>₱{item.SSS.toLocaleString()}</span>
                                 <span>₱{item.PhilHealth.toLocaleString()}</span>
                                 <span>₱{item.PagIBIG.toLocaleString()}</span>
@@ -251,6 +256,18 @@ export default function EmployeeTax() {
                             </Box>
                         );
                     })}
+                </Box>
+            </Box>
+            <Box
+                display="flex"
+                justifyContent="flex-end"
+                alignItems="center"
+                mt={3}
+                mb={2}
+            >
+                <Box display="flex" gap={2}>
+                    <ActionButton text="Export PDF" width="200px" />
+                    <ActionButton text="Export CSV" width="200px" />
                 </Box>
             </Box>
         </Box>
