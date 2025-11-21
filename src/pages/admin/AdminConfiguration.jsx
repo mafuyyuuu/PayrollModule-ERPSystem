@@ -10,6 +10,7 @@ import ActionButton from "../../components/ActionButton.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import SearchIcon from "@mui/icons-material/Search";
 
+
 export default function AdminConfiguration() {
     const theme = useTheme();
 

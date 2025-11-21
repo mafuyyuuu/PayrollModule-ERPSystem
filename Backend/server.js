@@ -4,12 +4,17 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import adminDashboardRoutes from "./admin/AdminDashboard/routes/adminDashboardRoutes.js";
+import adminConfigRoutes from './admin/AdminConfiguration/routes/adminConfigRoutes.js';
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.use("/api/dashboard", adminDashboardRoutes);
+app.use('/api/admin/config', adminConfigRoutes);
 
 // ✅ MySQL connection
 const pool = mysql.createPool({

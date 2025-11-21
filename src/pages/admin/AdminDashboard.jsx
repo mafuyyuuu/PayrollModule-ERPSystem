@@ -1,10 +1,41 @@
 import { Box, useTheme } from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { BarChart3 } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const AdminDashboard = () => {
     const theme = useTheme();
 
+    // === STATE FOR BACKEND DATA ===
+    const [totalEmployees, setTotalEmployees] = useState(0);
+    const [processedPayouts, setProcessedPayouts] = useState(0);
+    const [pendingPayouts, setPendingPayouts] = useState(0);
+    const [upcomingSchedule, setUpcomingSchedule] = useState("Loading...");
+
+    // === FETCH DATA FROM BACKEND ===
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const emp = await axios.get("http://localhost:8080/api/dashboard/total-employees");
+                const released = await axios.get("http://localhost:8080/api/dashboard/processed-payouts");
+                const pending = await axios.get("http://localhost:8080/api/dashboard/pending-payouts");
+                const schedule = await axios.get("http://localhost:8080/api/dashboard/upcoming-schedule");
+
+                setTotalEmployees(emp.data.total || 0);
+                setProcessedPayouts(released.data.total || 0);
+                setPendingPayouts(pending.data.total || 0);
+                setUpcomingSchedule(schedule.data.schedule || "No schedule");
+            } catch (error) {
+                console.log("Dashboard loading error:", error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+
+    // === UI NOTIFICATIONS (static for now) ===
     const notifications = [
         {
             title: "Payroll Updated",
@@ -36,30 +67,40 @@ const AdminDashboard = () => {
                 fontFamily: theme.typography.fontFamily,
             }}
         >
+            {/* === DASHBOARD CARDS === */}
             <Box
                 display="grid"
                 gridTemplateColumns={{ xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
                 gap={2}
             >
-                <DashboardCard icon="ri-group-line" title="Total Employees" value="55" />
+                <DashboardCard
+                    icon="ri-group-line"
+                    title="Total Employees"
+                    value={totalEmployees}
+                />
+
                 <DashboardCard
                     icon="ri-refund-2-line"
                     title="Processed Payouts"
-                    value="₱120,000.00"
+                    value={`₱ ${processedPayouts.toLocaleString()}`}
                     showHideButton
                 />
+
                 <DashboardCard
                     icon="ri-timer-line"
                     title="Pending Payouts"
-                    value="₱30,000.00"
+                    value={`₱ ${pendingPayouts.toLocaleString()}`}
                     showHideButton
                 />
+
                 <DashboardCard
                     icon="ri-calendar-schedule-line"
                     title="Upcoming Schedules"
-                    value="October 31, 2025"
+                    value={upcomingSchedule}
                 />
             </Box>
+
+            {/* === NOTIFICATIONS PANEL === */}
             <Box
                 sx={{
                     flex: 1,
