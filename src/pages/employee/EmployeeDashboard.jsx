@@ -1,4 +1,4 @@
-import {InputAdornment, IconButton, Box, Typography, TextField, useTheme} from "@mui/material";
+import {InputAdornment, IconButton, Box, Typography, TextField, Button, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { useRef } from "react";
@@ -327,8 +327,7 @@ const EmployeeDashboard = () => {
 
 
                         {/* Submit Button */}
-                        <Box
-                            component="button"
+                        <Button
                             sx={{
                                 fontSize: "16px",
                                 backgroundColor: "#172224",
@@ -345,7 +344,7 @@ const EmployeeDashboard = () => {
                             }}
                         >
                             Submit
-                        </Box>
+                        </Button>
                     </form>
                 </Box>
             </Box>
