@@ -192,7 +192,6 @@ export default function AdminUserManagement() {
                     </Box>))}
                 </Box>
             </Box>
-
             <BoxModal
                 open={userModalOpen}
                 onClose={handleCloseModal}

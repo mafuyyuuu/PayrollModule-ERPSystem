@@ -35,7 +35,6 @@ export default function AdminReports() {
             >
                 Reports and Analytics
             </Typography>
-
             <Box
                 sx={{
                     display: "flex",

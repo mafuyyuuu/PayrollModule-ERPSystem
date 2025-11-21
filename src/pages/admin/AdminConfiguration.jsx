@@ -206,7 +206,6 @@ export default function AdminConfiguration() {
                             <span style={{textAlign: "center"}}>Actions</span>
                         </Box>
                     </Box>
-
                     <Box
                         sx={{
                             maxHeight: "400px",

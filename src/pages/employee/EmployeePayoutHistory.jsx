@@ -72,7 +72,6 @@ export default function EmployeePayoutHistory() {
                     />
                 </Box>
             </Box>
-
             <Box
                 sx={{
                     height: "92%",

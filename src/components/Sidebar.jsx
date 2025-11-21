@@ -19,7 +19,6 @@ export default function Sidebar() {
         try {
             // call your backend API here
             // await fetch("/api/logout", { method: "POST", credentials: "include" });
-
             // temporary frontend-only logout:
             setUser(null);
             localStorage.removeItem("user");

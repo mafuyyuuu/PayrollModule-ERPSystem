@@ -41,7 +41,6 @@ const EmployeeDashboard = () => {
                     showHideButton={true}
                 />
             </Box>
-
             <Box
                 display="grid"
                 gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
