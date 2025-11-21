@@ -102,7 +102,6 @@ export default function Sidebar() {
                         <span>User Profile</span>
                     </NavLink>
                 )}
-
                 <button className="logout-link" onClick={handleLogout}>
                     <i className="ri-logout-box-r-fill icon"></i>
                     <span>Logout</span>
