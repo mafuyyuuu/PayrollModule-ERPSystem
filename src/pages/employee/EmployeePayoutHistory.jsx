@@ -1,5 +1,6 @@
-import { Box, Typography, useTheme } from "@mui/material";
-
+import {Box, IconButton, Typography, useTheme} from "@mui/material";
+import React from "react";
+import { RiDownload2Line } from "react-icons/ri";
 export default function EmployeePayoutHistory() {
     const theme = useTheme();
 
@@ -74,116 +75,88 @@ export default function EmployeePayoutHistory() {
 
             <Box
                 sx={{
-                    backgroundColor: theme.palette.background.paper,
-                    borderRadius: "12px",
-                    p: "24px",
-                    color: theme.palette.text.primary,
                     height: "92%",
-                    fontFamily: theme.typography.fontFamily,
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
                         alignItems: "center",
-                        justifyItems: "center",
-                        fontWeight: 600,
-                        padding: "10px 0",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <span>Payroll Duration</span>
-                    <span>Amount</span>
-                    <span>Reference Number</span>
-                    <span>Action</span>
+                    <span style={{textAlign: "center"}}>Payroll Duration</span>
+                    <span style={{textAlign: "center"}}>Amount</span>
+                    <span style={{textAlign: "center"}}>Reference Number</span>
+                    <span style={{textAlign: "center"}}>Action</span>
                 </Box>
                 <Box
                     sx={{
-                        maxHeight: "100%",
+                        maxHeight: "530px",
                         overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
                     {payrollHistory.map((item, index) => (
                         <Box
                             key={index}
                             sx={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                                alignItems: "center",
-                                justifyItems: "center",
-                                backgroundColor: theme.palette.action.hover,
-                                borderRadius: "10px",
-                                padding: "12px 0",
                                 marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(4, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
                                 transition: "all 0.3s ease",
-                                border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
-                                    backgroundColor: theme.palette.action.selected,
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
+                                textAlign: "center",
                             }}
                         >
                             <span>{item.duration}</span>
                             <span>{item.amount}</span>
                             <span>{item.ref}</span>
-                            <Box textAlign="center" ml="15px">
-                                <button
-                                    style={{
-                                        backgroundColor:
-                                            theme.palette.mode === "light"
-                                                ? "#3A4F50"
-                                                : "#EFEFEF",
-                                        color:
-                                            theme.palette.mode === "light"
-                                                ? "#fff"
-                                                : "#1b2223",
-                                        border: "none",
-                                        width: "30px",
-                                        height: "30px",
-                                        borderRadius: "50%",
-                                        cursor: "pointer",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        transition: "all 0.2s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = "translateY(-3px)";
-                                        e.currentTarget.style.backgroundColor =
-                                            theme.palette.mode === "light"
-                                                ? "#2E3B3D"
-                                                : "#bdbdbd";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = "translateY(0)";
-                                        e.currentTarget.style.backgroundColor =
-                                            theme.palette.mode === "light"
-                                                ? "#3A4F50"
-                                                : "#EFEFEF";
+                            <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
+                                <IconButton
+                                    sx={{
+                                        bgcolor: "#3A4F50",
+                                        color: "#fff",
+                                        width: "32px",
+                                        height: "32px",
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                        },
                                     }}
                                 >
-                                    <i
-                                        className="ri-download-2-line"
-                                        style={{
-                                            color: theme.palette.mode === "light" ? "#fff" : "#1b2223",
-                                        }}
-                                    ></i>
-                                </button>
+                                    <RiDownload2Line />
+                                </IconButton>
                             </Box>
                         </Box>
                     ))}
