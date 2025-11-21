@@ -3,6 +3,7 @@ import {Box, Button, IconButton, MenuItem, Select, TextField, Typography} from "
 import {RiPencilFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal";
+import { useTheme } from '@mui/material/styles';
 
 export default function AdminPayrollSetup() {
     const theme = useTheme();
