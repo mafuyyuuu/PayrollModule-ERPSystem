@@ -1,11 +1,7 @@
-import {Box, IconButton, MenuItem, Select, Typography, useTheme} from "@mui/material";
-import React, { useState } from "react";
-import { RiDownload2Line } from "react-icons/ri";
+import { Box, Typography, useTheme } from "@mui/material";
 
 export default function EmployeePayoutHistory() {
     const theme = useTheme();
-
-    const [selectedPayroll, setSelectedPayroll] = useState("");
 
     const payrollHistory = [
         { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
@@ -25,160 +21,179 @@ export default function EmployeePayoutHistory() {
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
+                        fontWeight: "bold",
                         color: theme.palette.text.primary,
                     }}
                 >
                     Payout History
                 </Typography>
-                <Box
-                    sx={{
-                        display: "inline-block",
-                        borderRadius: "15px",
-                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                        "&:hover": {
-                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
-                        },
-                    }}
-                >
-                    <Select
-                        value={selectedPayroll}
-                        onChange={(e) => setSelectedPayroll(e.target.value)}
-                        displayEmpty
-                        sx={{
-                            fontFamily: theme.typography.fontFamily,
+
+                <Box sx={{ position: "relative", width: 250, transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                    },}}>
+                    <select
+                        defaultValue=""
+                        style={{
+                            appearance: "none",
+                            WebkitAppearance: "none",
+                            MozAppearance: "none",
+                            width: "100%",
+                            padding: "10px 40px 10px 18px",
+                            borderRadius: "15px",
+                            border: `1px solid ${theme.palette.divider}`,
                             backgroundColor:
                                 theme.palette.mode === "dark"
                                     ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.3)",
-                            borderRadius: "15px",
-                            width: "250px",
-                            fontSize: "0.95rem",
+                                    : "rgba(255, 255, 255, 0.25)",
+                            backdropFilter: "blur(12px)",
                             color: theme.palette.text.primary,
-                            "& .MuiSelect-select": {
-                                padding: "10px 12px",
-                            },
-                            "& .MuiOutlinedInput-notchedOutline": {
-                                borderColor: theme.palette.divider,
-                            },
-                            "&:hover .MuiOutlinedInput-notchedOutline": {
-                                borderColor: theme.palette.divider,
-                            },
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                border: "none",
-                            },
-                            "& .MuiSvgIcon-root": {
-                                color: theme.palette.text.primary,
-                            },
-                        }}
-                        renderValue={(selected) => {
-                            if (!selected)
-                                return (
-                                    <span
-                                        style={{
-                                            color:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255,255,255,0.7)" // placeholder for dark mode
-                                                    : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
-                                        }}
-                                    >
-                                        Select Payroll Duration
-                                    </span>
-                                );
-                            return selected;
+                            fontFamily: theme.typography.fontFamily,
+                            fontSize: "16px",
+                            cursor: "pointer",
+                            outline: "none",
                         }}
                     >
-                        {payrollHistory.map((item) => (
-                            <MenuItem key={item.ref} value={item.duration}>
+                        <option
+                            style={{fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: theme.palette.text.primary,
+                            fontSize: "15px",
+                            backgroundColor: theme.palette.background.paper,}} value="">Select Payroll Duration</option>
+                        {payrollHistory.map((item, idx) => (
+                            <option style= {{
+                                color: theme.palette.text.primary,
+                                fontSize: "15px",
+                                backgroundColor: theme.palette.background.paper
+                            }} key={idx} value={item.duration}>
                                 {item.duration}
-                            </MenuItem>
+                            </option>
                         ))}
-                    </Select>
+                    </select>
+                    <i
+                        className="ri-arrow-down-s-line"
+                        style={{
+                            position: "absolute",
+                            right: "14px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            pointerEvents: "none",
+                            color: theme.palette.text.primary,
+                            fontSize: "18px",
+                        }}
+                    />
                 </Box>
             </Box>
 
             <Box
                 sx={{
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    borderRadius: "12px",
+                    p: "24px",
+                    color: theme.palette.text.primary,
                     height: "92%",
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    fontFamily: theme.typography.fontFamily,
                     border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: "15px",
-                    backdropFilter: "blur(12px)",
-                    p: "12px 24px",
                     transition: "all 0.3s ease",
-                    display: "flex",
-                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
-                        color: theme.palette.text.primary,
-                        fontWeight: 700,
-                        p: "8px 0",
-                        width: "100%",
+                        gridTemplateColumns: "1fr 1fr 1fr 1fr",
                         alignItems: "center",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 10,
+                        justifyItems: "center",
+                        fontWeight: 600,
+                        padding: "10px 0",
                     }}
                 >
-                    <span style={{textAlign: "center"}}>Payroll Duration</span>
-                    <span style={{textAlign: "center"}}>Amount</span>
-                    <span style={{textAlign: "center"}}>Reference Number</span>
-                    <span style={{textAlign: "center"}}>Action</span>
+                    <span>Payroll Duration</span>
+                    <span>Amount</span>
+                    <span>Reference Number</span>
+                    <span>Action</span>
                 </Box>
                 <Box
                     sx={{
+                        maxHeight: "100%",
                         overflowY: "auto",
-                        "&::-webkit-scrollbar": {width: 0, height: 0},
+                        pr: "8px",
+                        display: "flex",
+                        flexDirection: "column",
+                        mt: "5px",
+                        gap: "10px",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        mt: "8px",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
                     {payrollHistory.map((item, index) => (
                         <Box
                             key={index}
                             sx={{
-                                marginTop: "10px",
                                 display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
+                                gridTemplateColumns: "1fr 1fr 1fr 1fr",
                                 alignItems: "center",
-                                bgcolor: "#fff",
+                                justifyItems: "center",
+                                backgroundColor: "#fff",
                                 color: "#1b2223",
-                                borderRadius: "8px",
-                                width: "100%",
-                                minHeight: "83px",
+                                borderRadius: "10px",
+                                padding: "12px 0",
+                                marginTop: "10px",
                                 transition: "all 0.3s ease",
+                                border: `1px solid ${theme.palette.divider}`,
                                 "&:hover": {
-                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
-                                textAlign: "center",
                             }}
                         >
-                            <span>{item.duration}</span>
-                            <span>{item.amount}</span>
-                            <span>{item.ref}</span>
-                            <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
-                                <IconButton
-                                    sx={{
-                                        bgcolor: "#3A4F50",
+                            <span
+                                style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                fontSize: "15px"}}>{item.duration}
+                            </span>
+                            <span
+                                style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#1b2223",
+                                fontSize: "15px"}}>{item.amount}
+                            </span>
+                            <span
+                                style = {{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#1b2223",
+                                fontSize: "15px"}}>{item.ref}
+                            </span>
+                            <Box textAlign="center" ml="15px">
+                                <button
+                                    style={{
+                                        backgroundColor: "#3A4F50",
                                         color: "#fff",
+                                        border: "none",
                                         width: "32px",
                                         height: "32px",
+                                        borderRadius: "50%",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
                                         transition: "all 0.3s ease",
                                         "&:hover": {
-                                            transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                            transform: "translateY(-3px)",
+                                            bgcolor: "#2E3B3D",
                                         },
                                     }}
                                 >
-                                    <RiDownload2Line />
-                                </IconButton>
+                                    <i
+                                        className="ri-download-2-line"
+                                        style={{
+                                            color: "#fff",
+                                        }}
+                                    ></i>
+                                </button>
                             </Box>
                         </Box>
                     ))}
