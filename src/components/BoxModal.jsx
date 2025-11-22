@@ -11,8 +11,8 @@ export default function BoxModal({ open, onClose, children, width = 500 }) {
                     position: "absolute",
                     top: "50%",
                     left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    transform: "translate(-35%, -50%)",
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                     p: 4,
@@ -24,7 +24,7 @@ export default function BoxModal({ open, onClose, children, width = 500 }) {
                         theme.palette.mode === "dark"
                             ? "0 8px 32px rgba(0,0,0,0.6)"
                             : "0 8px 32px rgba(0,0,0,0.1)",
-                    color: theme.palette.text.primary,
+                    color: "#fff"
                 }}
             >
                 {children}
