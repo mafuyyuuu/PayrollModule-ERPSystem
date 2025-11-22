@@ -1,7 +1,4 @@
--- =====================================================
--- PAYROLL MANAGEMENT SYSTEM DATABASE - CORRECTED
--- (No Employee Management - Only Payroll Data)
--- =====================================================
+
 
 CREATE DATABASE IF NOT EXISTS PayrollManagementSystem;
 USE PayrollManagementSystem;
