@@ -1,6 +1,6 @@
-import {Box, IconButton, MenuItem, Select, Typography, useTheme} from "@mui/material";
-import React, { useState } from "react";
-import { RiDownload2Line } from "react-icons/ri";
+import {Box, Typography, useTheme, Select, MenuItem, IconButton,} from "@mui/material";
+import React, {useState} from "react";
+import {RiDownload2Line, RiPencilFill} from "react-icons/ri";
 
 export default function EmployeePayoutHistory() {
     const theme = useTheme();
@@ -8,13 +8,13 @@ export default function EmployeePayoutHistory() {
     const [selectedPayroll, setSelectedPayroll] = useState("");
 
     const payrollHistory = [
-        { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
-        { duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930" },
-        { duration: "Sep 1–15, 2025", amount: "₱20,100.00", ref: "REF20250915" },
-        { duration: "Aug 16–31, 2025", amount: "₱20,000.00", ref: "REF20250831" },
-        { duration: "Aug 1–15, 2025", amount: "₱19,900.00", ref: "REF20250815" },
-        { duration: "Jul 16–31, 2025", amount: "₱19,800.00", ref: "REF20250731" },
-        { duration: "Jul 1–15, 2025", amount: "₱19,700.00", ref: "REF20250715" },
+        {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
+        {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
+        {duration: "Sep 1–15, 2025", amount: "₱20,100.00", ref: "REF20250915"},
+        {duration: "Aug 16–31, 2025", amount: "₱20,000.00", ref: "REF20250831"},
+        {duration: "Aug 1–15, 2025", amount: "₱19,900.00", ref: "REF20250815"},
+        {duration: "Jul 16–31, 2025", amount: "₱19,800.00", ref: "REF20250731"},
+        {duration: "Jul 1–15, 2025", amount: "₱19,700.00", ref: "REF20250715"},
     ];
 
     return (
@@ -25,18 +25,24 @@ export default function EmployeePayoutHistory() {
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
+                        fontWeight: "bold",
                         color: theme.palette.text.primary,
                     }}
                 >
                     Payout History
                 </Typography>
+
                 <Box
                     sx={{
                         display: "inline-block",
                         borderRadius: "15px",
                         transition: "transform 0.3s ease, box-shadow 0.3s ease",
                         "&:hover": {
-                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                            transform: "scale(1.02)",
+                            boxShadow:
+                                theme.palette.mode === "light"
+                                    ? "0 4px 20px rgba(0,0,0,0.15)"
+                                    : "0 4px 20px rgba(0,0,0,0.3)",
                         },
                     }}
                 >
@@ -45,17 +51,16 @@ export default function EmployeePayoutHistory() {
                         onChange={(e) => setSelectedPayroll(e.target.value)}
                         displayEmpty
                         sx={{
-                            fontFamily: theme.typography.fontFamily,
                             backgroundColor:
                                 theme.palette.mode === "dark"
                                     ? "rgba(255, 255, 255, 0.05)"
                                     : "rgba(255, 255, 255, 0.3)",
                             borderRadius: "15px",
                             width: "250px",
-                            fontSize: "0.95rem",
+                            fontSize: "16px",
                             color: theme.palette.text.primary,
                             "& .MuiSelect-select": {
-                                padding: "10px 12px",
+                                padding: "8px 12px",
                             },
                             "& .MuiOutlinedInput-notchedOutline": {
                                 borderColor: theme.palette.divider,
@@ -64,7 +69,7 @@ export default function EmployeePayoutHistory() {
                                 borderColor: theme.palette.divider,
                             },
                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                border: "none",
+                                border: "none", // remove focus border
                             },
                             "& .MuiSvgIcon-root": {
                                 color: theme.palette.text.primary,
@@ -73,14 +78,7 @@ export default function EmployeePayoutHistory() {
                         renderValue={(selected) => {
                             if (!selected)
                                 return (
-                                    <span
-                                        style={{
-                                            color:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255,255,255,0.7)" // placeholder for dark mode
-                                                    : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
-                                        }}
-                                    >
+                                    <span style={{fontSize: "16px", color: "#bdbdbd"}}>
                                         Select Payroll Duration
                                     </span>
                                 );
@@ -98,7 +96,7 @@ export default function EmployeePayoutHistory() {
 
             <Box
                 sx={{
-                    height: "92%",
+                    height: "90.9%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
@@ -114,6 +112,7 @@ export default function EmployeePayoutHistory() {
             >
                 <Box
                     sx={{
+                        textAlign: "center",
                         display: "grid",
                         gridTemplateColumns: "repeat(4, 1fr)",
                         color: theme.palette.text.primary,
@@ -126,10 +125,10 @@ export default function EmployeePayoutHistory() {
                         zIndex: 10,
                     }}
                 >
-                    <span style={{textAlign: "center"}}>Payroll Duration</span>
-                    <span style={{textAlign: "center"}}>Amount</span>
-                    <span style={{textAlign: "center"}}>Reference Number</span>
-                    <span style={{textAlign: "center"}}>Action</span>
+                    <span>Payroll Duration</span>
+                    <span>Amount</span>
+                    <span>Reference Number</span>
+                    <span>Action</span>
                 </Box>
                 <Box
                     sx={{
@@ -167,17 +166,21 @@ export default function EmployeePayoutHistory() {
                             <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
                                 <IconButton
                                     sx={{
-                                        bgcolor: "#3A4F50",
+                                        backgroundColor: "#172224",
                                         color: "#fff",
-                                        width: "32px",
-                                        height: "32px",
-                                        transition: "all 0.3s ease",
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        transition: "all 0.2s ease",
                                         "&:hover": {
-                                            transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
                                         },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
                                 >
-                                    <RiDownload2Line />
+                                    <RiDownload2Line style={{fontSize: 19}}/>
                                 </IconButton>
                             </Box>
                         </Box>

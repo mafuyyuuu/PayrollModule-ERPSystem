@@ -118,19 +118,31 @@ export default function AdminPayrollSetup() {
                                 <span>{item.type}</span>
                                 <span>{item.rate}</span>
                                 <span>{item.date}</span>
-                                <IconButton
-                                    onClick={() => openModal("taxSettings", item)}
+                                <Box
                                     sx={{
-                                        bgcolor: "#3A4F50",
-                                        color: "#fff",
-                                        width: "30px",
-                                        height: "30px",
-                                        margin: "auto",
-                                        "&:hover": {bgcolor: "#2E3B3D", transform: "translateY(-3px)"},
+                                        display: "flex", gap: "8px", justifyContent: "center",
                                     }}
                                 >
-                                    <RiPencilFill/>
-                                </IconButton>
+                                    <IconButton
+                                        onClick={() => openModal("taxSettings", item)}
+                                        sx={{
+                                            backgroundColor: "#172224",
+                                            color: "#fff",
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
+                                            },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                        }}
+                                    >
+                                        <RiPencilFill style={{fontSize: 19}}/>
+                                    </IconButton>
+                                </Box>
                             </Box>
                         </Box>))}
                     </Box>
@@ -218,17 +230,21 @@ export default function AdminPayrollSetup() {
                                         }}
 
                                         sx={{
-                                            bgcolor: "#3A4F50",
+                                            backgroundColor: "#172224",
                                             color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                            transition: "all 0.3s ease",
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
                                             "&:hover": {
-                                                transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
                                             },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <RiPencilFill/>
+                                        <RiPencilFill style={{fontSize: 19}}/>
                                     </IconButton>
                                 </Box>
                             </Box>

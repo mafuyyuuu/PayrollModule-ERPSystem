@@ -29,7 +29,7 @@ const ActionButton = ({
             borderRadius: "15px",
             cursor: "pointer",
             border: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.3)",
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
             backdropFilter: "blur(12px)",
             width: width,
             color: theme.palette.text.primary,

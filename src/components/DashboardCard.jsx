@@ -40,10 +40,9 @@ const DashboardCard = ({ icon, title, value, showHideButton }) => {
             justifyContent="space-between"
             color={theme.palette.text.primary}
             sx={{
-                backgroundColor:
-                    theme.palette.mode === "dark"
-                        ? "rgba(255, 255, 255, 0.05)"
-                        : "rgba(255, 255, 255, 0.3)",
+                backgroundColor: theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "rgba(255, 255, 255, 0.2)",
                 fontFamily: theme.typography.fontFamily,
                 border: `1px solid ${theme.palette.divider}`,
                 transition: "all 0.3s ease",

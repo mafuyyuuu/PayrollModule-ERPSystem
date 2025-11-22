@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, { useRef, useState } from "react";
 import {
-    Box, IconButton, MenuItem, Select, TextField, Typography, useTheme,
+    Modal, Box, IconButton, MenuItem, Select, TextField, Typography, useTheme,
 } from "@mui/material";
 import {RiPencilFill} from "react-icons/ri";
 import SearchBar from "../../components/SearchBar.jsx";
@@ -9,9 +9,13 @@ import BoxModal from "../../components/BoxModal.jsx";
 
 export default function AdminUserManagement() {
     const theme = useTheme();
+    const videoRef = useRef();
+    const [status, setStatus] = useState("Initializing camera...");
+    const [loading, setLoading] = useState(false);
 
     const [selectedUser, setSelectedUser] = useState(null);
     const [userModalOpen, setUserModalOpen] = useState(false);
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
     const handleAddUser = () => {
@@ -73,6 +77,7 @@ export default function AdminUserManagement() {
         >
             <Box
                 sx={{
+                    alignItems: "center",
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
@@ -175,17 +180,21 @@ export default function AdminUserManagement() {
                             <IconButton
                                 onClick={() => handleEditUser(user)}
                                 sx={{
-                                    bgcolor: "#3A4F50",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                transition: "all 0.2s ease",
+                                "&:hover": {
+                                    backgroundColor: "#2E3B3D",
                                     color: "#fff",
-                                    width: "32px",
-                                    height: "32px",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-3px)", bgcolor: "#2E3B3D",
-                                    },
-                                }}
+                                    transform: "translateY(-3px)",
+                                },
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            }}
                             >
-                                <RiPencilFill/>
+                                <RiPencilFill style={{fontSize: 19}}/>
                             </IconButton>
                         </Box>
                     </Box>))}
@@ -354,6 +363,7 @@ export default function AdminUserManagement() {
                         />
                     )}
                     <Box
+                        onClick={() => setConfirmModalOpen(true)}
                         component="button"
                         sx={{
                             display: "flex-end",
@@ -378,6 +388,85 @@ export default function AdminUserManagement() {
                     </Box>
                 </Box>
             </BoxModal>
+
+            <Modal
+                open={confirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <Box
+                    sx={{
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                        backdropFilter: "blur(12px)",
+                        WebkitBackdropFilter: "blur(12px)",
+                        boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                                ? "0 8px 32px rgba(0,0,0,0.6)"
+                                : "0 8px 32px rgba(0,0,0,0.1)",
+                        borderRadius: 3,
+                        p: 4,
+                        width: { xs: "90%", sm: "600px", md: "800px" },
+                        height: { xs: "auto", sm: "70%", md: "600px" },
+                        maxHeight: "90vh",
+                        overflowY: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography
+                        variant="h2"
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            fontSize: "30px",
+                            color: "#FFFFFF",
+                            mb: 2,
+                            textAlign: "center",
+                        }}
+                    >
+                        Facial Recognition
+                    </Typography>
+
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        width="400"
+                        height="300"
+                        style={{ borderRadius: "10px", border: "2px solid #ccc" }}
+                    />
+
+                    <img
+                        id="face-preview"
+                        alt="Face preview"
+                        style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
+                    />
+
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            fontSize: "18px",
+                            color: "#FFFFFF",
+                            mb: 2,
+                            mt: 2,
+                            textAlign: "center",
+                        }}
+                    >
+                        {status}
+                    </Typography>
+
+                    <ActionButton
+                        text={loading ? "Processing..." : "Recognition..."}
+                        width="200px"
+                        disabled={loading}
+                    />
+                </Box>
+            </Modal>
         </Box>
     );
 }

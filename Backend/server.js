@@ -16,7 +16,7 @@ const pool = mysql.createPool({
     host: 'localhost',
     user: 'payrollsystem',
     password: 'payroll',
-    database: 'testdb',
+    database: 'payrollmanagementsystem',
     port: 3306
 });
 

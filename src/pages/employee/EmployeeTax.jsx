@@ -1,60 +1,45 @@
 import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
-import React, { useState } from "react";
-import ActionButton from "../../components/ActionButton.jsx";
+import React, {useState} from "react";
 
 export default function EmployeeTax() {
     const theme = useTheme();
 
     const [selectedPayroll, setSelectedPayroll] = useState("");
 
-    const payrollHistory = [
-        { duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001" },
-        { duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930" },
-        { duration: "Sep 1–15, 2025", amount: "₱20,100.00", ref: "REF20250915" },
-        { duration: "Aug 16–31, 2025", amount: "₱20,000.00", ref: "REF20250831" },
-        { duration: "Aug 1–15, 2025", amount: "₱19,900.00", ref: "REF20250815" },
-        { duration: "Jul 16–31, 2025", amount: "₱19,800.00", ref: "REF20250731" },
-        { duration: "Jul 1–15, 2025", amount: "₱19,700.00", ref: "REF20250715" },
-    ];
-
     const employeeContribution = [
         {
-            employee: "Jhervis Jimenez",
+            employee: "John Doe",
             SSS: 20500,
             PhilHealth: 19500,
             PagIBIG: 15000,
             WTAX: 5000,
         },
         {
-            employee: "Alwyn Richards",
+            employee: "Jane Smith",
             SSS: 18200,
             PhilHealth: 17300,
             PagIBIG: 14000,
             WTAX: 4200,
         },
         {
-            employee: "Sisa Marie",
+            employee: "Michael Tan",
             SSS: 22000,
             PhilHealth: 20500,
             PagIBIG: 16500,
             WTAX: 5500,
         },
-        {
-            employee: "Ed Caluag",
-            SSS: 22000,
-            PhilHealth: 20500,
-            PagIBIG: 16500,
-            WTAX: 5500,
-        },
-        {
-            employee: "Symon Banana",
-            SSS: 22000,
-            PhilHealth: 20500,
-            PagIBIG: 16500,
-            WTAX: 5500,
-        },
+    ];
+
+    const payrollHistory = [
+        {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
+        {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
+        {duration: "Sep 1–15, 2025", amount: "₱20,100.00", ref: "REF20250915"},
+        {duration: "Aug 16–31, 2025", amount: "₱20,000.00", ref: "REF20250831"},
+        {duration: "Aug 1–15, 2025", amount: "₱19,900.00", ref: "REF20250815"},
+        {duration: "Jul 16–31, 2025", amount: "₱19,800.00", ref: "REF20250731"},
+        {duration: "Jul 1–15, 2025", amount: "₱19,700.00", ref: "REF20250715"},
     ];
 
     return (
@@ -110,14 +95,17 @@ export default function EmployeeTax() {
                 >
                     Contribution
                 </Typography>
-
                 <Box
                     sx={{
                         display: "inline-block",
                         borderRadius: "15px",
                         transition: "transform 0.3s ease, box-shadow 0.3s ease",
                         "&:hover": {
-                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                            transform: "scale(1.02)",
+                            boxShadow:
+                                theme.palette.mode === "light"
+                                    ? "0 4px 20px rgba(0,0,0,0.15)"
+                                    : "0 4px 20px rgba(0,0,0,0.3)",
                         },
                     }}
                 >
@@ -126,17 +114,16 @@ export default function EmployeeTax() {
                         onChange={(e) => setSelectedPayroll(e.target.value)}
                         displayEmpty
                         sx={{
-                            fontFamily: theme.typography.fontFamily,
                             backgroundColor:
                                 theme.palette.mode === "dark"
                                     ? "rgba(255, 255, 255, 0.05)"
                                     : "rgba(255, 255, 255, 0.3)",
                             borderRadius: "15px",
                             width: "250px",
-                            fontSize: "0.95rem",
+                            fontSize: "16px",
                             color: theme.palette.text.primary,
                             "& .MuiSelect-select": {
-                                padding: "10px 12px",
+                                padding: "8px 12px",
                             },
                             "& .MuiOutlinedInput-notchedOutline": {
                                 borderColor: theme.palette.divider,
@@ -145,7 +132,7 @@ export default function EmployeeTax() {
                                 borderColor: theme.palette.divider,
                             },
                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                border: "none",
+                                border: "none", // remove focus border
                             },
                             "& .MuiSvgIcon-root": {
                                 color: theme.palette.text.primary,
@@ -154,14 +141,7 @@ export default function EmployeeTax() {
                         renderValue={(selected) => {
                             if (!selected)
                                 return (
-                                    <span
-                                        style={{
-                                            color:
-                                                theme.palette.mode === "dark"
-                                                    ? "rgba(255,255,255,0.7)" // placeholder for dark mode
-                                                    : "rgba(0,0,0,0.4)",      // lighter placeholder for light mode
-                                        }}
-                                    >
+                                    <span style={{fontSize: "16px", color: "#bdbdbd"}}>
                                         Select Payroll Duration
                                     </span>
                                 );
@@ -179,7 +159,7 @@ export default function EmployeeTax() {
 
             <Box
                 sx={{
-                    height: "60%",
+                    height: "68.7%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
@@ -196,18 +176,19 @@ export default function EmployeeTax() {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(5, 1fr)",
+                        gridTemplateColumns: "repeat(6, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
                         width: "100%",
                         alignItems: "center",
+                        textAlign: "center",
                         position: "sticky",
                         top: 0,
                         zIndex: 10,
-                        textAlign: "center",
                     }}
                 >
+                    <span>Employee</span>
                     <span>SSS</span>
                     <span>PhilHealth</span>
                     <span>Pag-IBIG</span>
@@ -234,7 +215,7 @@ export default function EmployeeTax() {
                                 sx={{
                                     marginTop: "10px",
                                     display: "grid",
-                                    gridTemplateColumns: "repeat(5, 1fr)",
+                                    gridTemplateColumns: "repeat(6, 1fr)",
                                     alignItems: "center",
                                     bgcolor: "#fff",
                                     color: "#1b2223",
@@ -248,6 +229,7 @@ export default function EmployeeTax() {
                                     textAlign: "center",
                                 }}
                             >
+                                <span>{item.employee}</span>
                                 <span>₱{item.SSS.toLocaleString()}</span>
                                 <span>₱{item.PhilHealth.toLocaleString()}</span>
                                 <span>₱{item.PagIBIG.toLocaleString()}</span>
@@ -256,18 +238,6 @@ export default function EmployeeTax() {
                             </Box>
                         );
                     })}
-                </Box>
-            </Box>
-            <Box
-                display="flex"
-                justifyContent="flex-end"
-                alignItems="center"
-                mt={3}
-                mb={2}
-            >
-                <Box display="flex" gap={2}>
-                    <ActionButton text="Export PDF" width="200px" />
-                    <ActionButton text="Export CSV" width="200px" />
                 </Box>
             </Box>
         </Box>
