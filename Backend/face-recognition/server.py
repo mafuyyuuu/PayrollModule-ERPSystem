@@ -49,7 +49,14 @@ employees_file = "employees.json"
 # Load embeddings
 if os.path.exists(embeddings_file):
     with open(embeddings_file, "rb") as f:
-        embeddings_db = pickle.load(f)
+        raw_embeddings = pickle.load(f)
+    # Ensure all keys are integers (fix for potential string key issue)
+    embeddings_db = {}
+    for k, v in raw_embeddings.items():
+        try:
+            embeddings_db[int(k)] = v
+        except (ValueError, TypeError):
+            print(f"⚠️ Warning: Could not convert key '{k}' to int, skipping.")
 else:
     embeddings_db = {}
 
@@ -121,8 +128,10 @@ def log_attendance_to_db(employee_id, name, action, timestamp, time_out=None):
 
 # Helpers
 def save_embeddings():
+    # Ensure all keys are integers before saving
+    cleaned_embeddings = {int(k): v for k, v in embeddings_db.items()}
     with open(embeddings_file, "wb") as f:
-        pickle.dump(embeddings_db, f)
+        pickle.dump(cleaned_embeddings, f)
 
 def save_employees():
     with open(employees_file, "w") as f:
@@ -136,6 +145,7 @@ async def register_face(
         name: str = Form(...)
 ):
     try:
+        print(f"📝 Registering employee ID: {employee_id} (type: {type(employee_id).__name__}), Name: {name}")
         os.makedirs(f"faces_db/{employee_id}", exist_ok=True)
         embeddings_db[employee_id] = []
 
@@ -220,22 +230,30 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         # 2) Find best match (cosine similarity)
         best_match_id = None
         best_score = -1.0
+        
+        # Debug: log all employee IDs being compared
+        print(f"🔍 Comparing against {len(embeddings_db)} registered employees: {list(embeddings_db.keys())}")
 
         for emp_id, emb in embeddings_db.items():
             try:
                 emb_array = np.array(emb, dtype=np.float32)
-            except Exception:
+            except Exception as e:
+                print(f"⚠️ Error converting embedding for employee {emp_id}: {e}")
                 continue
             emb_norm = np.linalg.norm(emb_array)
             if emb_norm == 0 or np.isnan(emb_norm) or np.isinf(emb_norm):
+                print(f"⚠️ Invalid embedding norm for employee {emp_id}")
                 continue
             emb_array /= emb_norm
             sim = float(np.dot(emb_array, uploaded_embedding))  # ensure native float
+            print(f"  Employee {emp_id}: similarity = {sim:.4f}")
             if sim > best_score:
                 best_score = sim
                 best_match_id = emp_id
 
         THRESHOLD = 0.75  # tighten/loosen after testing
+        
+        print(f"🎯 Best match: Employee {best_match_id} with score {best_score:.4f} (threshold: {THRESHOLD})")
 
         if not best_match_id or best_score < THRESHOLD:
             return {
