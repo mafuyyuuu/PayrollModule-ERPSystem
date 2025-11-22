@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 
+
 const UserContext = createContext();
 
 export function UserProvider({ children }) {
@@ -9,7 +10,7 @@ export function UserProvider({ children }) {
         password: "1234",
         profilePic: "/finn.png",
         nationality: "Filipino",
-        role: "employee",
+        role: "manager",
         employeeId: 1,
         salaryGrade: "Php 645.00",
         birthday: "June 20, 2005",
