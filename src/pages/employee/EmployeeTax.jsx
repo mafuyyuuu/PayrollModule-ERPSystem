@@ -120,7 +120,7 @@ export default function EmployeeTax() {
                                     : "rgba(255, 255, 255, 0.3)",
                             borderRadius: "15px",
                             width: "250px",
-                            fontSize: "18px",
+                            fontSize: "16px",
                             color: theme.palette.text.primary,
                             "& .MuiSelect-select": {
                                 padding: "8px 12px",
@@ -141,7 +141,7 @@ export default function EmployeeTax() {
                         renderValue={(selected) => {
                             if (!selected)
                                 return (
-                                    <span style={{color: "#bdbdbd"}}>
+                                    <span style={{fontSize: "16px", color: "#bdbdbd"}}>
                                         Select Payroll Duration
                                     </span>
                                 );

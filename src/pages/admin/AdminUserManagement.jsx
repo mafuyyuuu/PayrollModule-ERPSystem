@@ -179,17 +179,21 @@ export default function AdminUserManagement() {
                             <IconButton
                                 onClick={() => handleEditUser(user)}
                                 sx={{
-                                    bgcolor: "#3A4F50",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                transition: "all 0.2s ease",
+                                "&:hover": {
+                                    backgroundColor: "#2E3B3D",
                                     color: "#fff",
-                                    width: "32px",
-                                    height: "32px",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-3px)", bgcolor: "#2E3B3D",
-                                    },
-                                }}
+                                    transform: "translateY(-3px)",
+                                },
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            }}
                             >
-                                <RiPencilFill/>
+                                <RiPencilFill style={{fontSize: 19}}/>
                             </IconButton>
                         </Box>
                     </Box>))}
