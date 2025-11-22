@@ -1,286 +1,301 @@
-import { Box, Typography, InputBase } from "@mui/material";
-import {fontFamily} from "@mui/system";
-import SearchIcon from "@mui/icons-material/Search";
+import {Box, Typography, useTheme, IconButton} from "@mui/material";
+import SearchBar from "../../components/SearchBar.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
+import React, {useState, useEffect} from "react";
+import {RiCheckFill, RiCloseFill, RiPencilFill} from "react-icons/ri";
+import ActionButton from "../../components/ActionButton.jsx";
 
 export default function PayrollPendingRequest() {
-    const employeeRequests = [
-        { type: "Overtime", employee: "Jhervin Jimenez", date: "Sept. 15, 2025", amount: "PXX,XXX.XX", status: "Pending" },
-        { type: "Overtime", employee: "Edrianne Lumabas", date: "Aug. 30, 2025", amount: "PXX,XXX.XX", status : "Pending" },
-        { type: "Overtime", employee: "Jumiah Zamora", date: "Aug. 15, 2025", amount: "PXX,XXX.XX", status: "Pending" },
-        { type: "Overtime", employee: "Jessa Balnig", date: "July 30, 2025", amount: "PXX,XXX.XX", status: "Pending" },
-        { type: "Overtime", employee: "Symon Banaag", date: "July 15, 2025", amount: "PXX,XXX.XX", status: "Pending" },
-    ];
+    const theme = useTheme();
+
+    const [filter, setFilter] = useState("");
+    const [employeeRequests, setEmployeeRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch pending requests
+    useEffect(() => {
+        const fetchPendingRequests = async () => {
+            try {
+                // You'll need to create this endpoint in your backend
+                const response = await fetch('http://localhost:8080/api/pending-requests');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch pending requests');
+                }
+
+                const data = await response.json();
+                console.log('✅ Pending requests:', data);
+
+                const transformedData = data.map(request => ({
+                    type: request.request_type || "Overtime",
+                    employee: request.employee_name || `Employee ${request.employee_id}`,
+                    date: new Date(request.request_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }),
+                    amount: `₱${parseFloat(request.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    status: request.status || "Pending",
+                    requestId: request.request_id
+                }));
+
+                setEmployeeRequests(transformedData);
+                setLoading(false);
+            } catch (err) {
+                console.error('❌ Error fetching pending requests:', err);
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+
+        fetchPendingRequests();
+    }, []);
+
+    const handleApprove = async (requestId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}/approve`, {
+                method: 'PUT',
+            });
+
+            if (response.ok) {
+                // Refresh the list
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error('Error approving request:', err);
+        }
+    };
+
+    const handleReject = async (requestId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}/reject`, {
+                method: 'PUT',
+            });
+
+            if (response.ok) {
+                // Refresh the list
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error('Error rejecting request:', err);
+        }
+    };
+
     return (
         <Box
             width = "100%"
-            height = "70vh"
+            height = "100%"
         >
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={3.5}
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    mb: 3,
+                }}
             >
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Pending Requests
                 </Typography>
 
-                <Box sx={{ position: "relative", mr: -100 }}>
-                    <select
-                        style={{
-                            appearance: "none",
-                            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            WebkitAppearance: "none",
-                            MozAppearance: "none",
-                            padding: "10px 45px 10px 25px",
-                            borderRadius: "25px",
-                            backgroundColor: "#DADBDB",
-                            color: "#222",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            fontSize: "15px",
-                            cursor: "pointer",
-                            outline: "none",
-                        }}
-                    >
-                        <option value="">Filter</option>
-                        <option>By Category</option>
-                        <option>By Date</option>
-                        <option>By Name</option>
-                    </select>
-                    <i
-                        className="ri-arrow-down-s-fill"
-                        style={{
-                            position: "absolute",
-                            right: "10px",
-                            top: "50%",
-                            paddingRight: "10px",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                            color: "#222",
-                            fontSize: "20px",
-                        }}
-                    ></i>
-                </Box>
-
                 <Box
-                    display="flex"
-                    alignItems="center"
-                    bgcolor="#E1E0E0"
-                    borderRadius="8px"
-                    px="15px"
-                    py="5px"
-                    boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-                    border= "1px solid rgba(255, 255, 255, 0.4)"
-                    width="450px"
+                    sx={{
+                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                    }}
                 >
-                    <SearchIcon
-                        sx={{
-                            fontSize: "1.7rem",
-                            mr: 1,
-                        }}
-                    />
-                    <InputBase
-                        placeholder="Enter Employee Name"
-                        sx={{
-                            fontFamily: "TT Hoves Pro, sans-serif",
-                            fontWeight: 300,
-                            fontSize: "0.95rem",
-                            width: "100%",
-                            backgroundColor: "#E1E0E0",
-                        }}
+                    <SearchBar placeholder="Enter Username" width="350px"/>
+
+                    <FilterSelect
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
                     />
                 </Box>
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="87%"
                 sx={{
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.7)",
+                    height: "80%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
-                    gap: "10px",
                 }}
             >
-
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        border: "none",
-                        padding: "20px",
-                        fontWeight: 600,
+                        gridTemplateColumns: "repeat(6, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        textAlign: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <span style={{ justifySelf: "start", paddingLeft:"8px"}}>Request Type</span>
-                    <span style={{ justifySelf: "center", paddingRight:"120px" }}>Employee</span>
-                    <span style={{ justifySelf: "center" }}>Date</span>
-                    <span style={{ justifySelf: "center", paddingLeft:"30px" }}>Amount</span>
-                    <span style={{ justifySelf: "center", paddingLeft:"60px" }}>Status</span>
-                    <span style={{ justifySelf: "end", paddingRight:"30px" }}>Actions</span>
+                    <span>Request Type</span>
+                    <span>Employee</span>
+                    <span>Date</span>
+                    <span>Amount</span>
+                    <span>Status</span>
+                    <span>Actions</span>
                 </Box>
 
-                <Box
-                    sx={{
-                        maxHeight: "100%",
-                        overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        height: "85%",
-                        scrollbarWidth: "none",
-                        msOverflowStyle: "none",
-                        "&::-webkit-scrollbar": {
-                            width: 0,
-                            height: 0,
-                        },
-                    }}
-                >
-                    {employeeRequests.map((item, index) => (
-                        <Box
-                            key={index}
-                            sx={{
-                                display: "grid",
-                                gridTemplateColumns: "0.88fr 0.9fr 1fr 1fr 1fr 0.68fr",                                backgroundColor: "rgba(255, 255, 255, 0.25)",
-                                backdropFilter: "blur(12px)",
-                                borderRadius: "10px",
-                                padding: "30px",
-                                marginTop: "3px",
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                transition: "all 0.3s ease",
-                                border: "1px solid rgba(255,255,255,0.3)",
-                                "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                },
-                            }}
-                        >
-                            <span style={{ justifySelf: "start", fontWeight: 600}}>{item.type}</span>
-                            <span style={{ justifySelf: "start" }}>{item.employee}</span>
-                            <span style={{ justifySelf: "center" }}>{item.date}</span>
-                            <span style={{ justifySelf: "center"  }}>{item.amount}</span>
-                            <span style={{ justifySelf: "center", color: "red" }}>{item.status}</span>
+                {error && (
+                    <Box sx={{ color: 'error.main', p: 2, textAlign: 'center' }}>
+                        Error: {error}
+                    </Box>
+                )}
 
-                            <Box sx={{ justifySelf: "end", display: "flex", gap: "8px" }}>
-                                <Box
-                                    component="button"
-                                    sx={{
-                                        width: 33,
-                                        height: 33,
-                                        borderRadius: "50%",
-                                        backgroundColor: "black",
-                                        color: "limegreen",
-                                        border: "none",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
+                {loading ? (
+                    <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>
+                        Loading pending requests...
+                    </Box>
+                ) : (
+                    <Box
+                        sx={{
+                            overflowY: "auto",
+                            "&::-webkit-scrollbar": {width: 0, height: 0},
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                            mt: "8px",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        }}
+                    >
+                        {employeeRequests.map((item, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    marginTop: "10px",
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    alignItems: "center",
+                                    bgcolor: "#fff",
+                                    color: "#1b2223",
+                                    borderRadius: "8px",
+                                    width: "100%",
+                                    minHeight: "83px",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    },
+                                    textAlign: "center",
+                                }}
+                            >
+                                <span>{item.type}</span>
+                                <span>{item.employee}</span>
+                                <span>{item.date}</span>
+                                <span>{item.amount}</span>
+                                <span
+                                    style={{
+                                        fontFamily: "'TTHoves-Bold', sans-serif",
+                                        color:
+                                            item.status === "Approved"
+                                                ? "#4CAF50"
+                                                : item.status === "Rejected"
+                                                    ? "#F44336"
+                                                    : "#FFC107",
+                                        fontWeight: 500,
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(-3px)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(0)")
-                                    }
                                 >
-                                    <i className="ri-check-line" style={{fontSize: "27px"}}></i>
-                                </Box>
-                                <Box
-                                    component="button"
-                                    sx={{
-                                        width: 33,
-                                        height: 33,
-                                        borderRadius: "50%",
-                                        backgroundColor: "black",
-                                        color: "red",
-                                        border: "none",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
-                                    }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(-3px)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(0)")
-                                    }
-                                >
-                                    <i className="ri-close-line" style={{fontSize: "27px"}}></i>
+                                    {item.status}
+                                </span>
+                                <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
+                                    {item.status === "Pending" ? (
+                                        <>
+                                            {/*Accept Button */}
+                                            <IconButton
+                                                disableRipple
+                                                onClick={() => handleApprove(item.requestId)}
+                                                sx={{
+                                                    backgroundColor: "#172224",
+                                                    color: "green",
+                                                    width: 40,
+                                                    height: 36,
+                                                    borderRadius: "50%",
+                                                    transition: "all 0.2s ease",
+                                                    "&:hover": {
+                                                        backgroundColor: "#388E3C",
+                                                        color: "#fff",
+                                                        transform: "translateY(-3px)",
+                                                    },
+                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                                }}
+                                            >
+                                                <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                            </IconButton>
+
+                                            {/* Reject Button */}
+                                            <IconButton
+                                                disableRipple
+                                                onClick={() => handleReject(item.requestId)}
+                                                sx={{
+                                                    backgroundColor: "#172224",
+                                                    color: "red",
+                                                    width: 40,
+                                                    height: 36,
+                                                    borderRadius: "50%",
+                                                    transition: "all 0.2s ease",
+                                                    "&:hover": {
+                                                        backgroundColor: "#D32F2F",
+                                                        color: "#fff",
+                                                        transform: "translateY(-3px)",
+                                                    },
+                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                                }}
+                                            >
+                                                <RiCloseFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                            </IconButton>
+                                        </>
+                                    ) : (
+                                        <IconButton
+                                            sx={{
+                                                backgroundColor: "#172224",
+                                                color: "#fff",
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: "50%",
+                                                transition: "all 0.2s ease",
+                                                "&:hover": {
+                                                    backgroundColor: "#2E3B3D",
+                                                    color: "#fff",
+                                                    transform: "translateY(-3px)",
+                                                },
+                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                            }}
+                                        >
+                                            <RiPencilFill style={{fontSize: 19}}/>
+                                        </IconButton>
+                                    )}
                                 </Box>
                             </Box>
-                        </Box>
-                    ))}
-                </Box>
+                        ))}
+                    </Box>
+                )}
             </Box>
 
-            <Box textAlign="end" marginTop="30px">
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        marginRight: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Export Payslip PDF
-                </button>
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Export CSV
-                </button>
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+                <ActionButton text="Export Payslip PDF" width="200px"/>
+                <ActionButton text="Export CSV" width="200px"/>
             </Box>
         </Box>
     );

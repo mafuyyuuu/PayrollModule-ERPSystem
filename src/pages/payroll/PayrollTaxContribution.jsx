@@ -1,20 +1,78 @@
 import { Box, Typography } from "@mui/material";
 import {Line, LineChart, ResponsiveContainer} from "recharts";
+import {useState, useEffect} from "react";
 
-// Sample chart data (replace later with backend data)
-const earningsData = [
-    { month: "Jan", earnings: 20000 },
-    { month: "Feb", earnings: 23000 },
-    { month: "Mar", earnings: 21000 },
-    { month: "Apr", earnings: 26000 },
-    { month: "May", earnings: 24000 },
-];
-const deadlines = [
-    { contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed" },
-    { contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status : "Completed" },
-    { contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed" },
-];
 export default function PayrollTaxContribution() {
+    const [earningsData, setEarningsData] = useState([]);
+    const [deadlines, setDeadlines] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch tax and contribution data
+    useEffect(() => {
+        const fetchTaxData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/tax-contributions');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tax data');
+                }
+
+                const data = await response.json();
+                console.log('✅ Tax data:', data);
+
+                // Transform chart data
+                const chartData = data.monthlyData?.map(item => ({
+                    month: item.month,
+                    earnings: item.total_contributions
+                })) || [
+                    { month: "Jan", earnings: 20000 },
+                    { month: "Feb", earnings: 23000 },
+                    { month: "Mar", earnings: 21000 },
+                    { month: "Apr", earnings: 26000 },
+                    { month: "May", earnings: 24000 },
+                ];
+
+                setEarningsData(chartData);
+
+                // Transform deadlines
+                const deadlinesData = data.upcomingDeadlines?.map(item => ({
+                    contribution: item.contribution_type,
+                    deadline: new Date(item.deadline_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }),
+                    status: item.status
+                })) || [
+                    { contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed" },
+                    { contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status : "Completed" },
+                    { contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed" },
+                ];
+
+                setDeadlines(deadlinesData);
+                setLoading(false);
+            } catch (err) {
+                console.error('❌ Error fetching tax data:', err);
+                // Set default data
+                setEarningsData([
+                    { month: "Jan", earnings: 20000 },
+                    { month: "Feb", earnings: 23000 },
+                    { month: "Mar", earnings: 21000 },
+                    { month: "Apr", earnings: 26000 },
+                    { month: "May", earnings: 24000 },
+                ]);
+                setDeadlines([
+                    { contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed" },
+                    { contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status : "Completed" },
+                    { contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed" },
+                ]);
+                setLoading(false);
+            }
+        };
+
+        fetchTaxData();
+    }, []);
+
     return (
         <Box
             width="100%"
@@ -108,17 +166,17 @@ export default function PayrollTaxContribution() {
                             }
                         }}
                     >
-                    <ResponsiveContainer width="100%" height={185}>
-                        <LineChart data={earningsData}>
-                            <Line
-                                type="monotone"
-                                dataKey="earnings"
-                                stroke="#3A4F50"
-                                strokeWidth={3}
-                                dot={{ r: 4, strokeWidth: 1 }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                        <ResponsiveContainer width="100%" height={185}>
+                            <LineChart data={earningsData}>
+                                <Line
+                                    type="monotone"
+                                    dataKey="earnings"
+                                    stroke="#3A4F50"
+                                    strokeWidth={3}
+                                    dot={{ r: 4, strokeWidth: 1 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </Box>
 
                     <Typography
@@ -199,21 +257,26 @@ export default function PayrollTaxContribution() {
                         Upcoming Deadlines
                     </Typography>
 
-                        <Box
-                            sx={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr 0.8fr",
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                border: "none",
-                                marginBottom:"-10px",
-                                fontWeight: 600,
-                            }}
-                        >
-                            <span style={{ justifySelf: "start", paddingLeft:"8px"}}>Contributions</span>
-                            <span style={{ justifySelf: "center", paddingRight:"80px" }}>Deadline</span>
-                            <span style={{ justifySelf: "end", paddingRight: "80px"}}>Status</span>
-                        </Box>
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 0.8fr",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            border: "none",
+                            marginBottom:"-10px",
+                            fontWeight: 600,
+                        }}
+                    >
+                        <span style={{ justifySelf: "start", paddingLeft:"8px"}}>Contributions</span>
+                        <span style={{ justifySelf: "center", paddingRight:"80px" }}>Deadline</span>
+                        <span style={{ justifySelf: "end", paddingRight: "80px"}}>Status</span>
+                    </Box>
 
+                    {loading ? (
+                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                            Loading deadlines...
+                        </Box>
+                    ) : (
                         <Box
                             sx={{
                                 maxHeight: "100%",
@@ -254,10 +317,11 @@ export default function PayrollTaxContribution() {
                                 >
                                     <span style={{ justifySelf: "start", paddingLeft: "20px", fontWeight: 600}}>{item.contribution}</span>
                                     <span style={{ justifySelf: "center" }}>{item.deadline}</span>
-                                    <span style={{ justifySelf: "center", color: "limegreen" }}>{item.status}</span>
+                                    <span style={{ justifySelf: "center", color: item.status === "Completed" ? "limegreen" : "#FFC107" }}>{item.status}</span>
                                 </Box>
                             ))}
-                    </Box>
+                        </Box>
+                    )}
                 </Box>
             </Box>
             <Box textAlign="end" marginTop="30px">
