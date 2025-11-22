@@ -19,10 +19,11 @@ export default function AdminReports() {
         <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
             <Box
                 sx={{
+                    alignItems: "center",
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 2,
+                    mb: 3,
                 }}
             >
                 <Typography
@@ -31,10 +32,6 @@ export default function AdminReports() {
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: theme.palette.text.primary,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "25px",
                     }}
                 >
                     Reports and Analytics
@@ -54,7 +51,7 @@ export default function AdminReports() {
 
             <Box
                 sx={{
-                    height: "90.8%",
+                    height: "90.9%",
                     backgroundColor: theme.palette.mode === "dark"
                         ? "rgba(255, 255, 255, 0.05)"
                         : "rgba(255, 255, 255, 0.2)",
@@ -130,7 +127,7 @@ export default function AdminReports() {
 
                     <Box
                         sx={{
-                            height: 277,
+                            height: 278,
                             flex: 1.8,
                             display: "flex",
                             flexDirection: "column",

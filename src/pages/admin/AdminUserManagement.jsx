@@ -77,6 +77,7 @@ export default function AdminUserManagement() {
         >
             <Box
                 sx={{
+                    alignItems: "center",
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",

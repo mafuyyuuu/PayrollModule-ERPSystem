@@ -19,6 +19,7 @@ export default function ManagerReports() {
         <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
             <Box
                 sx={{
+                    alignItems: "center",
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
@@ -31,10 +32,6 @@ export default function ManagerReports() {
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: theme.palette.text.primary,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "25px",
                     }}
                 >
                     Reports and Analytics
@@ -54,7 +51,7 @@ export default function ManagerReports() {
 
             <Box
                 sx={{
-                    height: "89.4%",
+                    height: "90.8%",
                     backgroundColor: theme.palette.mode === "dark"
                         ? "rgba(255, 255, 255, 0.05)"
                         : "rgba(255, 255, 255, 0.2)",
@@ -130,7 +127,7 @@ export default function ManagerReports() {
 
                     <Box
                         sx={{
-                            height: 240,
+                            height: 277,
                             flex: 1.8,
                             display: "flex",
                             flexDirection: "column",
