@@ -57,7 +57,7 @@ export default function EmployeePayoutHistory() {
                                     : "rgba(255, 255, 255, 0.3)",
                             borderRadius: "15px",
                             width: "250px",
-                            fontSize: "18px",
+                            fontSize: "16px",
                             color: theme.palette.text.primary,
                             "& .MuiSelect-select": {
                                 padding: "8px 12px",
@@ -78,7 +78,7 @@ export default function EmployeePayoutHistory() {
                         renderValue={(selected) => {
                             if (!selected)
                                 return (
-                                    <span style={{color: "#bdbdbd"}}>
+                                    <span style={{fontSize: "16px", color: "#bdbdbd"}}>
                                         Select Payroll Duration
                                     </span>
                                 );
@@ -166,17 +166,21 @@ export default function EmployeePayoutHistory() {
                             <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
                                 <IconButton
                                     sx={{
-                                        bgcolor: "#3A4F50",
+                                        backgroundColor: "#172224",
                                         color: "#fff",
-                                        width: "32px",
-                                        height: "32px",
-                                        transition: "all 0.3s ease",
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        transition: "all 0.2s ease",
                                         "&:hover": {
-                                            transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
                                         },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
                                 >
-                                    <RiDownload2Line />
+                                    <RiDownload2Line style={{fontSize: 19}}/>
                                 </IconButton>
                             </Box>
                         </Box>

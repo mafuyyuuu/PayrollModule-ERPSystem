@@ -1,99 +1,107 @@
-import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
+import { Box, Typography, Button, IconButton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
-
+import React, {useState} from "react";
+import {RiCheckFill, RiCloseFill, RiEyeFill} from "react-icons/ri";
+import ActionButton from "../../components/ActionButton.jsx";
 
 // Sample data for Manager Timesheet table
 const PendingRequest = [
     {
         id: 1,
         requestType: "Overtime",
-        Employee: "Jherwin Jimenez",
-        Date: "2025-10-25",
-        Amount: "P1,200.00",
-        status: "● Pending",
+        employee: "Jherwin Jimenez",
+        date: "2025-10-25",
+        amount: "P1,200.00",
+        status: "Pending",
     },
     {
         id: 2,
         requestType: "Overtime",
-        Employee: "Symon Banana",
-        Date: "2025-10-25",
-        Amount: "P1,200.00",
-        status: "● Rejected",
+        employee: "Symon Banana",
+        date: "2025-10-25",
+        amount: "P1,200.00",
+        status: "Rejected",
     },
     {
         id: 3,
         requestType: "Overtime",
-        Employee: "Michael Cruz",
-        Date: "2025-10-25",
-        Amount: "P1,200.00",
-        status: "● Approved",
+        employee: "Michael Cruz",
+        date: "2025-10-25",
+        amount: "P1,200.00",
+        status: "Approved",
     },
     {
         id: 4,
         requestType: "Overtime",
-        Employee: "Michael Cruz",
-        Date: "2025-10-25",
-        Amount: "P1,200.00",
-        status: "● Approved",
+        employee: "Michael Cruz",
+        date: "2025-10-25",
+        amount: "P1,200.00",
+        status: "Approved",
     },
     {
         id: 5,
         requestType: "Overtime",
-        Employee: "Michael Cruz",
-        Date: "2025-10-25",
-        Amount: "P1,200.00",
-        status: "● Approved",
+        employee: "Michael Cruz",
+        date: "2025-10-25",
+        amount: "P1,200.00",
+        status: "Approved",
     },
     {
         id: 6,
         requestType: "Overtime",
-        Employee: "Michael Cruz",
-        Date: "2025-10-25",
-        Amount: "P1,200.00",
-        status: "● Approved",
+        employee: "Michael Cruz",
+        date: "2025-10-25",
+        amount: "P1,200.00",
+        status: "Approved",
     },
 ];
 
 const ManagerPendingRequest = () => {
     const theme = useTheme();
 
+    const [filter, setFilter] = useState("");
+
     return (
-
-        <Box mr="20px" ml="20px" >
-
+        <Box
+            sx={{width: "100%", height: "80%", fontFamily: theme.typography.fontFamily}}
+        >
             {/* FILTER BAR */}
             <Box
-                display= "flex"
-                justifyContent= "space-between"
-                alignItems = "center"
-                mb = {2}
-                gap = "10px"
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    mb: 3,
+                }}
             >
                 {/* HEADER */}
                 <Typography
-                    Color="#172224"
-                    fontSize="20px"
+                    variant="h5"
                     sx={{
-                        fontFamily: "TTHoves-Bold, sans-serif",}}>
+                        fontSize: "20px",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        color: theme.palette.text.primary,
+                    }}
+                >
                     Pending Request
                 </Typography>
-                <Box display="flex"
-                     justifyContent="flex-end"
-                     justifySelf="end"
-                     gap="15px">
-
+                <Box
+                    sx={{
+                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                    }}
+                >
                     <FilterSelect
-                        placeholder="Filter"
-                        width="90px"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
                     />
 
                     <SearchBar
                         placeholder="Enter Employee Name"
-                        width="450px"
-
+                        width="350px"
                     />
                 </Box>
 
@@ -101,142 +109,105 @@ const ManagerPendingRequest = () => {
 
             {/* TABLE CONTAINER */}
             <Box
-                borderRadius="12px"
-                p="20px"
-                paddingBottom="90px"
                 sx={{
-                    backgroundColor:
-                        theme.palette.mode === "dark"
-                            ? "rgba(255, 255, 255, 0.05)"
-                            : "rgba(255, 255, 255, 0.2)",
-                    maxHeight: "580px",
-                    backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
+                    height: "100%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
                 {/* HEADER ROW */}
                 <Box
-                    display="grid"
-                    gridTemplateColumns="repeat(6, 1fr)"
-                    alignItems="center"
-                    fontWeight="600"
-                    columnGap="120px"
-                    p="12px 16px"
                     sx={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(6, 1fr)",
                         color: theme.palette.text.primary,
-                        fontFamily: "TTHoves-Bold, sans-serif",
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        textAlign: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif", }}>
-                        Request Type
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ ml:"18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Employee
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{  ml:"20px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Date
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{  ml:"10px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Amount
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{  ml:"5px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Status
-                    </Typography>
-                    <Typography
-                        Color="#172224"
-                        sx={{  ml:"18px", fontFamily: "'TTHoves-Bold', sans-serif" }}
-                    >
-                        Action
-                    </Typography>
+                    <span>Request Type</span>
+                    <span>Employee Name</span>
+                    <span>Date</span>
+                    <span>Amount</span>
+                    <span>Status</span>
+                    <span>Action</span>
                 </Box>
 
                 {/* DATA ROWS */}
                 <Box
                     sx={{
                         overflowY: "auto",
-                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        maxHeight: "480px",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        height: "85%",
-                    }}>
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    }}
+                >
                     {PendingRequest.map((row) => (
                         <Box
-                            display="grid"
-                            gridTemplateColumns="repeat(6, 1fr)"
-                            columnGap="130px"
-                            alignItems="center"
-                            p="16px"
-                            mt="10px"
-                            borderRadius="10px"
-                            backgroundColor = "#fff"
-                            boxShadow="0 1px 4px rgba(0,0,0,0.06)"
                             sx={{
+                                marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(6, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
                                 color: "#1b2223",
-                                borderBottom: "1px solid #eee",
-                                fontFamily: "'TT-Hoves Bold', sans-serif",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
                                 transition: "all 0.3s ease",
                                 "&:hover": {
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
+                                textAlign: "center",
                             }}
                         >
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.requestType}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.Employee}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.Date}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.Amount}
-                            </Typography>
-                            <Typography
-                                ml="-10px"
-                                sx={{
+                            <span>{row.requestType}</span>
+                            <span>{row.employee}</span>
+                            <span>{row.date}</span>
+                            <span>{row.amount}</span>
+                            <span
+                                style={{
                                     fontFamily: "'TTHoves-Bold', sans-serif",
                                     color:
-                                        row.status === "● Approved"
+                                        row.status === "Approved"
                                             ? "#4CAF50"
-                                            : row.status === "● Rejected"
+                                            : row.status === "Rejected"
                                                 ? "#F44336"
                                                 : "#FFC107",
                                     fontWeight: 500,
                                 }}
                             >
                                 {row.status}
-                            </Typography>
-                            <Box textAlign="center" ml="-65px" display="flex" justifyContent="center" gap="8px">
-                                {row.status === "● Pending" ? (
+                            </span>
+                            <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
+                                {row.status === "Pending" ? (
                                     <>
-                                        {/*Accept Button */}
-                                        <Button
+                                        {/* Accept Button */}
+                                        <IconButton
                                             disableRipple
                                             sx={{
                                                 backgroundColor: "#172224",
                                                 color: "green",
-                                                width: "40px",
-                                                height: "36px",
-                                                minWidth: "36px",
-                                                padding: 0,
+                                                width: 40,
+                                                height: 36,
                                                 borderRadius: "50%",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
                                                 transition: "all 0.2s ease",
                                                 "&:hover": {
                                                     backgroundColor: "#388E3C",
@@ -246,23 +217,18 @@ const ManagerPendingRequest = () => {
                                                 boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                             }}
                                         >
-                                            <i className="ri-check-fill" style={{ fontSize: "20px", textShadow: "0 0 1px rgba(255, 255, 255, 0.9)", transform: "scale(1.2)"}}></i>
-                                        </Button>
+                                            <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                        </IconButton>
 
-                                        {/*Reject Button */}
-                                        <Button
+                                        {/* Reject Button */}
+                                        <IconButton
                                             disableRipple
                                             sx={{
                                                 backgroundColor: "#172224",
                                                 color: "red",
-                                                width: "40px",
-                                                height: "36px",
-                                                minWidth: "36px",
-                                                padding: 0,
+                                                width: 40,
+                                                height: 36,
                                                 borderRadius: "50%",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
                                                 transition: "all 0.2s ease",
                                                 "&:hover": {
                                                     backgroundColor: "#D32F2F",
@@ -272,87 +238,44 @@ const ManagerPendingRequest = () => {
                                                 boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                             }}
                                         >
-                                            <i className="ri-close-fill" style={{ fontSize: "20px", textShadow: "0 0 1px rgba(255, 255, 255, 0.9)", transform: "scale(1.2)" }}></i>
-                                        </Button>
+                                            <RiCloseFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                        </IconButton>
                                     </>
                                 ) : (
-                                    // 👁 Default "View" Button
-                                    <Button
-                                        disableRipple
+                                    // Default "View" Button
+                                    <IconButton
                                         sx={{
                                             backgroundColor: "#172224",
                                             color: "#fff",
-                                            width: "40px",
-                                            height: "36px",
-                                            minWidth: "36px",
-                                            padding: 0,
+                                            width: 40,
+                                            height: 40,
                                             borderRadius: "50%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
                                             transition: "all 0.2s ease",
                                             "&:hover": {
-                                                backgroundColor: "#1e2d2f",
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
                                                 transform: "translateY(-3px)",
                                             },
                                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <i className="ri-eye-fill" style={{ fontSize: "18px" }}></i>
-                                    </Button>
+                                        <RiEyeFill style={{ fontSize: 19 }} />
+                                    </IconButton>
                                 )}
                             </Box>
-
                         </Box>
                     ))}
-
                 </Box>
             </Box>
 
             {/* EXPORT BUTTONS */}
-            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <Button
-                    variant="contained"
-                    sx={{
-                        height: "50px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#fff !important",
-                        backgroundColor:
-                            theme.palette.mode === "dark"
-                                ? "rgba(255, 255, 255, 0.05)"
-                                : "rgb(23,34,36)",
-                        borderRadius: "100px",
-                        px: 3,
-                        textTransform: "none",
-                        "&:hover": {
-                            backgroundColor: "#1E293B",
-                            transform: "scale(1.03)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)"},
-                    }}
-                >
-                    Export Payslip PDF
-                </Button>
-                <Button
-                    variant="contained"
-                    sx={{
-                        height: "50px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#fff !important",
-                        backgroundColor:
-                            theme.palette.mode === "dark"
-                                ? "rgba(255, 255, 255, 0.05)"
-                                : "rgb(23,34,36)",
-                        borderRadius: "100px",
-                        px: 3,
-                        textTransform: "none",
-                        "&:hover": {
-                            backgroundColor: "#1E293B",
-                            transform: "scale(1.03)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)"},
-                    }}
-                >
-                    Export CSV
-                </Button>
+            <Box
+                sx={{
+                    display: "flex", justifyContent: "flex-end", gap: 2, flexWrap: "wrap", mt: "20px"
+                }}
+            >
+                <ActionButton text="Export Payslip PDF" width="200px"/>
+                <ActionButton text="Export CSV" width="200px"/>
             </Box>
         </Box>
     );
