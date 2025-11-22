@@ -129,7 +129,12 @@ def log_attendance_to_db(employee_id, name, action, timestamp, time_out=None):
 # Helpers
 def save_embeddings():
     # Ensure all keys are integers before saving
-    cleaned_embeddings = {int(k): v for k, v in embeddings_db.items()}
+    cleaned_embeddings = {}
+    for k, v in embeddings_db.items():
+        try:
+            cleaned_embeddings[int(k)] = v
+        except (ValueError, TypeError):
+            print(f"⚠️ Warning: Could not convert key '{k}' to int during save, skipping.")
     with open(embeddings_file, "wb") as f:
         pickle.dump(cleaned_embeddings, f)
 
