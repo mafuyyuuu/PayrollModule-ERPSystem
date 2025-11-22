@@ -1,312 +1,328 @@
--- ==========================================================
--- PART 1: DATABASE & SCHEMA SETUP
--- ==========================================================
-DROP DATABASE IF EXISTS PayrollManagementSystem;
-CREATE DATABASE PayrollManagementSystem;
+-- =====================================================
+-- PAYROLL MANAGEMENT SYSTEM DATABASE - COMPLETE SETUP
+-- =====================================================
+
+CREATE DATABASE IF NOT EXISTS PayrollManagementSystem;
 USE PayrollManagementSystem;
 
--- 1.1 Departments
-CREATE TABLE Departments (
-                             department_id INT AUTO_INCREMENT PRIMARY KEY,
-                             department_name VARCHAR(100) NOT NULL,
-                             department_code VARCHAR(20) UNIQUE,
-                             description VARCHAR(255)
-);
-
--- 1.2 Roles (For User Permissions)
+-- Roles Table (Insert first - no dependencies)
 CREATE TABLE Roles (
-                       role_id INT AUTO_INCREMENT PRIMARY KEY,
-                       role_name VARCHAR(50) UNIQUE
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(100)
 );
 
--- 1.3 Employee Groups (Employment Status)
+-- Employee Groups Table
 CREATE TABLE EmployeeGroups (
-                                group_id INT AUTO_INCREMENT PRIMARY KEY,
-                                group_name VARCHAR(100),
-                                description TEXT
+    group_id INT AUTO_INCREMENT PRIMARY KEY,
+    group_name VARCHAR(255),
+    group_rules VARCHAR(255),
+    effective_date DATE
 );
 
--- 1.4 Leave Types (PH Legal & Company)
-CREATE TABLE LeaveTypes (
-                            leave_type_id INT AUTO_INCREMENT PRIMARY KEY,
-                            name VARCHAR(100) NOT NULL,
-                            days_entitled INT DEFAULT 0,
-                            is_paid BOOLEAN DEFAULT TRUE,
-                            is_convertible_to_cash BOOLEAN DEFAULT FALSE
+-- Departments Table (without foreign key first)
+CREATE TABLE Departments (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(255),
+    department_code VARCHAR(50),
+    manager_assigned INT,
+    description VARCHAR(255)
 );
 
--- 1.5 Tax Brackets (PH TRAIN Law)
-CREATE TABLE TaxBrackets (
-                             bracket_id INT AUTO_INCREMENT PRIMARY KEY,
-                             min_income DECIMAL(10,2) NOT NULL,
-                             max_income DECIMAL(10,2), -- NULL means "and above"
-                             base_tax_amount DECIMAL(10,2) DEFAULT 0.00,
-                             percentage_on_excess DECIMAL(5,2) NOT NULL,
-                             effective_year INT NOT NULL
-);
-
--- 1.6 Employees (Main Table)
+-- Employees Table
 CREATE TABLE Employees (
-                           employee_id INT AUTO_INCREMENT PRIMARY KEY,
-                           first_name VARCHAR(100) NOT NULL,
-                           middle_name VARCHAR(100),
-                           last_name VARCHAR(100) NOT NULL,
-                           suffix VARCHAR(20),
-                           date_of_birth DATE,
-                           sex ENUM('Male', 'Female', 'Prefer Not to Say'),
-                           marital_status ENUM('Single', 'Married', 'Divorced', 'Widowed'),
-                           address TEXT,
-                           contact_number VARCHAR(20),
-                           email_address VARCHAR(100) UNIQUE,
-                           position VARCHAR(100),
-                           employment_status ENUM('Probationary', 'Regular', 'Resigned', 'Terminated', 'AWOL') DEFAULT 'Probationary',
-                           date_hired DATE,
-                           group_id INT,
-                           department_id INT,
-                           FOREIGN KEY (group_id) REFERENCES EmployeeGroups(group_id),
-                           FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(255),
+    middle_name VARCHAR(255),
+    last_name VARCHAR(255),
+    suffix VARCHAR(255),
+    date_of_birth DATE,
+    sex VARCHAR(50),
+    address VARCHAR(255),
+    contact_number VARCHAR(50),
+    email_address VARCHAR(255),
+    marital_status VARCHAR(50),
+    position VARCHAR(255),
+    employment_status VARCHAR(100),
+    date_hired DATE,
+    group_id INT,
+    department_id INT,
+    FOREIGN KEY (group_id) REFERENCES EmployeeGroups(group_id),
+    FOREIGN KEY (department_id) REFERENCES Departments(department_id)
 );
 
--- 1.7 Emergency Contacts
-CREATE TABLE EmergencyContacts (
-                                   contact_id INT AUTO_INCREMENT PRIMARY KEY,
-                                   employee_id INT,
-                                   contact_name VARCHAR(100),
-                                   contact_number VARCHAR(20),
-                                   relationship VARCHAR(50),
-                                   FOREIGN KEY (employee_id) REFERENCES Employees(employee_id) ON DELETE CASCADE
+-- Add foreign key to Departments after Employees table exists
+ALTER TABLE Departments
+    ADD FOREIGN KEY (manager_assigned) REFERENCES Employees(employee_id);
+
+-- Emergency Contact Table
+CREATE TABLE EmergencyContact (
+    emergency_contact_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    address VARCHAR(255),
+    contact_name VARCHAR(255),
+    contact_number VARCHAR(50),
+    relationship VARCHAR(100),
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
 );
 
--- 1.8 User Accounts (Login)
+-- Timesheets Table
+CREATE TABLE Timesheets (
+    timesheet_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    date DATE,
+    time_in TIME,
+    time_out TIME,
+    break_duration DECIMAL(5,2),
+    overtime_hours DECIMAL(5,2),
+    remarks VARCHAR(255),
+    approved_by INT,
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (approved_by) REFERENCES Employees(employee_id)
+);
+
+-- Salary Details Table
+CREATE TABLE SalaryDetails (
+    salary_detail_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    basic_rate DECIMAL(10,2),
+    overtime_rate DECIMAL(10,2),
+    holiday_rate DECIMAL(10,2),
+    loan_deductions DECIMAL(10,2),
+    other_deductions DECIMAL(10,2),
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
+);
+
+-- Payroll Table
+CREATE TABLE Payroll (
+    payroll_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    cutoff_start_date DATE,
+    cutoff_end_date DATE,
+    pay_date DATE,
+    payroll_frequency VARCHAR(100),
+    prepared_by INT,
+    basic_pay DECIMAL(10,2),
+    overtime_pay DECIMAL(10,2),
+    bonuses DECIMAL(10,2),
+    status VARCHAR(50),
+    comments VARCHAR(255),
+    deductions DECIMAL(10,2),
+    net_pay DECIMAL(10,2),
+    payslip_reference_number VARCHAR(100),
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (prepared_by) REFERENCES Employees(employee_id)
+);
+
+-- User Accounts Table
 CREATE TABLE UserAccounts (
-                              user_id INT AUTO_INCREMENT PRIMARY KEY,
-                              employee_id INT UNIQUE,
-                              username VARCHAR(50) UNIQUE NOT NULL,
-                              password_hash VARCHAR(255) NOT NULL,
-                              role_id INT,
-                              is_active BOOLEAN DEFAULT TRUE,
-                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                              FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
-                              FOREIGN KEY (role_id) REFERENCES Roles(role_id)
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    username VARCHAR(255),
+    email_address VARCHAR(255),
+    password VARCHAR(255),
+    role_id INT,
+    status VARCHAR(50),
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (role_id) REFERENCES Roles(role_id)
 );
 
--- 1.9 Salary Configuration
-CREATE TABLE SalaryConfigs (
-                               config_id INT AUTO_INCREMENT PRIMARY KEY,
-                               employee_id INT,
-                               basic_monthly_rate DECIMAL(10,2) NOT NULL,
-                               daily_rate DECIMAL(10,2),
-                               hourly_rate DECIMAL(10,2),
-                               effective_date DATE NOT NULL,
-                               is_active BOOLEAN DEFAULT TRUE,
-                               FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
-);
-
--- 1.10 Recurring Adjustments (SSS, Loans, Allowance)
-CREATE TABLE RecurringAdjustments (
-                                      adjustment_id INT AUTO_INCREMENT PRIMARY KEY,
-                                      employee_id INT,
-                                      adjustment_name VARCHAR(100),
-                                      type ENUM('Allowance', 'Deduction') NOT NULL,
-                                      amount DECIMAL(10,2) NOT NULL,
-                                      frequency ENUM('EveryCutoff', 'OnceAMonth') DEFAULT 'EveryCutoff',
-                                      is_active BOOLEAN DEFAULT TRUE,
-                                      FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
-);
-
--- 1.11 Attendance Logs
-CREATE TABLE AttendanceLogs (
-                                log_id INT AUTO_INCREMENT PRIMARY KEY,
-                                employee_id INT,
-                                work_date DATE NOT NULL,
-                                time_in DATETIME,
-                                time_out DATETIME,
-                                hours_worked DECIMAL(4,2),
-                                overtime_hours DECIMAL(4,2) DEFAULT 0.00,
-                                status ENUM('Present', 'Absent', 'Late', 'Half Day', 'Holiday', 'Rest Day'),
-                                FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
-);
-
--- 1.12 Requests (Leaves/OT)
+-- Requests Table
 CREATE TABLE Requests (
-                          request_id INT AUTO_INCREMENT PRIMARY KEY,
-                          employee_id INT,
-                          request_type ENUM('Leave', 'Overtime', 'Official Business'),
-                          leave_type_id INT,
-                          start_date DATETIME NOT NULL,
-                          end_date DATETIME NOT NULL,
-                          reason TEXT,
-                          status ENUM('Pending', 'Approved', 'Rejected', 'Cancelled') DEFAULT 'Pending',
-                          FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
-                          FOREIGN KEY (leave_type_id) REFERENCES LeaveTypes(leave_type_id)
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    request_type VARCHAR(255),
+    request_description VARCHAR(255),
+    date_filed DATE,
+    status VARCHAR(100),
+    approved_by INT,
+    remarks VARCHAR(255),
+    FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
+    FOREIGN KEY (approved_by) REFERENCES Employees(employee_id)
 );
 
--- 1.13 Request Approvals (Audit Trail)
-CREATE TABLE RequestApprovals (
-                                  approval_id INT AUTO_INCREMENT PRIMARY KEY,
-                                  request_id INT,
-                                  approver_id INT,
-                                  action ENUM('Approved', 'Rejected'),
-                                  remarks TEXT,
-                                  action_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                  FOREIGN KEY (request_id) REFERENCES Requests(request_id),
-                                  FOREIGN KEY (approver_id) REFERENCES Employees(employee_id)
+-- Manager Actions Table
+CREATE TABLE ManagerActions (
+    manager_action_id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT,
+    handled_by INT,
+    date_period_covered VARCHAR(255),
+    total_hours_worked DECIMAL(10,2),
+    overtime_hours DECIMAL(10,2),
+    leave_absence_notes VARCHAR(255),
+    remarks VARCHAR(255),
+    action VARCHAR(100),
+    approved_by INT,
+    type_of_exception VARCHAR(255),
+    requested_amount_hours DECIMAL(10,2),
+    reason VARCHAR(255),
+    date_filed DATE,
+    FOREIGN KEY (request_id) REFERENCES Requests(request_id),
+    FOREIGN KEY (handled_by) REFERENCES Employees(employee_id),
+    FOREIGN KEY (approved_by) REFERENCES Employees(employee_id)
 );
 
--- 1.14 Payroll Headers
-CREATE TABLE PayrollRecords (
-                                payroll_id INT AUTO_INCREMENT PRIMARY KEY,
-                                employee_id INT,
-                                cutoff_start DATE,
-                                cutoff_end DATE,
-                                payout_date DATE,
-                                gross_income DECIMAL(10,2),
-                                total_deductions DECIMAL(10,2),
-                                net_pay DECIMAL(10,2),
-                                status ENUM('Draft', 'Finalized', 'Paid') DEFAULT 'Draft',
-                                FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
+-- Admin Config Table
+CREATE TABLE AdminConfig (
+    config_id INT AUTO_INCREMENT PRIMARY KEY,
+    default_payroll_frequency VARCHAR(100),
+    default_cutoff_dates VARCHAR(100),
+    default_tax_rates DECIMAL(5,2),
+    default_contribution_rates DECIMAL(5,2),
+    salary_computation_formula VARCHAR(255),
+    effective_date_of_changes DATE,
+    updated_by INT,
+    FOREIGN KEY (updated_by) REFERENCES UserAccounts(user_id)
 );
 
--- 1.15 Payroll Line Items
-CREATE TABLE PayrollLineItems (
-                                  item_id INT AUTO_INCREMENT PRIMARY KEY,
-                                  payroll_id INT,
-                                  item_name VARCHAR(100),
-                                  category ENUM('Earning', 'Deduction'),
-                                  amount DECIMAL(10,2),
-                                  FOREIGN KEY (payroll_id) REFERENCES PayrollRecords(payroll_id)
-);
+-- =====================================================
+-- INSERT SAMPLE DATA
+-- =====================================================
 
+-- Insert Roles
+INSERT INTO Roles (role_id, role_name) VALUES
+(1, 'Admin'),
+(2, 'Manager'),
+(3, 'Payroll'),
+(4, 'Employee');
 
--- ==========================================================
--- PART 2: DATA POPULATION (INSERT STATEMENTS)
--- ==========================================================
+-- Insert Employee Groups
+INSERT INTO EmployeeGroups (group_id, group_name, group_rules, effective_date) VALUES
+(1, 'Regular Full-Time', 'Standard 40-hour work week', '2024-01-01'),
+(2, 'Management', 'Executive benefits package', '2024-01-01'),
+(3, 'Payroll Team', 'Administrative staff', '2024-01-01');
 
--- 2.1 Departments
-INSERT INTO Departments (department_name, department_code, description) VALUES
-                                                                            ('Human Resources', 'HR', 'Handles recruitment and payroll'),
-                                                                            ('IT Department', 'IT', 'Software development and infrastructure'),
-                                                                            ('Sales', 'SALES', 'Client acquisition and revenue'),
-                                                                            ('Operations', 'OPS', 'Day-to-day business activities');
+-- Insert Departments
+INSERT INTO Departments (department_id, department_name, department_code, manager_assigned, description) VALUES
+(1, 'Human Resources', 'HR', NULL, 'Human Resources Department'),
+(2, 'Finance', 'FIN', NULL, 'Finance Department'),
+(3, 'IT', 'IT', NULL, 'Information Technology'),
+(4, 'Operations', 'OPS', NULL, 'Operations Department');
 
--- 2.2 Roles
-INSERT INTO Roles (role_name) VALUES ('Admin'), ('Payroll'), ('Manager'), ('Employee');
+-- Insert Employees (5 Regular + 2 Payroll + 2 Managers + 1 Admin = 10 total)
+-- Regular Employees
+INSERT INTO Employees (employee_id, first_name, middle_name, last_name, suffix, date_of_birth, sex, address, contact_number, email_address, marital_status, position, employment_status, date_hired, group_id, department_id) VALUES
+(1, 'Juan', 'Santos', 'Dela Cruz', NULL, '1990-05-15', 'Male', '123 Rizal St, Manila', '09171234567', 'juan.delacruz@company.com', 'Married', 'Software Developer', 'Regular', '2022-01-15', 1, 3),
+(2, 'Maria', 'Garcia', 'Reyes', NULL, '1992-08-22', 'Female', '456 Bonifacio Ave, Quezon City', '09187654321', 'maria.reyes@company.com', 'Single', 'HR Specialist', 'Regular', '2022-03-20', 1, 1),
+(3, 'Pedro', 'Lopez', 'Santos', NULL, '1988-12-10', 'Male', '789 Aguinaldo Blvd, Makati', '09191234567', 'pedro.santos@company.com', 'Married', 'Accountant', 'Regular', '2021-06-01', 1, 2),
+(4, 'Ana', 'Marie', 'Torres', NULL, '1995-03-18', 'Female', '321 Luna St, Pasig', '09178889999', 'ana.torres@company.com', 'Single', 'Operations Coordinator', 'Regular', '2023-02-15', 1, 4),
+(5, 'Carlos', 'Miguel', 'Ramos', NULL, '1991-07-25', 'Male', '654 Mabini St, Taguig', '09189991111', 'carlos.ramos@company.com', 'Married', 'Quality Analyst', 'Regular', '2022-09-10', 1, 4),
 
--- 2.3 Employee Groups
-INSERT INTO EmployeeGroups (group_name, description) VALUES
-                                                         ('Regular', 'Full-time permanent employees with full benefits'),
-                                                         ('Probationary', 'New hires under 6-month evaluation'),
-                                                         ('Management', 'Department heads and supervisors');
+-- Payroll Team
+(6, 'Jessa', 'Mae', 'Balnig', NULL, '1993-04-12', 'Female', '147 Roxas Blvd, Manila', '09172223333', 'jessa.balnig@company.com', 'Single', 'Payroll Specialist', 'Regular', '2021-11-01', 3, 2),
+(7, 'Symon', 'Cruz', 'Banaag', NULL, '1989-09-30', 'Male', '258 Del Pilar St, Manila', '09183334444', 'symon.banaag@company.com', 'Married', 'Payroll Officer', 'Regular', '2020-08-15', 3, 2),
 
--- 2.4 Leave Types (PH Standards)
-INSERT INTO LeaveTypes (name, days_entitled, is_paid, is_convertible_to_cash) VALUES
-                                                                                  ('Service Incentive Leave', 5, TRUE, TRUE),
-                                                                                  ('Vacation Leave', 10, TRUE, FALSE),
-                                                                                  ('Sick Leave', 10, TRUE, FALSE),
-                                                                                  ('Maternity Leave', 105, TRUE, FALSE),
-                                                                                  ('Paternity Leave', 7, TRUE, FALSE),
-                                                                                  ('Solo Parent Leave', 7, TRUE, FALSE),
-                                                                                  ('Emergency Leave', 3, TRUE, FALSE);
-
--- 2.5 Tax Brackets (2025 TRAIN Law)
-INSERT INTO TaxBrackets (min_income, max_income, base_tax_amount, percentage_on_excess, effective_year) VALUES
-                                                                                                            (0.00, 250000.00, 0.00, 0.00, 2025),
-                                                                                                            (250000.01, 400000.00, 0.00, 0.15, 2025),
-                                                                                                            (400000.01, 800000.00, 22500.00, 0.20, 2025),
-                                                                                                            (800000.01, 2000000.00, 102500.00, 0.25, 2025),
-                                                                                                            (2000000.01, 8000000.00, 402500.00, 0.30, 2025),
-                                                                                                            (8000000.01, NULL, 2202500.00, 0.35, 2025);
-
--- 2.6 Employees (14 Users: 10 Real + 4 Test)
--- A. Managers
-INSERT INTO Employees (first_name, last_name, position, department_id, group_id, email_address, date_hired) VALUES
-                                                                                                                ('Diana', 'Prince', 'IT Manager', 2, 3, 'diana.prince@company.com', '2020-01-15'),
-                                                                                                                ('Tony', 'Stark', 'Sales Manager', 3, 3, 'tony.stark@company.com', '2019-05-20');
-
--- B. Payroll/HR Team
-INSERT INTO Employees (first_name, last_name, position, department_id, group_id, email_address, date_hired) VALUES
-                                                                                                                ('Pepper', 'Potts', 'Payroll Specialist', 1, 1, 'pepper.potts@company.com', '2021-03-10'),
-                                                                                                                ('Clark', 'Kent', 'HR Officer', 1, 1, 'clark.kent@company.com', '2022-08-01');
-
--- C. Admin
-INSERT INTO Employees (first_name, last_name, position, department_id, group_id, email_address, date_hired) VALUES
-    ('Bruce', 'Wayne', 'System Administrator', 2, 3, 'bruce.wayne@company.com', '2018-12-01');
-
--- D. Regular Employees
-INSERT INTO Employees (first_name, last_name, position, department_id, group_id, email_address, date_hired) VALUES
-                                                                                                                ('Peter', 'Parker', 'Junior Dev', 2, 2, 'peter.parker@company.com', '2024-01-10'),
-                                                                                                                ('Natasha', 'Romanoff', 'Senior Dev', 2, 1, 'natasha.romanoff@company.com', '2021-06-15'),
-                                                                                                                ('Steve', 'Rogers', 'Operations Staff', 4, 1, 'steve.rogers@company.com', '2020-07-04'),
-                                                                                                                ('Wanda', 'Maximoff', 'Sales Associate', 3, 1, 'wanda.maximoff@company.com', '2023-02-14'),
-                                                                                                                ('Thor', 'Odinson', 'Utility Staff', 4, 1, 'thor.odinson@company.com', '2023-11-01');
-
--- E. Test Dummy Employees
-INSERT INTO Employees (first_name, last_name, email_address) VALUES
-                                                                 ('Test', 'Admin', 'admin@test.com'),
-                                                                 ('Test', 'HR', 'hr@test.com'),
-                                                                 ('Test', 'Manager', 'manager@test.com'),
-                                                                 ('Test', 'Employee', 'employee@test.com');
-
--- 2.7 Salaries (Configs)
 -- Managers
-INSERT INTO SalaryConfigs (employee_id, basic_monthly_rate, daily_rate, hourly_rate, effective_date) VALUES
-                                                                                                         (1, 95000.00, 4318.18, 539.77, '2024-01-01'),
-                                                                                                         (2, 85000.00, 3863.63, 482.95, '2024-01-01');
--- HR/Payroll
-INSERT INTO SalaryConfigs (employee_id, basic_monthly_rate, daily_rate, hourly_rate, effective_date) VALUES
-                                                                                                         (3, 35000.00, 1590.90, 198.86, '2024-01-01'),
-                                                                                                         (4, 30000.00, 1363.63, 170.45, '2024-01-01');
--- Admin
-INSERT INTO SalaryConfigs (employee_id, basic_monthly_rate, daily_rate, hourly_rate, effective_date) VALUES
-    (5, 120000.00, 5454.54, 681.81, '2024-01-01');
--- Regular Staff
-INSERT INTO SalaryConfigs (employee_id, basic_monthly_rate, daily_rate, hourly_rate, effective_date) VALUES
-                                                                                                         (6, 25000.00, 1136.36, 142.04, '2024-01-01'), -- Peter
-                                                                                                         (7, 65000.00, 2954.54, 369.31, '2024-01-01'), -- Natasha
-                                                                                                         (8, 20000.00, 909.09, 113.63, '2024-01-01'),  -- Steve
-                                                                                                         (9, 22000.00, 1000.00, 125.00, '2024-01-01'), -- Wanda
-                                                                                                         (10, 18000.00, 818.18, 102.27, '2024-01-01'); -- Thor
+(8, 'Princess Jumiah', 'Ali', 'Zamora', NULL, '1987-06-20', 'Female', '369 Quezon Ave, Quezon City', '09194445555', 'jumiah.zamora@company.com', 'Married', 'HR Manager', 'Regular', '2020-03-01', 2, 1),
+(9, 'Jhervin', 'Santos', 'Jimenez', NULL, '1986-11-05', 'Male', '741 EDSA, Mandaluyong', '09185556666', 'jhervin.jimenez@company.com', 'Married', 'IT Manager', 'Regular', '2019-07-20', 2, 3),
 
--- 2.8 Recurring Adjustments (SSS/PhilHealth/PagIBIG Estimates)
--- Diana (95k)
-INSERT INTO RecurringAdjustments (employee_id, adjustment_name, type, amount) VALUES
-                                                                                  (1, 'SSS Contribution', 'Deduction', 1750.00),
-                                                                                  (1, 'PhilHealth Contribution', 'Deduction', 2375.00),
-                                                                                  (1, 'Pag-IBIG Contribution', 'Deduction', 200.00);
--- Peter (25k)
-INSERT INTO RecurringAdjustments (employee_id, adjustment_name, type, amount) VALUES
-                                                                                  (6, 'SSS Contribution', 'Deduction', 1250.00),
-                                                                                  (6, 'PhilHealth Contribution', 'Deduction', 625.00),
-                                                                                  (6, 'Pag-IBIG Contribution', 'Deduction', 200.00);
--- Thor (18k)
-INSERT INTO RecurringAdjustments (employee_id, adjustment_name, type, amount) VALUES
-                                                                                  (10, 'SSS Contribution', 'Deduction', 900.00),
-                                                                                  (10, 'PhilHealth Contribution', 'Deduction', 450.00),
-                                                                                  (10, 'Pag-IBIG Contribution', 'Deduction', 200.00);
+-- Admin (not linked to Employees table as per role rules)
+(10, 'Edrianne', 'Joy', 'Lumabas', NULL, '1990-02-14', 'Female', '852 Taft Ave, Manila', '09196667777', 'edrianne.lumabas@company.com', 'Single', 'System Administrator', 'Regular', '2019-01-10', 2, 3);
 
--- 2.9 User Accounts (Logins)
--- Test Accounts
-INSERT INTO UserAccounts (employee_id, username, password_hash, role_id) VALUES
-                                                                             (11, 'admin', 'admin', 1),
-                                                                             (12, 'payroll', 'payroll', 2),
-                                                                             (13, 'manager', 'manager', 3),
-                                                                             (14, 'employee', 'employee', 4);
--- Real Accounts
-INSERT INTO UserAccounts (employee_id, username, password_hash, role_id) VALUES
-                                                                             (1, 'diana.prince', 'password123', 3),
-                                                                             (3, 'pepper.potts', 'password123', 2),
-                                                                             (5, 'bruce.wayne', 'password123', 1),
-                                                                             (6, 'peter.parker', 'password123', 4);
+-- Update Department Managers
+UPDATE Departments SET manager_assigned = 8 WHERE department_id = 1;
+UPDATE Departments SET manager_assigned = 9 WHERE department_id = 3;
 
--- 2.10 Attendance & Request Simulation
--- Peter works 3 days
-INSERT INTO AttendanceLogs (employee_id, work_date, time_in, time_out, hours_worked, status) VALUES
-                                                                                                 (6, '2025-11-01', '2025-11-01 08:00:00', '2025-11-01 17:00:00', 8.00, 'Present'),
-                                                                                                 (6, '2025-11-02', '2025-11-02 09:00:00', '2025-11-02 17:00:00', 7.00, 'Late'),
-                                                                                                 (6, '2025-11-03', '2025-11-03 08:00:00', '2025-11-03 19:00:00', 8.00, 'Present');
--- Peter requests leave
-INSERT INTO Requests (employee_id, request_type, leave_type_id, start_date, end_date, reason, status) VALUES
-    (6, 'Leave', 2, '2025-12-24 08:00:00', '2025-12-26 17:00:00', 'Christmas Vacation', 'Approved');
--- Diana Approves
-INSERT INTO RequestApprovals (request_id, approver_id, action, remarks) VALUES
-    (1, 1, 'Approved', 'Approved, Merry Christmas!');
+-- Insert Emergency Contacts
+INSERT INTO EmergencyContact (employee_id, address, contact_name, contact_number, relationship) VALUES
+(1, '123 Rizal St, Manila', 'Rosa Dela Cruz', '09171111111', 'Spouse'),
+(2, '456 Bonifacio Ave, Quezon City', 'Carmen Reyes', '09182222222', 'Mother'),
+(3, '789 Aguinaldo Blvd, Makati', 'Linda Santos', '09193333333', 'Spouse'),
+(4, '321 Luna St, Pasig', 'Roberto Torres', '09174444444', 'Father'),
+(5, '654 Mabini St, Taguig', 'Elena Ramos', '09185555555', 'Spouse'),
+(6, '147 Roxas Blvd, Manila', 'Maria Balnig', '09196666666', 'Mother'),
+(7, '258 Del Pilar St, Manila', 'Susan Banaag', '09177777777', 'Spouse'),
+(8, '369 Quezon Ave, Quezon City', 'Ahmed Zamora', '09188888888', 'Spouse'),
+(9, '741 EDSA, Mandaluyong', 'Grace Jimenez', '09199999999', 'Spouse'),
+(10, '852 Taft Ave, Manila', 'Antonio Lumabas', '09170000000', 'Father');
+
+-- Insert Salary Details
+INSERT INTO SalaryDetails (employee_id, basic_rate, overtime_rate, holiday_rate, loan_deductions, other_deductions) VALUES
+(1, 35000.00, 150.00, 200.00, 2000.00, 500.00),
+(2, 32000.00, 140.00, 190.00, 1500.00, 300.00),
+(3, 38000.00, 160.00, 210.00, 2500.00, 400.00),
+(4, 30000.00, 130.00, 180.00, 1000.00, 200.00),
+(5, 33000.00, 145.00, 195.00, 1800.00, 350.00),
+(6, 36000.00, 155.00, 205.00, 2200.00, 450.00),
+(7, 40000.00, 170.00, 220.00, 2800.00, 600.00),
+(8, 55000.00, 250.00, 300.00, 3000.00, 800.00),
+(9, 60000.00, 270.00, 320.00, 3500.00, 900.00),
+(10, 50000.00, 220.00, 280.00, 2500.00, 700.00);
+
+-- Insert User Accounts
+-- Admin (not linked to employee)
+INSERT INTO UserAccounts (user_id, employee_id, username, email_address, password, role_id, status) VALUES
+(1, NULL, 'admin', 'admin@company.com', 'admin123', 1, 'Active'),
+
+-- Managers
+(2, 8, 'jumiah.zamora', 'jumiah.zamora@company.com', 'manager123', 2, 'Active'),
+(3, 9, 'jhervin.jimenez', 'jhervin.jimenez@company.com', 'manager123', 2, 'Active'),
+
+-- Payroll Team (not linked to employee)
+(4, NULL, 'jessa.balnig', 'jessa.balnig@company.com', 'payroll123', 3, 'Active'),
+(5, NULL, 'symon.banaag', 'symon.banaag@company.com', 'payroll123', 3, 'Active'),
+
+-- Regular Employees
+(6, 1, 'juan.delacruz', 'juan.delacruz@company.com', 'employee123', 4, 'Active'),
+(7, 2, 'maria.reyes', 'maria.reyes@company.com', 'employee123', 4, 'Active'),
+(8, 3, 'pedro.santos', 'pedro.santos@company.com', 'employee123', 4, 'Active'),
+(9, 4, 'ana.torres', 'ana.torres@company.com', 'employee123', 4, 'Active'),
+(10, 5, 'carlos.ramos', 'carlos.ramos@company.com', 'employee123', 4, 'Active');
+
+-- Insert Timesheets (Recent data for payroll calculation)
+INSERT INTO Timesheets (employee_id, date, time_in, time_out, break_duration, overtime_hours, remarks, approved_by) VALUES
+-- Employee 1 - Juan
+(1, '2025-11-01', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+(1, '2025-11-02', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+(1, '2025-11-03', '08:00:00', '19:00:00', 1.00, 2.00, 'Overtime', 9),
+(1, '2025-11-04', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+(1, '2025-11-05', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+
+-- Employee 2 - Maria
+(2, '2025-11-01', '08:30:00', '17:30:00', 1.00, 0.00, 'Regular', 8),
+(2, '2025-11-02', '08:30:00', '17:30:00', 1.00, 0.00, 'Regular', 8),
+(2, '2025-11-03', '08:30:00', '17:30:00', 1.00, 0.00, 'Regular', 8),
+(2, '2025-11-04', '08:30:00', '18:30:00', 1.00, 1.00, 'Overtime', 8),
+(2, '2025-11-05', '08:30:00', '17:30:00', 1.00, 0.00, 'Regular', 8),
+
+-- Employee 3 - Pedro
+(3, '2025-11-01', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 8),
+(3, '2025-11-02', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 8),
+(3, '2025-11-03', '08:00:00', '18:00:00', 1.00, 1.00, 'Overtime', 8),
+(3, '2025-11-04', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 8),
+(3, '2025-11-05', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 8),
+
+-- Employee 4 - Ana
+(4, '2025-11-01', '09:00:00', '18:00:00', 1.00, 0.00, 'Regular', 9),
+(4, '2025-11-02', '09:00:00', '18:00:00', 1.00, 0.00, 'Regular', 9),
+(4, '2025-11-03', '09:00:00', '18:00:00', 1.00, 0.00, 'Regular', 9),
+(4, '2025-11-04', '09:00:00', '20:00:00', 1.00, 2.00, 'Overtime', 9),
+(4, '2025-11-05', '09:00:00', '18:00:00', 1.00, 0.00, 'Regular', 9),
+
+-- Employee 5 - Carlos
+(5, '2025-11-01', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+(5, '2025-11-02', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+(5, '2025-11-03', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9),
+(5, '2025-11-04', '08:00:00', '19:00:00', 1.00, 2.00, 'Overtime', 9),
+(5, '2025-11-05', '08:00:00', '17:00:00', 1.00, 0.00, 'Regular', 9);
+
+-- Insert 5 Complete Payroll Records
+INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, payroll_frequency, prepared_by, basic_pay, overtime_pay, bonuses, status, comments, deductions, net_pay, payslip_reference_number) VALUES
+-- Payroll 1 - Juan Dela Cruz
+(1, '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 6, 17500.00, 300.00, 1000.00, 'Processed', 'Regular payout', 2500.00, 16300.00, 'PAY-2025-11-001'),
+
+-- Payroll 2 - Maria Reyes
+(2, '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 6, 16000.00, 140.00, 800.00, 'Processed', 'Regular payout', 1800.00, 15140.00, 'PAY-2025-11-002'),
+
+-- Payroll 3 - Pedro Santos
+(3, '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 7, 19000.00, 160.00, 1200.00, 'Processed', 'Regular payout', 2900.00, 17460.00, 'PAY-2025-11-003'),
+
+-- Payroll 4 - Ana Torres
+(4, '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 7, 15000.00, 260.00, 700.00, 'Processed', 'Regular payout', 1200.00, 14760.00, 'PAY-2025-11-004'),
+
+-- Payroll 5 - Carlos Ramos
+(5, '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 6, 16500.00, 290.00, 900.00, 'Processed', 'Regular payout', 2150.00, 15540.00, 'PAY-2025-11-005');
+
+-- Create user and grant privileges
+CREATE USER IF NOT EXISTS 'payrollsystem'@'%' IDENTIFIED BY 'payroll';
+GRANT ALL PRIVILEGES ON payrollmanagementsystem.* TO 'payrollsystem'@'%';
+FLUSH PRIVILEGES;
