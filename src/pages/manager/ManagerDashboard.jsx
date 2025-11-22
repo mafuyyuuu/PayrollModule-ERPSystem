@@ -17,24 +17,25 @@ const ManagerDashboard = () => {
             {/* DASHBOARD CARDS */}
             <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap="20px">
                 <DashboardCard
-                    icon="ri-user-2-line"
+                    icon="ri-user-3-fill"
                     title="Active Employees"
                     value="55"
                 />
                 <DashboardCard
-                    icon="ri-pass-pending-line"
+                    icon="ri-pass-pending-fill"
                     title="Pending Approvals"
                     value="XXXX"
                 />
                 <DashboardCard
-                    icon="ri-briefcase-4-line"
+                    icon="ri-briefcase-4-fill"
                     title="Total Department Payroll"
                     value="₱520,000"
                 />
                 <DashboardCard
-                    icon="ri-percent-fill"
+                    icon="ri-percent-line"
                     title="Attendance Rate"
-                    value="96%" />
+                    value="96%"
+                />
             </Box>
 
             {/* LOWER SECTION: PERFORMANCE + EARNINGS */}
@@ -99,7 +100,19 @@ const ManagerDashboard = () => {
                         },
                     }}
                 >
-                    <Typography fontFamily="'TTHoves-Demibold', sans-serif" fontSize="18px" mb={"30px"}>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            mb: 2,
+                            fontSize: "18px",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: theme.palette.text.primary,
+                        }}
+                    >
+                        <i
+                            className="ri-hand-coin-fill"
+                            style={{ fontSize: 18, marginRight: "10px", color: theme.palette.text.primary }}
+                        ></i>
                         Total Earning
                     </Typography>
                     <ResponsiveContainer width="100%" height={185} mt="10px">
