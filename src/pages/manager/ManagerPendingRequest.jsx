@@ -1,4 +1,4 @@
-import { Box, Typography, Button, IconButton } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
@@ -104,7 +104,6 @@ const ManagerPendingRequest = () => {
                         width="350px"
                     />
                 </Box>
-
             </Box>
 
             {/* TABLE CONTAINER */}
@@ -259,7 +258,7 @@ const ManagerPendingRequest = () => {
                                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <RiEyeFill style={{ fontSize: 19 }} />
+                                        <RiEyeFill style={{ fontSize: 19 }}/>
                                     </IconButton>
                                 )}
                             </Box>

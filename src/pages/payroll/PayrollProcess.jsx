@@ -1,28 +1,81 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
     Box,
     Button,
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions,
     TextField,
     Typography,
-    InputBase,
+    useTheme,
+    Select,
+    MenuItem,
+    IconButton,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import SearchBar from "../../components/SearchBar.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
+import ActionButton from "../../components/ActionButton.jsx";
+import {RiDownload2Line, RiEyeFill} from "react-icons/ri";
 
 export default function PayoutProcessing() {
+    const theme = useTheme();
+
+    const [filter, setFilter] = useState("")
     const [open, setOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [selectedPayroll, setSelectedPayroll] = useState("");
 
-    // Sample data
+    const payrollHistory = [
+        {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
+        {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
+        {duration: "Sep 1–15, 2025", amount: "₱20,100.00", ref: "REF20250915"},
+        {duration: "Aug 16–31, 2025", amount: "₱20,000.00", ref: "REF20250831"},
+        {duration: "Aug 1–15, 2025", amount: "₱19,900.00", ref: "REF20250815"},
+        {duration: "Jul 16–31, 2025", amount: "₱19,800.00", ref: "REF20250731"},
+        {duration: "Jul 1–15, 2025", amount: "₱19,700.00", ref: "REF20250715"},
+    ];
+
     const employeesProcess = [
-        { id: "0100001", name: "Jhervin Jimenez", earning: "₱100,000.00", deduction: "₱10,000.00", netpay: "₱90,000.00", status: "Pending" },
-        { id: "0100002", name: "Edrianne Lumabas", earning: "₱80,000.00", deduction: "₱5,000.00", netpay: "₱75,000.00", status: "Pending" },
-        { id: "0100003", name: "Princess Jumiah Zamora", earning: "₱70,000.00", deduction: "₱8,000.00", netpay: "₱92,000.00", status: "Pending" },
-        { id: "0100004", name: "Jessa Balnig", earning: "₱75,000.00", deduction: "₱4,000.00", netpay: "₱79,000.00", status: "Pending" },
-        { id: "0100005", name: "Symon Banaag", earning: "₱60,000.00", deduction: "₱9,000.00", netpay: "70,000.00", status: "Pending" },
+        {
+            id: "0100001",
+            name: "Jhervin Jimenez",
+            earning: "₱100,000.00",
+            deduction: "₱10,000.00",
+            netpay: "₱90,000.00",
+            status: "Pending"
+        },
+        {
+            id: "0100002",
+            name: "Edrianne Lumabas",
+            earning: "₱80,000.00",
+            deduction: "₱5,000.00",
+            netpay: "₱75,000.00",
+            status: "Pending"
+        },
+        {
+            id: "0100003",
+            name: "Princess Jumiah Zamora",
+            earning: "₱70,000.00",
+            deduction: "₱8,000.00",
+            netpay: "₱92,000.00",
+            status: "Pending"
+        },
+        {
+            id: "0100004",
+            name: "Jessa Balnig",
+            earning: "₱75,000.00",
+            deduction: "₱4,000.00",
+            netpay: "₱79,000.00",
+            status: "Pending"
+        },
+        {
+            id: "0100005",
+            name: "Symon Banaag",
+            earning: "₱60,000.00",
+            deduction: "₱9,000.00",
+            netpay: "70,000.00",
+            status: "Pending"
+        },
 
     ];
 
@@ -35,341 +88,229 @@ export default function PayoutProcessing() {
 
     return (
         <Box
-            width = "100%"
-            height = "70vh"
+            sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}
         >
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={3.5}
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    mb: 3,
+                }}
             >
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Payout Processing
                 </Typography>
 
                 <Box
-                    marginLeft="52vh"
-                    display="flex"
-                    alignItems="center"
-                    bgcolor="#E1E0E0"
-                    borderRadius="8px"
-                    px="15px"
-                    py="5px"
-                    boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-                    border= "1px solid rgba(255, 255, 255, 0.4)"
-                    width="450px"
+                    sx={{
+                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                    }}
                 >
-                    <SearchIcon
-                        sx={{
-                            fontSize: "1.7rem",
-                            mr: 1,
-                        }}
-                    />
-                    <InputBase
-                        placeholder="Enter Employee Name"
-                        sx={{
-                            fontFamily: "TT Hoves Pro, sans-serif",
-                            fontWeight: 300,
-                            fontSize: "0.95rem",
-                            width: "100%",
-                            backgroundColor: "#E1E0E0",
-                        }}
-                    />
-                </Box>
+                    <SearchBar placeholder="Enter Username" width="350px"/>
 
-                <Box sx={{ position: "relative" }}>
-                    <select
-                        style={{
-                            marginRight:"20px",
-                            appearance: "none",
-                            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            WebkitAppearance: "none",
-                            MozAppearance: "none",
-                            padding: "10px 4px 10px 15px",
-                            borderRadius: "25px",
-                            backgroundColor: "#DADBDB",
-                            color: "#222",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            fontSize: "15px",
-                            cursor: "pointer",
-                            outline: "none",
+                    <FilterSelect
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                    />
+
+                    <Box
+                        sx={{
+                            display: "inline-block",
+                            borderRadius: "15px",
+                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                            "&:hover": {
+                                transform: "scale(1.02)",
+                                boxShadow:
+                                    theme.palette.mode === "light"
+                                        ? "0 4px 20px rgba(0,0,0,0.15)"
+                                        : "0 4px 20px rgba(0,0,0,0.3)",
+                            },
                         }}
                     >
-                        <option value="">Filter</option>
-                        <option>By Category</option>
-                        <option>By Date</option>
-                        <option>By Name</option>
-                    </select>
-                    <i
-                        className="ri-arrow-down-s-fill"
-                        style={{
-                            position: "absolute",
-                            right: "75%",
-                            top: "56%",
-                            paddingRight: "10px",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                            color: "#222",
-                            fontSize: "20px",
-                        }}
-                    ></i>
-
-                    <select
-                        style={{
-                            marginRight:"11.5vh",
-                            appearance: "none",
-                            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            WebkitAppearance: "none",
-                            MozAppearance: "none",
-                            padding: "10px 50px 10px 20px",
-                            borderRadius: "25px",
-                            backgroundColor: "#DADBDB",
-                            color: "#222",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            fontSize: "15px",
-                            cursor: "pointer",
-                            outline: "none",
-                        }}
-                    >
-                        <option value="">Select Period</option>
-                        <option>2025</option>
-                        <option>2024</option>
-                        <option>2023</option>
-                    </select>
-                    <i
-                        className="ri-arrow-down-s-fill"
-                        style={{
-                            position: "absolute",
-                            right: "120px",
-                            top: "56%",
-                            paddingRight: "10px",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                            color: "#222",
-                            fontSize: "20px",
-                        }}
-                    ></i>
-                    <Box textAlign="end" marginTop="-39px">
-                        <button
-                            style={{
-                                backgroundColor: "#152022",
-                                color: "#fff",
-                                border: "1px solid rgba(255, 255, 255, 1)",
-                                fontFamily: "'TTHoves-bold', sans-serif",
-                                fontSize: "12px",
-                                padding: "10px 20px",
-                                borderRadius: "50px",
-                                cursor: "pointer",
-                                transition: "all 0.2s ease",
+                        <Select
+                            value={selectedPayroll}
+                            onChange={(e) => setSelectedPayroll(e.target.value)}
+                            displayEmpty
+                            sx={{
+                                backgroundColor:
+                                    theme.palette.mode === "dark"
+                                        ? "rgba(255, 255, 255, 0.05)"
+                                        : "rgba(255, 255, 255, 0.3)",
+                                borderRadius: "15px",
+                                width: "250px",
+                                fontSize: "16px",
+                                color: theme.palette.text.primary,
+                                "& .MuiSelect-select": {
+                                    padding: "8px 12px",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: theme.palette.divider,
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: theme.palette.divider,
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    border: "none", // remove focus border
+                                },
+                                "& .MuiSvgIcon-root": {
+                                    color: theme.palette.text.primary,
+                                },
                             }}
-                            onMouseEnter={(e) =>
-                                (e.currentTarget.style.transform = "translateY(-3px)")
-                            }
-                            onMouseLeave={(e) =>
-                                (e.currentTarget.style.transform = "translateY(0)")
-                            }
-                            onClick={() => handleOpen(employeesProcess)}
+                            renderValue={(selected) => {
+                                if (!selected)
+                                    return (
+                                        <span style={{fontSize: "16px", color: "#bdbdbd"}}>
+                                        Select Payroll Duration
+                                    </span>
+                                    );
+                                return selected;
+                            }}
                         >
-                            Generate
-                        </button>
+                            {payrollHistory.map((item) => (
+                                <MenuItem key={item.ref} value={item.duration}>
+                                    {item.duration}
+                                </MenuItem>
+                            ))}
+                        </Select>
                     </Box>
                 </Box>
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="87%"
                 sx={{
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.7)",
+                    height: "80%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
-                    gap: "10px",
                 }}
             >
-
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "1.3fr 1fr 1fr 1fr 1fr 1fr",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        border: "none",
-                        padding: "20px",
-                        fontWeight: 600,
+                        gridTemplateColumns: "repeat(7, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        textAlign: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <span style={{ justifySelf: "start", paddingLeft:"8px"}}>Name</span>
-                    <span style={{ justifySelf: "center", paddingRight:"120px" }}>Earning</span>
-                    <span style={{ justifySelf: "center" }}>Deduction</span>
-                    <span style={{ justifySelf: "center", paddingLeft:"30px" }}>Netpay</span>
-                    <span style={{ justifySelf: "center", paddingLeft:"60px" }}>Status</span>
-                    <span style={{ justifySelf: "end", paddingRight:"30px" }}>Actions</span>
+                    <span>Employee ID</span>
+                    <span>Employee Name</span>
+                    <span>Earning</span>
+                    <span>Deduction</span>
+                    <span>Netpay</span>
+                    <span>Status</span>
+                    <span>Actions</span>
                 </Box>
 
                 <Box
                     sx={{
-                        maxHeight: "100%",
                         overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        height: "85%",
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        "&::-webkit-scrollbar": {
-                            width: 0,
-                            height: 0,
-                        },
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
                     {employeesProcess.map((item, index) => (
                         <Box
                             key={index}
                             sx={{
+                                marginTop: "10px",
                                 display: "grid",
-                                gridTemplateColumns: "1.2fr 0.8fr 1fr 1fr 1fr 0.68fr",                                backgroundColor: "rgba(255, 255, 255, 0.25)",
-                                backdropFilter: "blur(12px)",
-                                borderRadius: "10px",
-                                padding: "30px",
-                                marginTop: "3px",
-                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                gridTemplateColumns: "repeat(7, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
                                 transition: "all 0.3s ease",
-                                border: "1px solid rgba(255,255,255,0.3)",
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
+                                textAlign: "center",
                             }}
                         >
-                            <span style={{ justifySelf: "start", fontWeight: 600}}>{item.name}</span>
-                            <span style={{ justifySelf: "start" }}>{item.earning}</span>
-                            <span style={{ justifySelf: "center" }}>{item.deduction}</span>
-                            <span style={{ justifySelf: "center"  }}>{item.netpay}</span>
-                            <span style={{ justifySelf: "center", color: "red" }}>{item.status}</span>
+                            <span>{item.id}</span>
+                            <span>{item.name}</span>
+                            <span>{item.earning}</span>
+                            <span>{item.deduction}</span>
+                            <span>{item.netpay}</span>
+                            <span>{item.status}</span>
 
-                            <Box sx={{ justifySelf: "end", display: "flex", gap: "8px" }}>
-                                <Box
-                                    component="button"
+                            <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
+                                <IconButton
                                     sx={{
-                                        width: 33,
-                                        height: 33,
+                                        backgroundColor: "#172224",
+                                        color: "#fff",
+                                        width: 40,
+                                        height: 40,
                                         borderRadius: "50%",
-                                        backgroundColor: "black",
-                                        color: "white",
-                                        border: "none",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
+                                        },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(-3px)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(0)")
-                                    }
                                 >
-                                    <i className="ri-eye-fill" style={{fontSize: "20px"}}></i>
-                                </Box>
-                                <Box
-                                    component="button"
+                                    <RiEyeFill style={{ fontSize: 19 }}/>
+                                </IconButton>
+                                <IconButton
                                     sx={{
-                                        width: 33,
-                                        height: 33,
+                                        backgroundColor: "#172224",
+                                        color: "#fff",
+                                        width: 40,
+                                        height: 40,
                                         borderRadius: "50%",
-                                        backgroundColor: "black",
-                                        color: "white",
-                                        border: "none",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
+                                        },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(-3px)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.transform = "translateY(0)")
-                                    }
                                 >
-                                    <i className="ri-download-2-fill" style={{fontSize: "19px"}}></i>
-                                </Box>
+                                    <RiDownload2Line style={{fontSize: 19}}/>
+                                </IconButton>
                             </Box>
 
-                            <span style={{ justifySelf: "start", color: "#818080", marginTop:"-10px" }}>{item.id}</span>
 
                         </Box>
                     ))}
                 </Box>
             </Box>
 
-            <Box textAlign="end" marginTop="30px">
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        marginRight: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Bulk Payout
-                </button>
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Approve or Release
-                </button>
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+                <ActionButton text="Generate Payslip" width="200px"/>
+                <ActionButton text="Bulk Payout" width="200px"/>
+                <ActionButton text="Release Payout" width="200px"/>
             </Box>
 
             {/* Custom Blur Layer */}
@@ -407,8 +348,10 @@ export default function PayoutProcessing() {
                 <DialogTitle>
                     <Typography
                         variant="h3"
-                        sx={{ fontFamily: "'TTHoves-bold', sans-serif",
-                            fontWeight:"500", textAlign: "start", color: "white", m:"-15px -25px -5px" }}
+                        sx={{
+                            fontFamily: "'TTHoves-bold', sans-serif",
+                            fontWeight: "500", textAlign: "start", color: "white", m: "-15px -25px -5px"
+                        }}
                     >
                         Generate Payslip
                     </Typography>
@@ -419,8 +362,8 @@ export default function PayoutProcessing() {
                         backgroundColor: "transparent",
                         border: "none",
                         width: "100%",
-                        gap:3,
-                        scrollbarWidth:     "none",
+                        gap: 3,
+                        scrollbarWidth: "none",
                         p: 0,
                     }}
                 >
@@ -564,40 +507,40 @@ export default function PayoutProcessing() {
                     )}
                 </DialogContent>
 
-                    <Box
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 2,
+                        mb: -1.4,
+                    }}
+                >
+                    <Button
                         sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: 2,
-                            mb: -1.4,
+                            width: "80%",
+                            backgroundColor: "#1F2D3D",
+                            color: "#fff",
+                            borderRadius: "50px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-bold', sans-serif",
                         }}
                     >
-                        <Button
-                            sx={{
-                                width: "80%",
-                                backgroundColor: "#1F2D3D",
-                                color: "#fff",
-                                borderRadius: "50px",
-                                textTransform: "none",
-                                fontFamily: "'TTHoves-bold', sans-serif",
-                            }}
-                        >
-                            Send to Email
-                        </Button>
-                        <Button
-                            sx={{
-                                width: "80%",
-                                padding: "10px",
-                                backgroundColor: "#1F2D3D",
-                                color: "#fff",
-                                borderRadius: "50px",
-                                textTransform: "none",
-                                fontFamily: "'TTHoves-bold', sans-serif",
-                            }}
-                        >
-                            Download PDF
-                        </Button>
-                    </Box>
+                        Send to Email
+                    </Button>
+                    <Button
+                        sx={{
+                            width: "80%",
+                            padding: "10px",
+                            backgroundColor: "#1F2D3D",
+                            color: "#fff",
+                            borderRadius: "50px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-bold', sans-serif",
+                        }}
+                    >
+                        Download PDF
+                    </Button>
+                </Box>
             </Dialog>
         </Box>
     );

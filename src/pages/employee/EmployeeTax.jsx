@@ -1,6 +1,5 @@
 import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
-import SearchBar from "../../components/SearchBar.jsx";
 import React, {useState} from "react";
 
 export default function EmployeeTax() {
@@ -176,7 +175,7 @@ export default function EmployeeTax() {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(6, 1fr)",
+                        gridTemplateColumns: "repeat(5, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
@@ -188,7 +187,6 @@ export default function EmployeeTax() {
                         zIndex: 10,
                     }}
                 >
-                    <span>Employee</span>
                     <span>SSS</span>
                     <span>PhilHealth</span>
                     <span>Pag-IBIG</span>
@@ -215,7 +213,7 @@ export default function EmployeeTax() {
                                 sx={{
                                     marginTop: "10px",
                                     display: "grid",
-                                    gridTemplateColumns: "repeat(6, 1fr)",
+                                    gridTemplateColumns: "repeat(5, 1fr)",
                                     alignItems: "center",
                                     bgcolor: "#fff",
                                     color: "#1b2223",
@@ -229,7 +227,6 @@ export default function EmployeeTax() {
                                     textAlign: "center",
                                 }}
                             >
-                                <span>{item.employee}</span>
                                 <span>₱{item.SSS.toLocaleString()}</span>
                                 <span>₱{item.PhilHealth.toLocaleString()}</span>
                                 <span>₱{item.PagIBIG.toLocaleString()}</span>

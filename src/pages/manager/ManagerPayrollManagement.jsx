@@ -1,14 +1,12 @@
-import {Box, Typography, Button, IconButton} from "@mui/material";
+import {Box, Typography, IconButton} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
-import ManagerDashboard from "./ManagerDashboard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
 import ViewTextField from "../../components/ViewTextField.jsx";
 import React, { useState } from "react";
 import {RiPencilFill} from "react-icons/ri";
-
 
 const employeePayrollData = [
     {
@@ -60,7 +58,6 @@ const employeePayrollData = [
         net: "₱35,000",
     },
 ];
-
 
 const ManagerPayrollSummary = () => {
     const [openModal, setOpenModal] = useState(false);
@@ -152,7 +149,7 @@ const ManagerPayrollSummary = () => {
                         zIndex: 10,
                     }}
                 >
-                    <span>Employee</span>
+                    <span>Employee Name</span>
                     <span>Gross</span>
                     <span>Deductions</span>
                     <span>Benefits</span>
@@ -235,7 +232,7 @@ const ManagerPayrollSummary = () => {
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
                                 mb: "5px"
                             }}>
-                                Employee
+                                Employee Name
                             </Typography>
                             <ViewTextField value={selectedRow.name} />
                         </Box>
@@ -298,8 +295,6 @@ const ManagerPayrollSummary = () => {
                 )}
             </BoxModal>
         </Box>
-
-
     );
 };
 

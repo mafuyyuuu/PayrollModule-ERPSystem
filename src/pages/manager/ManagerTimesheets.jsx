@@ -1,4 +1,4 @@
-import {Box, Typography, Button, IconButton} from "@mui/material";
+import {Box, Typography, IconButton} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
