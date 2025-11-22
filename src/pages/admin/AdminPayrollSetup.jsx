@@ -34,11 +34,32 @@ export default function AdminPayrollSetup() {
         type: "Withholding Tax", rate: "Variable", date: "Aug. 11, 2025"
     },];
 
-    const payComponents = [{component: "Basic Salary", type: "Fixed", status: "Active"}, {
-        component: "Allowance", type: "Variable", status: "Active"
-    }, {component: "Bonus", type: "Manual Entry", status: "Inactive"}, {
-        component: "Overtime Pay", type: "Computed", status: "Active"
-    },];
+    const payComponents = [
+        {
+            component: "Basic Salary",
+            type: "Fixed",
+            status: "Active",
+            formula: "baseSalary", // just the variable reference
+        },
+        {
+            component: "Allowance",
+            type: "Variable",
+            status: "Active",
+            formula: "0.1 * baseSalary", // 10% of base salary
+        },
+        {
+            component: "Bonus",
+            type: "Manual Entry",
+            status: "Inactive",
+            formula: "manualEntry || 0", // user input or 0 if none
+        },
+        {
+            component: "Overtime Pay",
+            type: "Computed",
+            status: "Active",
+            formula: "overtimeRate * overtimeHours", // calculated value
+        },
+    ];
 
     const renderCards = () => {
         switch (activeTab) {
@@ -164,7 +185,7 @@ export default function AdminPayrollSetup() {
                         <Box
                             sx={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
+                                gridTemplateColumns: "repeat(5, 1fr)",
                                 color: theme.palette.text.primary,
                                 fontWeight: 700,
                                 p: "8px 0",
@@ -175,6 +196,7 @@ export default function AdminPayrollSetup() {
                         >
                             <span>Component</span>
                             <span>Type</span>
+                            <span>Formula / Fixed Amount</span>
                             <span>Status</span>
                             <span>Action</span>
                         </Box>
@@ -199,7 +221,7 @@ export default function AdminPayrollSetup() {
                             <Box
                                 sx={{
                                     display: "grid",
-                                    gridTemplateColumns: "repeat(4, 1fr)",
+                                    gridTemplateColumns: "repeat(5, 1fr)",
                                     alignItems: "center",
                                     bgcolor: "#fff",
                                     borderRadius: "8px",
@@ -214,6 +236,7 @@ export default function AdminPayrollSetup() {
                             >
                                 <span>{item.component}</span>
                                 <span>{item.type}</span>
+                                <span>{item.formula}</span>
                                 <span>{item.status}</span>
                                 <Box
                                     sx={{
@@ -296,36 +319,36 @@ export default function AdminPayrollSetup() {
                         <Select
                             displayEmpty
                             sx={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
+                                backgroundColor: "#cacace",
                                 borderRadius: "13px",
-                                color: "#fff",
+                                color: "#1F2829",
                                 fontSize: "18px",
                                 "& .MuiSelect-select": {
                                     padding: "8px 12px",
                                 },
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.4)",
+                                    border: "none",
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.9)",
+                                    border: "none",
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.6)",
+                                    border: "none",
                                 },
                                 "& .MuiSvgIcon-root": {
-                                    color: "#fff",
+                                    color: "#1F2829",
                                 },
                             }}
                             MenuProps={{
                                 PaperProps: {
                                     sx: {
-                                        backgroundColor: "#ffffff", color: "#1e1e1e",
+                                        backgroundColor: "#ffffff", color: "#1F2829",
                                     }
                                 }
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span
-                                    style={{color: "rgba(255,255,255,0.4"}}>Select Tax Type</span>;
+                                    style={{color: "#828689"}}>Select Tax Type</span>;
                                 return selected;
                             }}
                         >
@@ -350,17 +373,17 @@ export default function AdminPayrollSetup() {
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
                                     fontSize: "18px",
                                     "& fieldset": {
-                                        borderColor: "rgba(255,255,255,0.4)",
+                                        border: "none",
                                     },
                                     "&:hover fieldset": {
-                                        borderColor: "rgba(255,255,255,0.6)",
+                                        border: "none",
                                     },
                                     "&.Mui-focused fieldset": {
-                                        borderColor: "rgba(255,255,255,0.9)",
+                                        border: "none",
                                     },
                                 }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
@@ -378,28 +401,28 @@ export default function AdminPayrollSetup() {
                             style={{
                                 flex: 1,
                                 padding: "10px",
-                                height: "45px",
+                                height: "43px",
                                 borderRadius: "13px",
                                 fontSize: "18px",
-                                backgroundColor: "rgba(255,255,255,0.2)",
-                                color: "#fff",
-                                border: "1px solid rgba(255,255,255,0.4)",
+                                backgroundColor: "#cacace",
+                                border: "none",
+                                color: "#1F2829",
                                 outline: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
                                 boxSizing: "border-box",
                                 transition: "border-color 0.25s ease",
                             }}
                             onMouseEnter={(e) => {
-                                e.target.style.borderColor = "rgba(255,255,255,0.6)";
+                                e.target.style.border = "none";
                             }}
                             onMouseLeave={(e) => {
-                                e.target.style.borderColor = "rgba(255,255,255,0.4)";
+                                e.target.style.border = "none";
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = "rgba(255,255,255,0.9)";
+                                e.target.style.border = "none";
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = "rgba(255,255,255,0.4)";
+                                e.target.style.border = "none";
                             }}
                         />
                     </Box>
@@ -409,12 +432,30 @@ export default function AdminPayrollSetup() {
                             display: "flex", justifyContent: "flex-end", gap: 2, mt: 3,
                         }}
                     >
-                        <ActionButton
-                            text="Remove"
-                            width="200px"
-                            color="#b22222"
+                        <Box
+                            component="button"
                             onClick={handleCloseModal}
-                        />
+                            sx={{
+                                display: "flex-end",
+                                fontSize: "16px",
+                                backgroundColor: "#8b1a1a",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "200px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#a32020",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Remove
+                        </Box>
                         <Box
                             component="button"
                             sx={{
@@ -452,7 +493,7 @@ export default function AdminPayrollSetup() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
                         }}
                     >
                         {isEditing ? "Edit Pay Component" : "Add Pay Component"}
@@ -461,33 +502,28 @@ export default function AdminPayrollSetup() {
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
                             sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Formula or Fixed Amount
+                            Component Name
                         </Typography>
 
                         <TextField
-                            placeholder="Component Name"
                             fullWidth
-                            value={selectedComponent?.name || ""}
-                            onChange={(e) => !isEditing && setSelectedComponent(prev => ({
-                                ...prev, name: e.target.value
-                            }))}
-                            disabled={isEditing}
+                            value={selectedComponent?.component || ""}
                             variant="outlined"
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
                                     fontSize: "18px",
                                     "& fieldset": {
-                                        borderColor: "rgba(255,255,255,0.4)",
+                                        border: "none",
                                     },
                                     "&:hover fieldset": {
-                                        borderColor: "rgba(255,255,255,0.6)",
+                                        border: "none",
                                     },
                                     "&.Mui-focused fieldset": {
-                                        borderColor: "rgba(255,255,255,0.9)",
+                                        border: "none",
                                     },
                                 }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
@@ -506,22 +542,36 @@ export default function AdminPayrollSetup() {
                             onChange={(e) => setSelectedComponent(prev => ({...prev, type: e.target.value}))}
                             displayEmpty
                             sx={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
+                                backgroundColor: "#cacace",
                                 borderRadius: "13px",
-                                color: "#fff",
+                                color: "#1F2829",
                                 fontSize: "18px",
-                                "& .MuiSelect-select": {padding: "8px 12px"},
-                                "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                                "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                                "& .MuiSvgIcon-root": {color: "#fff"},
+                                "& .MuiSelect-select": {
+                                    padding: "8px 12px",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "& .MuiSvgIcon-root": {
+                                    color: "#1F2829",
+                                },
                             }}
                             MenuProps={{
-                                PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: "#ffffff", color: "#1F2829",
+                                    }
+                                }
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span
-                                    style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
+                                    style={{color: "#828689"}}>Select Role</span>;
                                 return selected;
                             }}
                         >
@@ -530,6 +580,37 @@ export default function AdminPayrollSetup() {
                                     {option}
                                 </MenuItem>))}
                         </Select>
+                    </Box>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Formula / Fixed Amount
+                        </Typography>
+
+                        <TextField
+                            fullWidth
+                            value={selectedComponent?.formula || ""}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "13px",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        border: "none",
+                                    },
+                                    "&:hover fieldset": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        border: "none",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                            }}
+                        />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
@@ -544,22 +625,36 @@ export default function AdminPayrollSetup() {
                             onChange={(e) => setSelectedComponent(prev => ({...prev, status: e.target.value}))}
                             displayEmpty
                             sx={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
+                                backgroundColor: "#cacace",
                                 borderRadius: "13px",
-                                color: "#fff",
+                                color: "#1F2829",
                                 fontSize: "18px",
-                                "& .MuiSelect-select": {padding: "8px 12px"},
-                                "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                                "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                                "& .MuiSvgIcon-root": {color: "#fff"},
+                                "& .MuiSelect-select": {
+                                    padding: "8px 12px",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                },
+                                "& .MuiSvgIcon-root": {
+                                    color: "#1F2829",
+                                },
                             }}
                             MenuProps={{
-                                PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: "#ffffff", color: "#1F2829",
+                                    }
+                                }
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span
-                                    style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
+                                    style={{color: "#828689"}}>Select Role</span>;
                                 return selected;
                             }}
                         >
@@ -575,12 +670,32 @@ export default function AdminPayrollSetup() {
                             display: "flex", justifyContent: showRemove ? "center" : "flex-end", gap: 2, mt: 3,
                         }}
                     >
-                        {showRemove && (<ActionButton
-                            text="Remove"
-                            width="200px"
-                            color="#b22222"
-                            onClick={handleCloseModal}
-                        />)}
+                        {showRemove && (
+                            <Box
+                                component="button"
+                                onClick={handleCloseModal}
+                                sx={{
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#8b1a1a",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#a32020",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Remove
+                            </Box>
+                        )}
                         <Box
                             component="button"
                             sx={{
@@ -628,7 +743,7 @@ export default function AdminPayrollSetup() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                marginBottom: "25px",
+                marginBottom: 2,
             }}
         >
             Payment System Setup
@@ -701,9 +816,9 @@ export default function AdminPayrollSetup() {
                                 width="200px"
                                 onClick={() => {
                                     setSelectedComponent({name: "", type: "", status: ""});
-                                    setIsEditing(false);
                                     setModalType("payComponents");
                                     setOpenModalState(true);
+                                    setShowRemove(false);
                                 }}
                             />)}
                         </Box>

@@ -1,8 +1,14 @@
-import { Box, Typography, InputBase } from "@mui/material";
-import {fontFamily} from "@mui/system";
-import SearchIcon from "@mui/icons-material/Search";
+import {Box, Typography, useTheme} from "@mui/material";
+import ActionButton from "../../components/ActionButton.jsx";
+import React, {useState} from "react";
+import SearchBar from "../../components/SearchBar.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
 
 export default function PayrollPendingRequest() {
+    const theme = useTheme();
+
+    const [filter, setFilter] = useState("")
+
     const reports = [
         { date: "Sept. 15, 2025",period: "October Payroll",  amount: "PXX,XXX.XX", status: "Released" },
         { date: "Aug. 30, 2025", period: "October Payroll", amount: "PXX,XXX.XX", status : "Released" },
@@ -13,223 +19,121 @@ export default function PayrollPendingRequest() {
     return (
         <Box
             width = "100%"
-            height = "70vh"
+            height = "100%"
         >
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={3.5}
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    mb: 3,
+                }}
             >
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Report and History
                 </Typography>
 
-                <Box sx={{ position: "relative", mr: -99 }}>
-                    <select
-                        style={{
-                            appearance: "none",
-                            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            WebkitAppearance: "none",
-                            MozAppearance: "none",
-                            padding: "10px 45px 10px 25px",
-                            borderRadius: "25px",
-                            backgroundColor: "#DADBDB",
-                            color: "#222",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            fontSize: "15px",
-                            cursor: "pointer",
-                            outline: "none",
-                        }}
-                    >
-                        <option value="">Filter</option>
-                        <option>By Category</option>
-                        <option>By Date</option>
-                        <option>By Name</option>
-                    </select>
-                    <i
-                        className="ri-arrow-down-s-fill"
-                        style={{
-                            position: "absolute",
-                            right: "10px",
-                            top: "50%",
-                            paddingRight: "10px",
-                            transform: "translateY(-50%)",
-                            pointerEvents: "none",
-                            color: "#222",
-                            fontSize: "20px",
-                        }}
-                    ></i>
-                </Box>
-
                 <Box
-                    display="flex"
-                    alignItems="center"
-                    bgcolor="#E1E0E0"
-                    borderRadius="8px"
-                    px="15px"
-                    py="5px"
-                    boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-                    border= "1px solid rgba(255, 255, 255, 0.4)"
-                    width="450px"
+                    sx={{
+                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                    }}
                 >
-                    <SearchIcon
-                        sx={{
-                            fontSize: "1.7rem",
-                            mr: 1,
-                        }}
-                    />
-                    <InputBase
-                        placeholder="Enter Employee Name"
-                        sx={{
-                            fontFamily: "TT Hoves Pro, sans-serif",
-                            fontWeight: 300,
-                            fontSize: "0.95rem",
-                            width: "100%",
-                            backgroundColor: "#E1E0E0",
-                        }}
+                    <SearchBar placeholder="Enter Username" width="350px"/>
+
+                    <FilterSelect
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
                     />
                 </Box>
             </Box>
 
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="24px"
-                color="#222"
-                height="87%"
                 sx={{
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.7)",
+                    height: "80%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
-                    gap: "10px",
                 }}
             >
-
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "0.3fr 1fr 0.86fr 0.63fr",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        border: "none",
-                        padding: "20px",
-                        fontWeight: 600,
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        textAlign: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <span style={{ justifySelf: "start"}}>Date</span>
-                    <span style={{ justifySelf: "center"}}>Payroll Period</span>
-                    <span style={{ justifySelf: "center"}}>Total Amount</span>
-                    <span style={{ justifySelf: "end", paddingRight: "18vh"}}>Status</span>
+                    <span>Date</span>
+                    <span>Payroll Period</span>
+                    <span>Total Amount</span>
+                    <span>Status</span>
                 </Box>
 
                 <Box
                     sx={{
-                        maxHeight: "100%",
                         overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        height: "85%",
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
-                        "&::-webkit-scrollbar": {
-                            width: 0,
-                            height: 0,
-                        },
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
                     {reports.map((item, index) => (
                         <Box
                             key={index}
                             sx={{
+                                marginTop: "10px",
                                 display: "grid",
-                                gridTemplateColumns: "0.3fr 1fr 0.86fr 0.63fr",
-                                backgroundColor: "rgba(255, 255, 255, 0.3)",
-                                backdropFilter: "blur(12px)",
-                                borderRadius: "10px",
-                                padding: "30px",
-                                marginTop: "3px",
-                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                gridTemplateColumns: "repeat(4, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
                                 transition: "all 0.3s ease",
-                                border: "1px solid rgba(255,255,255,0.3)",
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
+                                textAlign: "center",
                             }}
                         >
-                            <span style={{ justifySelf: "start", fontWeight: 600}}>{item.date}</span>
-                            <span style={{ justifySelf: "center" }}>{item.period}</span>
-                            <span style={{ justifySelf: "center"  }}>{item.amount}</span>
-                            <span style={{ justifySelf: "end", color: "green", paddingRight: "15vh" }}>{item.status}</span>
+                            <span>{item.date}</span>
+                            <span>{item.period}</span>
+                            <span>{item.amount}</span>
+                            <span>{item.status}</span>
                         </Box>
                     ))}
                 </Box>
             </Box>
 
-            <Box textAlign="end" marginTop="30px">
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        marginRight: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Export Payslip PDF
-                </button>
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Export CSV
-                </button>
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+                <ActionButton text="Export Payslip PDF" width="200px"/>
+                <ActionButton text="Export CSV" width="200px"/>
             </Box>
         </Box>
     );

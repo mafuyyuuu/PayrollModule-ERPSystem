@@ -81,7 +81,7 @@ export default function AdminUserManagement() {
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 3,
+                    mb: 2,
                 }}
             >
                 <Typography
@@ -204,7 +204,7 @@ export default function AdminUserManagement() {
                 open={userModalOpen}
                 onClose={handleCloseModal}
                 width="450px"
-                height="470"
+                height="470px"
             >
                 <Typography
                     variant="h5"
@@ -230,16 +230,21 @@ export default function AdminUserManagement() {
                             variant="outlined"
                             size="small"
                             sx={{
-                                width: "150px",
                                 "& .MuiOutlinedInput-root": {
-                                    fontSize: "16px",
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
-                                    "& fieldset": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&:hover fieldset": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "&.Mui-focused fieldset": {borderColor: "rgba(255,255,255,0.9)"},
-                                },
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        border: "none",
+                                    },
+                                    "&:hover fieldset": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        border: "none",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
                         />
                     </Box>
@@ -258,14 +263,20 @@ export default function AdminUserManagement() {
                             sx={{
                                 width: "228px",
                                 "& .MuiOutlinedInput-root": {
-                                    fontSize: "16px",
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
-                                    "& fieldset": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&:hover fieldset": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "&.Mui-focused fieldset": {borderColor: "rgba(255,255,255,0.9)"},
-                                },
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        border: "none",
+                                    },
+                                    "&:hover fieldset": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        border: "none",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
                         />
                     </Box>
@@ -283,21 +294,35 @@ export default function AdminUserManagement() {
                         onChange={(e) => setSelectedUser(prev => ({...prev, role: e.target.value}))}
                         displayEmpty
                         sx={{
-                            backgroundColor: "rgba(255,255,255,0.2)",
+                            backgroundColor: "#cacace",
                             borderRadius: "13px",
-                            color: "#fff",
+                            color: "#1F2829",
                             fontSize: "18px",
-                            "& .MuiSelect-select": {padding: "8px 12px"},
-                            "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                            "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                            "& .MuiSvgIcon-root": {color: "#fff"},
+                            "& .MuiSelect-select": {
+                                padding: "8px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: "#1F2829",
+                            },
                         }}
                         MenuProps={{
-                            PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                            PaperProps: {
+                                sx: {
+                                    backgroundColor: "#ffffff", color: "#1F2829",
+                                }
+                            }
                         }}
                         renderValue={(selected) => {
-                            if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
+                            if (!selected) return <span style={{color: "#828689"}}>Select Role</span>;
                             return selected;
                         }}
                     >
@@ -321,21 +346,35 @@ export default function AdminUserManagement() {
                         onChange={(e) => setSelectedUser(prev => ({...prev, status: e.target.value}))}
                         displayEmpty
                         sx={{
-                            backgroundColor: "rgba(255,255,255,0.2)",
+                            backgroundColor: "#cacace",
                             borderRadius: "13px",
-                            color: "#fff",
+                            color: "#1F2829",
                             fontSize: "18px",
-                            "& .MuiSelect-select": {padding: "8px 12px"},
-                            "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                            "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                            "& .MuiSvgIcon-root": {color: "#fff"},
+                            "& .MuiSelect-select": {
+                                padding: "8px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: "#1F2829",
+                            },
                         }}
                         MenuProps={{
-                            PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                            PaperProps: {
+                                sx: {
+                                    backgroundColor: "#ffffff", color: "#1F2829",
+                                }
+                            }
                         }}
                         renderValue={(selected) => {
-                            if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Status</span>;
+                            if (!selected) return <span style={{color: "#828689"}}>Select Status</span>;
                             return selected;
                         }}
                     >
@@ -353,14 +392,32 @@ export default function AdminUserManagement() {
                     }}
                 >
                     {isEditing && (
-                        <ActionButton
-                            text="Remove"
-                            width="200px"
-                            color="#b22222"
+                        <Box
+                            component="button"
                             onClick={() => {
                                 handleCloseModal();
                             }}
-                        />
+                            sx={{
+                                display: "flex-end",
+                                fontSize: "16px",
+                                backgroundColor: "#8b1a1a",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "200px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#a32020",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Remove
+                        </Box>
                     )}
                     <Box
                         onClick={() => setConfirmModalOpen(true)}
