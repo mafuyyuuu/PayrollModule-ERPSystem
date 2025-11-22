@@ -54,11 +54,15 @@ function App() {
                     <Router>
                         <Routes>
                             {/* landing and login */}
+                            {/*<Route element={<Auth/>}>
+                                <Route path="/" element={<Landing/>}/>
+                                <Route path="/login" element={<Login/>}/>
+                            </Route>
+                            */}
                             <Route element={<Auth />}>
                                 <Route path="/" element={<Navigate to="/employee/dashboard" replace />} />
                                 <Route path="/login" element={<Login />} />
                             </Route>
-
                             {/* all protected routes share the same layout */}
                             <Route element={<Layout />}>
                                 {/* admin routes */}
@@ -129,4 +133,5 @@ function App() {
         </ColorModeContext.Provider>
     );
 }
+
 export default App;

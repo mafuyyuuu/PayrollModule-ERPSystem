@@ -26,7 +26,8 @@ export default function EmployeeProfileLayout() {
             display="grid"
             gridTemplateColumns={{ xs: "1fr", md: "320px 1fr" }}
             gap="30px"
-            sx={{ height: "75vh",
+            p="0 20px"
+            sx={{ height: "100%",
                 "&::-webkit-scrollbar": { width: 0, height: 0 },
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",}}
