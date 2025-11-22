@@ -1,8 +1,8 @@
 import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { tokens } from "../../theme";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
 
 
 // Sample data for Manager Timesheet table
@@ -59,11 +59,10 @@ const PendingRequest = [
 
 const ManagerPendingRequest = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     return (
 
-        <Box mb="20px" mr="20px" ml="20px" >
+        <Box mr="20px" ml="20px" >
 
             {/* FILTER BAR */}
             <Box
@@ -85,42 +84,11 @@ const ManagerPendingRequest = () => {
                      justifyContent="flex-end"
                      justifySelf="end"
                      gap="15px">
-                    <Box sx={{ position: "relative" }}>
-                        <select
-                            defaultValue=""
-                            style={{
-                                height: "45px",
-                                appearance: "none",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                                width: "auto",
-                                padding: "10px 40px 10px 12px",
-                                borderRadius: "20px",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
-                                background: "rgba(255, 255, 255, 0.2)",
-                                backdropFilter: "blur(12px)",
-                                color: "#222",
-                                fontFamily: "inherit",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Filter</option>
-                        </select>
-                        <i
-                            class="ri-arrow-drop-down-fill"
-                            style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none",
-                                color: "#222",
-                                fontSize: "32px",
-                            }}
-                        ></i>
-                    </Box>
+
+                    <FilterSelect
+                        placeholder="Filter"
+                        width="90px"
+                    />
 
                     <SearchBar
                         placeholder="Enter Employee Name"
@@ -133,16 +101,18 @@ const ManagerPendingRequest = () => {
 
             {/* TABLE CONTAINER */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
                 borderRadius="12px"
                 p="20px"
                 paddingBottom="90px"
                 sx={{
-                    maxHeight: "600px",
+                    backgroundColor:
+                        theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(255, 255, 255, 0.2)",
+                    maxHeight: "580px",
                     backdropFilter: "blur(12px)",
                     fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -157,31 +127,30 @@ const ManagerPendingRequest = () => {
                     alignItems="center"
                     fontWeight="600"
                     columnGap="120px"
-                    color="#333"
                     p="12px 16px"
                     sx={{
-                        borderBottom: "1px solid #ddd",
+                        color: theme.palette.text.primary,
                         fontFamily: "TTHoves-Bold, sans-serif",
                     }}
                 >
                     <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif", }}>
                         Request Type
                     </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                    <Typography Color="#172224" fontWeight={600} sx={{ ml:"18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Employee
                     </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                    <Typography Color="#172224" fontWeight={600} sx={{  ml:"20px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Date
                     </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                    <Typography Color="#172224" fontWeight={600} sx={{  ml:"10px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Amount
                     </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                    <Typography Color="#172224" fontWeight={600} sx={{  ml:"5px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Status
                     </Typography>
                     <Typography
                         Color="#172224"
-                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}
+                        sx={{  ml:"18px", fontFamily: "'TTHoves-Bold', sans-serif" }}
                     >
                         Action
                     </Typography>
@@ -191,7 +160,10 @@ const ManagerPendingRequest = () => {
                 <Box
                     sx={{
                         overflowY: "auto",
-                        maxHeight: "500px",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        maxHeight: "480px",
                         pr: "8px",
                         display: "flex",
                         flexDirection: "column",
@@ -208,13 +180,14 @@ const ManagerPendingRequest = () => {
                             p="16px"
                             mt="10px"
                             borderRadius="10px"
-                            backgroundColor = "rgba(255, 255, 255, 0.25)"
+                            backgroundColor = "#fff"
                             boxShadow="0 1px 4px rgba(0,0,0,0.06)"
                             sx={{
+                                color: "#1b2223",
                                 borderBottom: "1px solid #eee",
                                 fontFamily: "'TT-Hoves Bold', sans-serif",
+                                transition: "all 0.3s ease",
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
                                     transform: "translateY(-2px)",
                                     boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
@@ -337,14 +310,17 @@ const ManagerPendingRequest = () => {
             </Box>
 
             {/* EXPORT BUTTONS */}
-            <Box display="flex" justifyContent="flex-end" gap="15px" mt="30px">
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
                 <Button
                     variant="contained"
                     sx={{
                         height: "50px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: "#fff !important",
-                        backgroundColor: "#172224",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgb(23,34,36)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",
@@ -359,10 +335,13 @@ const ManagerPendingRequest = () => {
                 <Button
                     variant="contained"
                     sx={{
+                        height: "50px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: "#fff !important",
-                        height: "50px",
-                        backgroundColor: "#172224",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgb(23,34,36)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",

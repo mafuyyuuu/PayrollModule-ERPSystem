@@ -1,6 +1,6 @@
 import React from "react";
-import { Box, Typography, Button } from "@mui/material";
-import { RiFilter3Line } from "react-icons/ri";
+import { Box, Typography, Button, useTheme } from "@mui/material";
+import FilterSelect from "../../components/FilterSelect.jsx";
 
 const deductionData = [
     ["Jhervin Jimenez", "₱1,200", "₱500", "₱400", "₱200", "₱2,300"],
@@ -10,10 +10,12 @@ const deductionData = [
 ];
 
 export default function ManagerReports() {
+    const theme = useTheme();
+
     return (
-        <Box mb="20px" mr="20px" ml="20px">
+        <Box mr="20px" ml="20px">
             {/* HEADER */}
-            <Box display= "flex" justifyContent="space-between" alignItems="center" mb="20px">
+            <Box display= "flex" justifyContent="space-between" alignItems="center" mb="15px">
                 <Typography
                     Color="#172224"
                     fontSize="20px"
@@ -29,7 +31,10 @@ export default function ManagerReports() {
                         height: "45px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: "#fff !important",
-                        backgroundColor: "#172224",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgb(23,34,36)",
                         borderRadius: "100px",
                         px: 3,
                         textTransform: "none",
@@ -57,8 +62,12 @@ export default function ManagerReports() {
                     mb="25px"
                     sx={{
                         boxShadow: "0 4px 15px rgba(0, 0, 0, 0.08)",
-                        border: "1px solid rgba(255, 255, 255, 0.27)",
-                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        border: `1px solid ${theme.palette.divider}`,
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.2)",
+                        color: theme.palette.text.primary,
                         backdropFilter: "blur(6.300000190734863px)",
                         transition: "all 0.3s ease",
                         "&:hover": {
@@ -70,38 +79,35 @@ export default function ManagerReports() {
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <Typography
                             sx={{
+                                color: theme.palette.text.primary,
                                 fontFamily: "'TTHoves-Bold', sans-serif",
                                 fontWeight: 600,
-                                color: "#172224",
                             }}
                         >
                             Department Payroll Summary Report
                         </Typography>
 
                         <Box display="flex" gap="10px" alignItems="center">
-                            <Button
-                                variant="outlined"
-                                startIcon={<RiFilter3Line />}
-                                sx={{
-                                    textTransform: "none",
-                                    borderRadius: "20px",
-                                    border: "1px solid rgba(255, 255, 255, 0.4)",
-                                    background: "rgba(255, 255, 255, 0.2)",
-                                    backdropFilter: "blur(12px)",
-                                    color: "#222",
-                                }}
-                            >
-                                Filter
-                            </Button>
+                            <FilterSelect>
+
+                            </FilterSelect>
                             <Button
                                 variant="contained"
                                 sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    height: "43px",
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff !important",
+                                    backgroundColor:
+                                        theme.palette.mode === "dark"
+                                            ? "rgba(255, 255, 255, 0.05)"
+                                            : "rgb(23,34,36)",
+                                    borderRadius: "100px",
+                                    px: 3,
                                     textTransform: "none",
-                                    backgroundColor: "#0E1F1B",
-                                    color: "#fff",
-                                    borderRadius: "20px",
-                                    "&:hover": { backgroundColor: "#1E3932" },
+                                    "&:hover": {
+                                        backgroundColor: "#1E293B",
+                                        transform: "scale(1.03)",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)"},
                                 }}
                             >
                                 Export PDF
@@ -113,8 +119,8 @@ export default function ManagerReports() {
                     <Box
                         display= "flex"
                         width= "auto"
-                        height= "225px"
-                        justify-content= "center"
+                        height= "220px"
+                        justifyContent= "space-between"
                         align-items= "flex-start"
                         gap= "10px">
 
@@ -139,11 +145,13 @@ export default function ManagerReports() {
                             sx={{
                                 borderRadius: "12px",
                                 opacity: "0.95",
-                                background: "rgba(48, 48, 48, 0.1) 50.23%",
+                                backgroundColor:
+                                    theme.palette.mode === "dark"
+                                        ? "rgba(255, 255, 255, 0.05)"
+                                        : "rgba(255, 255, 255, 0.1)",
                                 backdropFilter: "blur(12px)",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
+                                border: `1px solid ${theme.palette.divider}`,
                                 transition: "all 0.3s ease",
                                 "&:hover": {
                                     transform: "scale(1.02)",
@@ -162,7 +170,9 @@ export default function ManagerReports() {
                                 borderRadius="8px 8px 0 0"
                                 sx={{
                                     fontFamily: "TTHoves-Bold, sans-serif",
-                                    color: "#44444B",
+                                    color: theme.palette.mode === "dark"
+                                        ? "#fff !important"
+                                        : "#000000",
 
                                 }}
                             >
@@ -198,11 +208,10 @@ export default function ManagerReports() {
                                         alignItems="center"
                                         textAlign="center"
                                         p="10px"
-                                        borderBottom="1px solid #eee"
                                         sx={{
-                                            border: "1px solid rgba(255, 255, 255, 0.27)",
-                                            background: "rgba(255, 255, 255, 0.49)",
-                                            "&:hover": { backgroundColor: "#fff"
+                                            backgroundColor: "#fff",
+                                            color: "#000000",
+                                            "&:hover": {
                                             },
                                         }}
                                     >
@@ -220,16 +229,18 @@ export default function ManagerReports() {
                 </Box>
 
                 {/* === LOWER GRID SECTION === */}
-                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap="20px" mb="25px" >
+                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap="20px" >
                     {/* DEPARTMENT SUMMARY */}
                     <Box
-                        height= "330px"
+                        height= "310px"
                         borderRadius="12px"
                         p="20px"
                         sx={{
-                            border: "1px solid rgba(255, 255, 255, 0.27)",
-                            backgroundColor: "rgba(255, 255, 255, 0.2)",
-                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.08)",
+                            border: `1px solid ${theme.palette.divider}`,
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.05)"
+                                    : "rgba(255, 255, 255, 0.1)",
                             transition: "all 0.3s ease",
                             "&:hover": {
                                 transform: "scale(1.02)",
@@ -242,7 +253,7 @@ export default function ManagerReports() {
                                 sx={{
                                     fontFamily: "'TTHoves-Bold', sans-serif",
                                     fontWeight: 600,
-                                    color: "#172224",
+                                    color: theme.palette.text.primary,
                                 }}
                             >
                                 Department Summary (Chart/Graph)
@@ -276,9 +287,11 @@ export default function ManagerReports() {
                         borderRadius="12px"
                         p="20px"
                         sx={{
-                            border: "1px solid rgba(255, 255, 255, 0.27)",
-                            backgroundColor: "rgba(255, 255, 255, 0.2)",
-                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.08)",
+                            border: `1px solid ${theme.palette.divider}`,
+                            backgroundColor:
+                                theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.05)"
+                                    : "rgba(255, 255, 255, 0.1)",
                             transition: "all 0.3s ease",
                             "&:hover": {
                                 transform: "scale(1.02)",
@@ -291,7 +304,7 @@ export default function ManagerReports() {
                                 sx={{
                                     fontFamily: "'TTHoves-Bold', sans-serif",
                                     fontWeight: 600,
-                                    color: "#172224",
+                                    color: theme.palette.text.primary,
                                 }}
                             >
                                 Tax and Compliance (Chart/Graph)

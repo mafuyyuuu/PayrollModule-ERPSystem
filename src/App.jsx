@@ -55,7 +55,7 @@ function App() {
                         <Routes>
                             {/* landing and login */}
                             <Route element={<Auth />}>
-                                <Route path="/" element={<Landing />} />
+                                <Route path="/" element={<Navigate to="/employee/dashboard" replace />} />
                                 <Route path="/login" element={<Login />} />
                             </Route>
 
@@ -129,5 +129,4 @@ function App() {
         </ColorModeContext.Provider>
     );
 }
-
 export default App;
