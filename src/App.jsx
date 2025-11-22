@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 // Auth pages
 import Auth from "./pages/auth/Auth.jsx";
 import Landing from "./pages/auth/Landing.jsx";
+import AdminLogin from './pages/auth/AdminLogin.jsx';
 import Login from "./pages/auth/Login.jsx";
 
 // Layout
@@ -54,11 +55,12 @@ function App() {
                     <Router>
                         <Routes>
                             {/* landing and login */}
-                            <Route element={<Auth/>}>
-                                <Route path="/" element={<Landing/>}/>
-                                <Route path="/login" element={<Login/>}/>
+                            <Route element={<Auth />}>
+                                <Route path="/" element={<Landing />} />
+                                <Route path="/AdminLogin" element={<AdminLogin />} />
+                                <Route path="/login" element={<Login />} />
                             </Route>
-                        
+
                             {/* all protected routes share the same layout */}
                             <Route element={<Layout />}>
                                 {/* admin routes */}
@@ -129,4 +131,5 @@ function App() {
         </ColorModeContext.Provider>
     );
 }
+
 export default App;

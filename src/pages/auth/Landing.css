@@ -35,11 +35,18 @@
     color: white;
 }
 
-.continue-btn {
+.button-container {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    justify-content: center;
+}
+
+.continue-btn, .loginadmin-btn {
     font-family: 'TTHoves-DemiBold', sans-serif;
     font-size: 1rem;
     padding: 0.75rem 2.5rem;
-    min-width: 32rem;
+    min-width: 20rem;
     border-radius: 50px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     background: rgba(255, 255, 255, 0.1);
@@ -50,7 +57,7 @@
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
 
-.continue-btn:hover {
+.continue-btn:hover, .loginadmin-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.25);
 }
