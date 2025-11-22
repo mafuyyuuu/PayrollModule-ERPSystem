@@ -1,12 +1,14 @@
-import {NavLink, useNavigate} from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import "../components/Sidebar.css";
 import { useUser } from "./UserContext.jsx";
 import logo from "../assets/lenscape.png";
+import { useState } from "react";
+import LogoutModal from '../pages/auth/LogoutModal.jsx';
 
 export default function Sidebar() {
-    const { user, setUser } = useUser();
-    const navigate = useNavigate();
+    const { user } = useUser();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const roleBasePath = {
         admin: "/admin",
@@ -15,19 +17,8 @@ export default function Sidebar() {
         employee: "/employee",
     };
 
-    const handleLogout = async () => {
-        try {
-            // call your backend API here
-            // await fetch("/api/logout", { method: "POST", credentials: "include" });
-
-            // temporary frontend-only logout:
-            setUser(null);
-            localStorage.removeItem("user");
-
-            navigate("/");
-        } catch (error) {
-            console.error("Logout failed:", error);
-        }
+    const handleLogout = () => {
+        setShowLogoutModal(true);
     };
 
     const basePath = roleBasePath[user?.role] || "";
@@ -67,45 +58,53 @@ export default function Sidebar() {
     const navItems = roleBasedNav[user?.role] || [];
 
     return (
-        <nav className="sidebar">
-            <div className="top-section">
-                <div className="logo-section">
-                    <img src={logo} alt="Logo" className="logo" />
-                    <span className="logo-text">Payroll</span>
+        <>
+            <nav className="sidebar">
+                <div className="top-section">
+                    <div className="logo-section">
+                        <img src={logo} alt="Logo" className="logo" />
+                        <span className="logo-text">Payroll</span>
+                    </div>
+
+                    <ul className="nav-list">
+                        {navItems.map((item) => (
+                            <li key={item.name} className="nav-item">
+                                <NavLink
+                                    to={`${basePath}/${item.path}`}
+                                    end={item.path === "dashboard"}
+                                    className={({ isActive }) =>
+                                        `nav-link ${isActive ? "active" : ""}`
+                                    }
+                                >
+                                    <i className={`${item.icon} icon`}></i>
+                                    {item.name}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
 
-                <ul className="nav-list">
-                    {navItems.map((item) => (
-                        <li key={item.name} className="nav-item">
-                            <NavLink
-                                to={`${basePath}/${item.path}`}
-                                end={item.path === "dashboard"}
-                                className={({ isActive }) =>
-                                    `nav-link ${isActive ? "active" : ""}`
-                                }
-                            >
-                                <i className={`${item.icon} icon`}></i>
-                                {item.name}
-                            </NavLink>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+                <div className="bottom-section">
+                    {user?.role === "employee" && (
+                        <NavLink
+                            to={`${basePath}/profile`}
+                            className={({ isActive }) => `profile-link ${isActive ? "active" : ""}`}
+                        >
+                            <i className="ri-user-3-fill icon"></i>
+                            <span>User Profile</span>
+                        </NavLink>
+                    )}
+                    <button className="logout-link" onClick={handleLogout}>
+                        <i className="ri-logout-box-r-fill icon"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </nav>
 
-            <div className="bottom-section">
-                <NavLink
-                    to={`${basePath}/profile`}
-                    className={({ isActive }) => `profile-link ${isActive ? "active" : ""}`}
-                >
-                    <i className="ri-user-3-fill icon"></i>
-                    <span>User Profile</span>
-                </NavLink>
-
-                <button className="logout-link" onClick={handleLogout}>
-                    <i className="ri-logout-box-r-fill icon"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </nav>
+            <LogoutModal
+                show={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
+            />
+        </>
     );
 }

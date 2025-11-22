@@ -56,17 +56,19 @@ else:
 # Load employees
 if os.path.exists(employees_file):
     with open(employees_file, "r") as f:
-        employees = json.load(f)
+        raw = json.load(f)
+    employees = {int(k): v for k, v in raw.items()}
 else:
     employees = {}
 
-def log_attendance_to_db(employee_id, name, action, timestamp):
+def log_attendance_to_db(employee_id, name, action, timestamp, time_out=None):
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
 
         date_str = timestamp.split(" ")[0]
         time_str = timestamp.split(" ")[1]
+        calc_time_out = time_out or time_str
 
         # Check if there's already a record for this employee today
         cursor.execute("""
@@ -87,21 +89,23 @@ def log_attendance_to_db(employee_id, name, action, timestamp):
                 print(f"✅ {name} checked in at {time_str}")
 
         elif action == "check_out":
-            if record and record[2] is None:  # only update if no time_out
+            if record and record[2] is None:
                 time_in = record[1]
                 if time_in:
                     # Calculate overtime hours
-                    cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, time_str))
-                    total_minutes = cursor.fetchone()[0]
-                    total_hours = total_minutes / 60.0
-                    overtime = max(0, total_hours - 8)  # Overtime after 8 hours
-
-                    cursor.execute("""
-                                   UPDATE timesheets
-                                   SET time_out = %s, overtime_hours = %s
-                                   WHERE timesheet_id = %s
-                                   """, (time_str, round(overtime, 2), record[0]))
-                    print(f"✅ {name} checked out at {time_str} (Overtime: {round(overtime, 2)}h)")
+                    cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, calc_time_out))
+                    result = cursor.fetchone()
+                    total_minutes = result[0] if result and result[0] is not None else 0
+                    total_hours = total_minutes / 60.0 if total_minutes else 0.0
+                    overtime = max(0.0, total_hours - 8)
+                    cursor.execute(
+                        """
+                        UPDATE timesheets
+                        SET time_out = %s, overtime_hours = %s
+                        WHERE timesheet_id = %s
+                        """,
+                        (calc_time_out, round(overtime, 2), record[0])
+                    )
                 else:
                     print(f"⚠️ Missing time_in for {employee_id}")
             else:
@@ -122,7 +126,7 @@ def save_embeddings():
 
 def save_employees():
     with open(employees_file, "w") as f:
-        json.dump(employees, f, indent=2)
+        json.dump({str(k): v for k, v in employees.items()}, f, indent=2)
 
 # POST /register - Register new employee or add samples
 @app.post("/register")
@@ -233,7 +237,6 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
 
         THRESHOLD = 0.75  # tighten/loosen after testing
 
-        # If no good match found -> return not matched
         if not best_match_id or best_score < THRESHOLD:
             return {
                 "matched": False,
@@ -242,16 +245,71 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
                 "confidence": float(round(best_score * 100, 2)) if best_score != -1.0 else None
             }
 
-        # 3) We have a match: determine action based on DB (preferred source of truth)
-        employee_id = best_match_id  # note: in your registration code keys are ints
+
+        employee_id = best_match_id
         name = employees.get(employee_id, "Unknown")
 
         now = datetime.datetime.now()
         date_str = now.strftime("%Y-%m-%d")
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-        log_file = f"attendance_logs/{employee_id}.json"
 
-        # Determine next action by checking DB record for today
+
+        if action == "logout":
+            try:
+                connection = mysql.connector.connect(**DB_CONFIG)
+                cursor = connection.cursor()
+
+                cursor.execute("""
+                               SELECT timesheet_id, time_in, time_out
+                               FROM timesheets
+                               WHERE employee_id = %s AND date = %s
+                               """, (int(employee_id), date_str))
+                record = cursor.fetchone()
+
+                if record and record[2] is None:
+                    time_in = record[1]
+                    time_out = timestamp.split(" ")[1]
+
+                    # Calculate overtime with NULL check
+                    cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, time_out))
+                    result = cursor.fetchone()
+                    total_minutes = result[0] if result and result[0] is not None else 0
+
+                    if total_minutes > 0:
+                        total_hours = total_minutes / 60.0
+                        overtime = max(0, total_hours - 8)
+                    else:
+                        overtime = 0.0
+
+                    cursor.execute("""
+                                   UPDATE timesheets
+                                   SET time_out = %s, overtime_hours = %s
+                                   WHERE timesheet_id = %s
+                                   """, (time_out, round(overtime, 2), record[0]))
+                    connection.commit()
+                    print(f"✅ {name} logged out at {time_out} (Overtime: {round(overtime, 2)}h)")
+                else:
+                    print(f"⚠️ No active session for {name} today")
+
+                cursor.close()
+                connection.close()
+
+            except Error as db_error:
+                print(f"⚠️ Database error during logout: {db_error}")
+
+            return {
+                "matched": True,
+                "attendance_recorded": True,
+                "employee_id": employee_id,
+                "name": name,
+                "action": "time_out",
+                "timestamp": timestamp,
+                "similarity": float(best_score),
+                "confidence": float(round(best_score * 100, 2))
+            }
+
+
+    # Determine next action by checking DB record for today
         try:
             connection = mysql.connector.connect(**DB_CONFIG)
             cursor = connection.cursor()
@@ -281,24 +339,25 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         else:
             next_action = "check_in"
 
-        # 4) Update JSON logs (for frontend / fallback)
-        if os.path.exists(log_file):
-            with open(log_file, "r") as f:
-                logs = json.load(f)
-            # convert old list format to dict keyed by date (backwards compat)
-            if isinstance(logs, list):
-                logs = {date_str: logs}
-        else:
-            logs = {}
-
-        if date_str not in logs:
-            logs[date_str] = []
-
-        log_entry = {"action": next_action, "timestamp": timestamp}
-        logs[date_str].append(log_entry)
-
-        with open(log_file, "w") as f:
-            json.dump(logs, f, indent=2)
+        # log_file = f"attendance_logs/{employee_id}.json"
+        # # 4) Update JSON logs (for frontend / fallback)
+        # if os.path.exists(log_file):
+        #     with open(log_file, "r") as f:
+        #         logs = json.load(f)
+        #     # convert old list format to dict keyed by date (backwards compat)
+        #     if isinstance(logs, list):
+        #         logs = {date_str: logs}
+        # else:
+        #     logs = {}
+        #
+        # if date_str not in logs:
+        #     logs[date_str] = []
+        #
+        # log_entry = {"action": next_action, "timestamp": timestamp}
+        # logs[date_str].append(log_entry)
+        #
+        # with open(log_file, "w") as f:
+        #     json.dump(logs, f, indent=2)
 
         # 5) Sync to DB (this will insert or update timesheets)
         try:
@@ -325,27 +384,42 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         return {"matched": False, "error": f"Unexpected server error: {str(e)}"}
 
 # GET /attendance/{employee_id} - Fetch logs
-@app.get("/attendance/{employee_id}")
-def get_attendance(employee_id: str):
-    log_file = f"attendance_logs/{employee_id}.json"
-    if os.path.exists(log_file):
-        with open(log_file, "r") as f:
-            logs = json.load(f)
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
-        return logs.get(today, [])
-    return []
-
-# GET /employees - List all employees and sample counts
-@app.get("/employees")
-def list_employees():
-    return {
-        "total": len(embeddings_db),
-        "employees": [
-            {
-                "employee_id": emp_id,
-                "name": employees.get(emp_id, "Unknown"),
-                "samples": len(embeddings_db[emp_id])
-            }
-            for emp_id in embeddings_db
-        ]
-    }
+# @app.get("/attendance/{employee_id}")
+# def get_attendance(employee_id: str):
+#     log_file = f"attendance_logs/{employee_id}.json"
+#     if os.path.exists(log_file):
+#         with open(log_file, "r") as f:
+#             logs = json.load(f)
+#         today = datetime.datetime.now().strftime("%Y-%m-%d")
+#         return logs.get(today, [])
+#     return []
+#
+# # GET /employees - List all emplo# Calculate overtime
+# cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, time_out))
+# result = cursor.fetchone()
+# total_minutes = result[0] if result and result[0] is not None else 0
+#
+# if total_minutes > 0:
+#     total_hours = total_minutes / 60.0
+#     overtime = max(0, total_hours - 8)
+# else:
+#     overtime = 0.0
+#
+# cursor.execute("""
+#     UPDATE timesheets
+#     SET time_out = %s, overtime_hours = %s
+#     WHERE timesheet_id = %s
+# """, (time_out, round(overtime, 2), record[0]))
+# @app.get("/employees")
+# def list_employees():
+#     return {
+#         "total": len(embeddings_db),
+#         "employees": [
+#             {
+#                 "employee_id": emp_id,
+#                 "name": employees.get(emp_id, "Unknown"),
+#                 "samples": len(embeddings_db[emp_id])
+#             }
+#             for emp_id in embeddings_db
+#         ]
+#     }
