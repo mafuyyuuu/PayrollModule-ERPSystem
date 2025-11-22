@@ -1,11 +1,14 @@
-import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import { tokens } from "../../theme";
+import {Box, Typography, IconButton} from "@mui/material";
+import {useTheme} from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
+import FilterSelect from "../../components/FilterSelect.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
+import ViewTextField from "../../components/ViewTextField.jsx";
+import {RiCheckFill, RiCloseFill, RiPencilFill} from "react-icons/ri";
+import React, {useState} from "react";
+import ActionButton from "../../components/ActionButton.jsx";
 
-
-// Sample data for Manager Timesheet table
 const timesheetData = [
     {
         id: 1,
@@ -15,7 +18,7 @@ const timesheetData = [
         timeOut: "05:00 PM",
         totalHours: "9",
         overtime: "1",
-        status: "● Approved",
+        status: "Approved",
     },
     {
         id: 2,
@@ -25,7 +28,7 @@ const timesheetData = [
         timeOut: "06:00 PM",
         totalHours: "9",
         overtime: "0",
-        status: "● Pending",
+        status: "Pending",
     },
     {
         id: 3,
@@ -35,7 +38,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 4,
@@ -45,7 +48,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 5,
@@ -55,7 +58,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 6,
@@ -65,7 +68,7 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
     {
         id: 7,
@@ -75,79 +78,58 @@ const timesheetData = [
         timeOut: "04:00 PM",
         totalHours: "8.5",
         overtime: "0.5",
-        status: "● Rejected",
+        status: "Rejected",
     },
 ];
 
 const ManagerTimesheets = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
+
+    const [filter, setFilter] = useState("");
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    const handleView = (row) => {
+        setSelectedRow(row);
+        setOpenModal(true);
+    };
 
     return (
-
-        <Box mb="20px" mr="20px" ml="20px">
-
+        <Box width="100%" height="80%">
             {/* FILTER BAR */}
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-                gap="10px"
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    mb: 3,
+                }}
             >
                 {/* HEADER */}
                 <Typography
-                    Color="#172224"
-                    fontSize="20px"
+                    variant="h5"
                     sx={{
-                        fontFamily: "TTHoves-Bold, sans-serif",}}>
+                        fontSize: "20px",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        color: theme.palette.text.primary,
+                    }}
+                >
                     Timesheet Approval
                 </Typography>
-                <Box display="flex"
-                     justifyContent="flex-end"
-                     justifySelf="end"
-                     gap="15px">
-                    <Box sx={{ position: "relative" }}>
-                        <select
-                            defaultValue=""
-                            style={{
-                                height: "45px",
-                                appearance: "none",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                                width: "auto",
-                                padding: "10px 40px 10px 12px",
-                                borderRadius: "20px",
-                                border: "1px solid rgba(255, 255, 255, 0.4)",
-                                background: "rgba(255, 255, 255, 0.2)",
-                                backdropFilter: "blur(12px)",
-                                color: "#222",
-                                fontFamily: "inherit",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Filter</option>
-                        </select>
-                        <i
-                            class="ri-arrow-drop-down-fill"
-                            style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none",
-                                color: "#222",
-                                fontSize: "32px",
-                            }}
-                        ></i>
-                    </Box>
+                <Box
+                    sx={{
+                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                    }}
+                >
+                    <FilterSelect
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                    />
 
                     <SearchBar
                         placeholder="Enter Employee Name"
-                        width="450px"
-
+                        width="350px"
                     />
                 </Box>
 
@@ -155,260 +137,271 @@ const ManagerTimesheets = () => {
 
             {/* TABLE CONTAINER */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="20px"
                 sx={{
-                    maxHeight: "600px",
+                    height: "100%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
-                    gap: "10px",
-                    scrollbarWidth: "auto",
                 }}
             >
                 {/* HEADER ROW */}
                 <Box
-                    display="grid"
-                    gridTemplateColumns="1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 0.9fr"
-                    alignItems="space-between"
-                    fontWeight={600}
-                    color="#333"
-                    p="12px 16px"
                     sx={{
-                        borderBottom: "1px solid #ddd",
-                        fontFamily: "TTHoves-Bold, sans-serif",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(8, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        textAlign: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif", }}>
-                        Employee
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Date
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Time In
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Time Out
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Total Hours
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Overtime
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Status
-                    </Typography>
-                    <Typography
-                        Color="#172224"
-                        fontWeight={600}
-                        textAlign="center"
-                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}
-                    >
-                        Action
-                    </Typography>
+                    <span>Employee Name</span>
+                    <span>Date</span>
+                    <span>Time In</span>
+                    <span>Time Out</span>
+                    <span>Total Hours</span>
+                    <span>Overtime</span>
+                    <span>Status</span>
+                    <span>Actions</span>
                 </Box>
 
                 {/* DATA ROWS */}
-            <Box
-                sx={{
-                maxHeight: "500px",
-                overflowY: "auto",
-                pr: "8px",
-                display: "flex",
-                flexDirection: "column",
-                mt: "5px",
-                gap: "10px",
-                height: "85%",
-            }}>
-                {timesheetData.map((row) => (
-                    <Box
-                        display="grid"
-                        gridTemplateColumns="1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 0.8fr"
-                        alignItems="center"
-                        p="16px"
-                        mt="10px"
-                        borderRadius="10px"
-                        backgroundColor = "rgba(255, 255, 255, 0.25)"
-                        boxShadow="0 1px 4px rgba(0,0,0,0.06)"
-                        sx={{
-                            borderBottom: "1px solid #eee",
-                            fontFamily: "'TT-Hoves Bold', sans-serif",
-                            "&:hover": {
-                                backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                transform: "translateY(-2px)",
-                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                            },
-                        }}
-                    >
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                            {row.employee}
-                        </Typography>
-                        <Typography ml="-20px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                            {row.date}
-                        </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                            {row.timeIn}
-                        </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                            {row.timeOut}
-                        </Typography>
-                        <Typography ml="35px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                            {row.totalHours}
-                        </Typography>
-                        <Typography ml="35px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                            {row.overtime}
-                        </Typography>
-                        <Typography
-                            ml="-10px"
+                <Box
+                    sx={{
+                        overflowY: "auto",
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    }}
+                >
+                    {timesheetData.map((row) => (
+                        <Box
                             sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                color:
-                                    row.status === "● Approved"
-                                        ? "#4CAF50"
-                                        : row.status === "● Rejected"
-                                            ? "#F44336"
-                                            : "#FFC107",
-                                fontWeight: 500,
+                                marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(8, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                },
+                                textAlign: "center",
                             }}
                         >
-                            {row.status}
-                        </Typography>
-                        <Box textAlign="center" ml="20px" display="flex" justifyContent="center" gap="8px">
-                            {row.status === "● Pending" ? (
-                                <>
-                                    {/*Accept Button */}
-                                    <Button
-                                        disableRipple
-                                        sx={{
-                                            backgroundColor: "#172224",
-                                            color: "green",
-                                            width: "40px",
-                                            height: "36px",
-                                            minWidth: "36px",
-                                            padding: 0,
-                                            borderRadius: "50%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            transition: "all 0.2s ease",
-                                            "&:hover": {
-                                                backgroundColor: "#388E3C",
-                                                color: "#fff",
-                                                transform: "translateY(-3px)",
-                                            },
-                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                        }}
-                                    >
-                                        <i className="ri-check-fill" style={{ fontSize: "20px", textShadow: "0 0 1px rgba(255, 255, 255, 0.9)", transform: "scale(1.2)"}}></i>
-                                    </Button>
+                            <span>{row.employee}</span>
+                            <span>{row.date}</span>
+                            <span>{row.timeIn}</span>
+                            <span>{row.timeOut}</span>
+                            <span>{row.totalHours}</span>
+                            <span>{row.overtime}</span>
+                            <span
+                                style={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color:
+                                        row.status === "Approved"
+                                            ? "#4CAF50"
+                                            : row.status === "Rejected"
+                                                ? "#F44336"
+                                                : "#FFC107",
+                                    fontWeight: 500,
+                                }}
+                            >
+                                {row.status}
+                            </span>
+                            <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
+                                {row.status === "Pending" ? (
+                                    <>
+                                        {/*Accept Button */}
+                                        <IconButton
+                                            disableRipple
+                                            sx={{
+                                                backgroundColor: "#172224",
+                                                color: "green",
+                                                width: 40,
+                                                height: 36,
+                                                borderRadius: "50%",
+                                                transition: "all 0.2s ease",
+                                                "&:hover": {
+                                                    backgroundColor: "#388E3C",
+                                                    color: "#fff",
+                                                    transform: "translateY(-3px)",
+                                                },
+                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                            }}
+                                        >
+                                            <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                        </IconButton>
 
-                                    {/*Reject Button */}
-                                    <Button
-                                        disableRipple
-                                        sx={{
-                                            backgroundColor: "#172224",
-                                            color: "red",
-                                            width: "40px",
-                                            height: "36px",
-                                            minWidth: "36px",
-                                            padding: 0,
-                                            borderRadius: "50%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            transition: "all 0.2s ease",
-                                            "&:hover": {
-                                                backgroundColor: "#D32F2F",
-                                                color: "#fff",
-                                                transform: "translateY(-3px)",
-                                            },
-                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                        }}
-                                    >
-                                        <i className="ri-close-fill" style={{ fontSize: "20px", textShadow: "0 0 1px rgba(255, 255, 255, 0.9)", transform: "scale(1.2)" }}></i>
-                                    </Button>
-                                </>
-                            ) : (
-                                // 👁 Default "View" Button
-                                <Button
-                                    disableRipple
-                                    sx={{
+                                        {/* Reject Button */}
+                                        <IconButton
+                                            disableRipple
+                                            sx={{
+                                                backgroundColor: "#172224",
+                                                color: "red",
+                                                width: 40,
+                                                height: 36,
+                                                borderRadius: "50%",
+                                                transition: "all 0.2s ease",
+                                                "&:hover": {
+                                                    backgroundColor: "#D32F2F",
+                                                    color: "#fff",
+                                                    transform: "translateY(-3px)",
+                                                },
+                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                            }}
+                                        >
+                                            <RiCloseFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                        </IconButton>
+                                    </>
+                                ) : (
+                                    <IconButton
+                                        onClick={() => handleView(row)} sx={{
                                         backgroundColor: "#172224",
                                         color: "#fff",
-                                        width: "40px",
-                                        height: "36px",
-                                        minWidth: "36px",
-                                        padding: 0,
+                                        width: 40,
+                                        height: 40,
                                         borderRadius: "50%",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
                                         transition: "all 0.2s ease",
                                         "&:hover": {
-                                            backgroundColor: "#1e2d2f",
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
                                             transform: "translateY(-3px)",
                                         },
                                         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
-                                >
-                                    <i className="ri-eye-fill" style={{ fontSize: "18px" }}></i>
-                                </Button>
-                            )}
+                                    >
+                                        <RiPencilFill style={{fontSize: 19}}/>
+                                    </IconButton>
+                                )}
+                            </Box>
+                        </Box>
+                    ))}
+                </Box>
+            </Box>
+
+            <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
+                {selectedRow && (
+                    <>
+                        <Typography variant="h3" mb={3} sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                        }}>
+                            Timesheet Approval Details
+                        </Typography>
+
+                        {/* Employee Field */}
+                        <Box mb="10px">
+                            <Typography sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                mb: "5px"
+                            }}>
+                                Employee
+                            </Typography>
+                            <ViewTextField value={selectedRow.employee}/>
                         </Box>
 
-                    </Box>
-                ))}
+                        {/* Grid for other fields */}
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{md: "1fr 1fr"}}
+                            gap="20px"
+                            mb="18px"
+                        >
+                            {/* Date */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Date
+                                </Typography>
+                                <ViewTextField value={selectedRow.date} label="Date"/>
+                            </Box>
 
-            </Box>
-            </Box>
+                            {/* Status */}
+                            <Box>
+                                <Typography sx={{
+                                    color: "#fff",
+                                    fontWeight: 500,
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Status
+                                </Typography>
+                                <ViewTextField value={selectedRow.status} label="Status"/>
+                            </Box>
+
+                            {/* Time In */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Time In
+                                </Typography>
+                                <ViewTextField value={selectedRow.timeIn} label="Time In"/>
+                            </Box>
+
+                            {/* Time Out */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Time Out
+                                </Typography>
+                                <ViewTextField value={selectedRow.timeOut} label="Time Out"/>
+                            </Box>
+
+                            {/* Total Hours */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Total Hours
+                                </Typography>
+                                <ViewTextField value={selectedRow.totalHours} label="Total Hours"/>
+                            </Box>
+
+                            {/* Overtime */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Overtime
+                                </Typography>
+                                <ViewTextField value={selectedRow.overtime} label="Overtime"/>
+                            </Box>
+                        </Box>
+                    </>
+                )}
+            </BoxModal>
 
             {/* EXPORT BUTTONS */}
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <Button
-                    variant="contained"
-                    sx={{
-                        height: "50px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#fff !important",
-                        backgroundColor: "#172224",
-                        borderRadius: "100px",
-                        px: 3,
-                        textTransform: "none",
-                        "&:hover": {
-                            backgroundColor: "#1E293B",
-                            transform: "scale(1.03)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)"},
-                    }}
-                >
-                    Export Payslip PDF
-                </Button>
-                <Button
-                    variant="contained"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#fff !important",
-                        height: "50px",
-                        backgroundColor: "#172224",
-                        borderRadius: "100px",
-                        px: 3,
-                        textTransform: "none",
-                        "&:hover": {
-                            backgroundColor: "#1E293B",
-                            transform: "scale(1.03)",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)"},
-                    }}
-                >
-                    Export CSV
-                </Button>
+                <ActionButton text="Export Payslip PDF" width="200px"/>
+                <ActionButton text="Export CSV" width="200px"/>
             </Box>
         </Box>
     );

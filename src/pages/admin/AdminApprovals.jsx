@@ -3,7 +3,7 @@ import {
     Box, Button, IconButton, Typography, useTheme, Checkbox, Tooltip, Switch, Select, MenuItem, TextField
 } from "@mui/material";
 import {styled} from "@mui/material/styles";
-import {RiSettings3Fill, RiEyeFill} from "react-icons/ri";
+import {RiSettings3Fill, RiEyeFill, RiCheckFill, RiCloseFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
 
@@ -55,7 +55,7 @@ export default function AdminApproval() {
             type: "Overtime",
             period: "Aug. 1 - Aug. 11, 2025",
             dateFiled: "Aug. 11, 2025",
-            status: "Approved"
+            status: "Rejected"
         },
         {
             id: "EX002",
@@ -178,7 +178,7 @@ export default function AdminApproval() {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(6, 1fr)",
+                        gridTemplateColumns: "repeat(7, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
@@ -190,7 +190,8 @@ export default function AdminApproval() {
                     <span style={{textAlign: "center"}}>ID</span>
                     <span style={{textAlign: "center"}}>Employee Name</span>
                     <span style={{textAlign: "center"}}>Type</span>
-                    <span style={{textAlign: "center"}}>Date</span>
+                    <span style={{textAlign: "center"}}>Period</span>
+                    <span style={{textAlign: "center"}}>Date Filed</span>
                     <span style={{textAlign: "center"}}>Status</span>
                     <span style={{textAlign: "center"}}>Actions</span>
                 </Box>
@@ -268,24 +269,28 @@ export default function AdminApproval() {
                                 <IconButton
                                     onClick={() => handleOpenModal(item)}
                                     sx={{
-                                        bgcolor: "#3A4F50",
+                                        backgroundColor: "#172224",
                                         color: "#fff",
-                                        width: "30px",
-                                        height: "30px",
-                                        transition: "all 0.3s ease",
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        transition: "all 0.2s ease",
                                         "&:hover": {
-                                            transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
                                         },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
                                 >
-                                    <RiSettings3Fill/>
+                                    <RiSettings3Fill style={{fontSize: 19}}/>
                                 </IconButton>
                             </Box>
                         </Box>
                     </>) : (<Box
                         sx={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(6, 1fr)",
+                            gridTemplateColumns: "repeat(7, 1fr)",
                             alignItems: "center",
                             bgcolor: "#fff",
                             borderRadius: "8px",
@@ -301,26 +306,68 @@ export default function AdminApproval() {
                         <span style={{textAlign: "center"}}>{item.name}</span>
                         <span style={{textAlign: "center"}}>{item.type}</span>
                         <span style={{textAlign: "center"}}>{item.period}</span>
+                        <span style={{textAlign: "center"}}>{item.dateFiled}</span>
                         <span style={{textAlign: "center"}}>
-                                <Box
-                                    component="span"
-                                    sx={{
-                                        display: "inline-block",
-                                        width: "8px",
-                                        height: "8px",
-                                        borderRadius: "50%",
-                                        bgcolor: item.status === "Active" ? "#28a745" : "#dc3545",
-                                        mr: "4px",
-                                    }}
-                                />
+                            <Box
+                                component="span"
+                                sx={{
+                                    display: "inline-block",
+                                    width: "8px",
+                                    height: "8px",
+                                    borderRadius: "50%",
+                                    bgcolor: item.status === "Active" ? "#28a745" : "#dc3545",
+                                    mr: "4px",
+                                }}
+                            />
                             {item.status}
-                            </span>
-                        <Box
-                            sx={{
-                                display: "flex", gap: "8px", justifyContent: "center",
-                            }}
-                        >
-                            <Box sx={{display: "flex", justifyContent: "center"}}>
+                        </span>
+                        <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
+                            {item.status === "Pending" ? (
+                                <>
+                                    {/* Accept Button */}
+                                    <IconButton
+                                        disableRipple
+                                        sx={{
+                                            backgroundColor: "#172224",
+                                            color: "green",
+                                            width: 40,
+                                            height: 36,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                backgroundColor: "#388E3C",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
+                                            },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                        }}
+                                    >
+                                        <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                    </IconButton>
+
+                                    {/* Reject Button */}
+                                    <IconButton
+                                        disableRipple
+                                        sx={{
+                                            backgroundColor: "#172224",
+                                            color: "red",
+                                            width: 40,
+                                            height: 36,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                backgroundColor: "#D32F2F",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
+                                            },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                        }}
+                                    >
+                                        <RiCloseFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                    </IconButton>
+                                </>
+                            ) : (
+                                // Default "View" Button
                                 <IconButton
                                     onClick={() => {
                                         setSelectedException(item);
@@ -328,20 +375,23 @@ export default function AdminApproval() {
                                         setOpenModal(true);
                                     }}
                                     sx={{
-                                        bgcolor: "#3A4F50",
+                                        backgroundColor: "#172224",
                                         color: "#fff",
-                                        width: "30px",
-                                        height: "30px",
-                                        transition: "all 0.3s ease",
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        transition: "all 0.2s ease",
                                         "&:hover": {
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
                                             transform: "translateY(-3px)",
-                                            bgcolor: "#2E3B3D",
                                         },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                     }}
                                 >
-                                    <RiEyeFill/>
+                                    <RiEyeFill style={{ fontSize: 19 }}/>
                                 </IconButton>
-                            </Box>
+                            )}
                         </Box>
                     </Box>)}
                 </Box>))}
@@ -402,17 +452,17 @@ export default function AdminApproval() {
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: "13px",
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
                                         fontSize: "18px",
                                         "& fieldset": {
-                                            borderColor: "rgba(255,255,255,0.4)",
+                                            border: "none",
                                         },
                                         "&:hover fieldset": {
-                                            borderColor: "rgba(255,255,255,0.6)",
+                                            border: "none",
                                         },
                                         "&.Mui-focused fieldset": {
-                                            borderColor: "rgba(255,255,255,0.9)",
+                                            border: "none",
                                         },
                                     }, "& .MuiInputBase-input": {fontSize: "18px"},
                                 }}
@@ -432,21 +482,35 @@ export default function AdminApproval() {
                                 }
                                 displayEmpty
                                 sx={{
-                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    backgroundColor: "#cacace",
                                     borderRadius: "13px",
-                                    color: "#fff",
+                                    color: "#1F2829",
                                     fontSize: "18px",
-                                    "& .MuiSelect-select": {padding: "8px 12px"},
-                                    "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "& .MuiSvgIcon-root": {color: "#fff"},
+                                    "& .MuiSelect-select": {
+                                        padding: "8px 12px",
+                                    },
+                                    "& .MuiOutlinedInput-notchedOutline": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                        border: "none",
+                                    },
+                                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                                        border: "none",
+                                    },
+                                    "& .MuiSvgIcon-root": {
+                                        color: "#1F2829",
+                                    },
                                 }}
                                 MenuProps={{
-                                    PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: "#ffffff", color: "#1F2829",
+                                        }
+                                    }
                                 }}
                                 renderValue={(selected) => {
-                                    if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Workflow Type</span>;
+                                    if (!selected) return <span style={{color: "#828689"}}>Select Workflow Type</span>;
                                     return selected;
                                 }}
                             >
@@ -471,22 +535,36 @@ export default function AdminApproval() {
                                 }
                                 displayEmpty
                                 sx={{
-                                    backgroundColor: "rgba(255,255,255,0.2)",
+                                    backgroundColor: "#cacace",
                                     borderRadius: "13px",
-                                    color: "#fff",
+                                    color: "#1F2829",
                                     fontSize: "18px",
-                                    "& .MuiSelect-select": {padding: "8px 12px"},
-                                    "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                                    "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "& .MuiSvgIcon-root": {color: "#fff"},
+                                    "& .MuiSelect-select": {
+                                        padding: "8px 12px",
+                                    },
+                                    "& .MuiOutlinedInput-notchedOutline": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                        border: "none",
+                                    },
+                                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                                        border: "none",
+                                    },
+                                    "& .MuiSvgIcon-root": {
+                                        color: "#1F2829",
+                                    },
                                 }}
                                 MenuProps={{
-                                    PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: "#ffffff", color: "#1F2829",
+                                        }
+                                    }
                                 }}
                                 renderValue={(selected) => {
                                     if (!selected) return <span
-                                        style={{color: "rgba(255,255,255,0.4)"}}>Select Approver</span>;
+                                        style={{color: "#828689"}}>Select Approval Role</span>;
                                     return selected;
                                 }}
                             >
@@ -503,12 +581,32 @@ export default function AdminApproval() {
                                 display: "flex", justifyContent: isEditing ? "center" : "flex-end", gap: 2, mt: 3,
                             }}
                         >
-                            {isEditing && (<ActionButton
-                                text="Remove"
-                                width="200px"
-                                color="#b22222"
-                                onClick={handleCloseModal}
-                            />)}
+                            {isEditing && (
+                                <Box
+                                    component="button"
+                                    onClick={handleCloseModal}
+                                    sx={{
+                                        display: "flex-end",
+                                        fontSize: "16px",
+                                        backgroundColor: "#8b1a1a",
+                                        color: "#fff",
+                                        padding: "10px 0",
+                                        borderRadius: "15px",
+                                        cursor: "pointer",
+                                        border: "none",
+                                        transition: "all 0.3s ease",
+                                        width: "200px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        "&:hover": {
+                                            backgroundColor: "#a32020",
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                        },
+                                    }}
+                                >
+                                    Remove
+                                </Box>
+                            )}
                             <Box
                                 component="button"
                                 sx={{
@@ -560,71 +658,93 @@ export default function AdminApproval() {
                             </Typography>
 
                             <TextField
-                                placeholder="Employee Name"
                                 value={selectedException?.name || ""}
                                 fullWidth
                                 variant="outlined"
                                 size="small"
-                                disabled
+                                InputProps={{ readOnly: true }}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: "13px",
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
                                         fontSize: "18px",
-                                    },
-                                    "& .MuiInputBase-input": { fontSize: "18px" },
+                                        "& fieldset": {
+                                            border: "none",
+                                        },
+                                        "&:hover fieldset": {
+                                            border: "none",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            border: "none",
+                                        },
+                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
                                 }}
                             />
                         </Box>
 
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Box sx={{display: "flex", gap: 1}}>
-                                <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                                    <Typography
-                                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                        Type
-                                    </Typography>
-                                    <TextField
-                                        placeholder="Type"
-                                        value={selectedException?.type || ""}
-                                        variant="outlined"
-                                        size="small"
-                                        sx={{
-                                            width: "150px",
-                                            "& .MuiOutlinedInput-root": {
-                                                fontSize: "16px",
-                                                borderRadius: "13px",
-                                                backgroundColor: "rgba(255,255,255,0.2)",
+                        <Box sx={{display: "flex", gap: 1, mt: 2}}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                    Type
+                                </Typography>
+                                <TextField
+                                    value={selectedException?.type || ""}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{ readOnly: true }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
                                             },
-                                        }}
-                                        disabled
-                                    />
-                                </Box>
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
+                            </Box>
 
-                                <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5}}>
-                                    <Typography
-                                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                        Period
-                                    </Typography>
-                                    <TextField
-                                        placeholder="Period"
-                                        value={selectedException?.period || ""}
-                                        fullWidth
-                                        variant="outlined"
-                                        size="small"
-                                        disabled
-                                        sx={{
-                                            width: "228px",
-                                            "& .MuiOutlinedInput-root": {
-                                                fontSize: "16px",
-                                                borderRadius: "13px",
-                                                backgroundColor: "rgba(255,255,255,0.2)",
-                                                color: "#fff",
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                    Period
+                                </Typography>
+                                <TextField
+                                    placeholder="Period"
+                                    value={selectedException?.period || ""}
+                                    fullWidth
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{ readOnly: true }}
+                                    sx={{
+                                        width: "308px",
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
                                             },
-                                        }}
-                                    />
-                                </Box>
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
                         </Box>
 
@@ -635,84 +755,144 @@ export default function AdminApproval() {
                             </Typography>
 
                             <TextField
-                                placeholder="Date Filed"
                                 value={selectedException?.dateFiled || ""}
                                 fullWidth
                                 variant="outlined"
                                 size="small"
-                                disabled
+                                InputProps={{ readOnly: true }}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: "13px",
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
                                         fontSize: "18px",
-                                    },
-                                    "& .MuiInputBase-input": { fontSize: "18px" },
+                                        "& fieldset": {
+                                            border: "none",
+                                        },
+                                        "&:hover fieldset": {
+                                            border: "none",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            border: "none",
+                                        },
+                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
                                 }}
                             />
                         </Box>
 
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                Status
-                            </Typography>
+                        <Box sx={{display: "flex", gap: 1, mt: 2}}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                    Status
+                                </Typography>
 
-                            <TextField
-                                placeholder="Status"
-                                value={selectedException?.status || ""}
-                                fullWidth
-                                variant="outlined"
-                                size="small"
-                                disabled
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "rgba(255,255,255,0.2)",
-                                        color: "#fff",
-                                        fontSize: "18px",
-                                    },
-                                    "& .MuiInputBase-input": { fontSize: "18px" },
-                                }}
-                            />
-                        </Box>
-
-                        <Box
-                            sx={{
-                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
-                            }}
-                        >
-                            <ActionButton
-                                text="Reject"
-                                width="200px"
-                                color="#b22222"
-                                onClick={handleCloseModal}
-                            />
-                            <Box
-                                component="button"
-                                sx={{
-                                    display: "flex-end",
-                                    fontSize: "16px",
-                                    backgroundColor: "#172224",
-                                    color: "#fff",
-                                    padding: "10px 0",
-                                    borderRadius: "15px",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    transition: "all 0.3s ease",
-                                    width: "200px",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    "&:hover": {
-                                        backgroundColor: "#1f2f31",
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                    },
-                                }}
-                            >
-                                Approve
+                                <TextField
+                                    value={selectedException?.status || ""}
+                                    fullWidth
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{ readOnly: true }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
+                            </Box>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                    {selectedException?.status
+                                        ? selectedException.status.toLowerCase() === "approved"
+                                            ? "Date Approved"
+                                            : selectedException.status.toLowerCase() === "rejected"
+                                                ? "Date Rejected"
+                                                : "Pending"
+                                        : "Pending"}
+                                </Typography>
+                                <TextField
+                                    value={selectedException?.dateApproved || ""}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{ readOnly: true }}
+                                    sx={{
+                                        width: "300px",
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
                         </Box>
+                        {selectedException?.status?.toLowerCase() === "rejected" && (
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                                <Typography
+                                    sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}
+                                >
+                                    Reason
+                                </Typography>
+                                <TextField
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{ readOnly: true }}
+                                    multiline
+                                    rows={4}
+                                    maxRows={10}
+                                    value={selectedException.reason || ""}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        },
+                                        "& .MuiInputBase-input": {
+                                            fontSize: "18px",
+                                            boxSizing: "border-box",
+                                            overflowY: "auto",
+                                            scrollbarWidth: "none",
+                                            msOverflowStyle: "none",
+                                            "&::-webkit-scrollbar": { display: "none" },
+                                        },
+                                    }}
+
+                                />
+                            </Box>
+                        )}
                     </Box>
                 );
 
@@ -838,8 +1018,8 @@ export default function AdminApproval() {
                     open={openModal}
                     onClose={handleCloseModal}
                     width={
-                        modalType === "workflow" ? 450 :
-                            modalType === "viewException" ? 450 :
+                        modalType === "workflow" ? 490 :
+                            modalType === "viewException" ? 550 :
                                 500
                     }
                     height={

@@ -1,11 +1,12 @@
-import { Box, Typography, Button } from "@mui/material";
+import {Box, Typography, IconButton} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { tokens } from "../../theme";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
-import ManagerDashboard from "./ManagerDashboard.jsx";
 import SearchBar from "../../components/SearchBar.jsx";
-
+import BoxModal from "../../components/BoxModal.jsx";
+import ViewTextField from "../../components/ViewTextField.jsx";
+import React, { useState } from "react";
+import {RiPencilFill} from "react-icons/ri";
 
 const employeePayrollData = [
     {
@@ -58,15 +59,21 @@ const employeePayrollData = [
     },
 ];
 
-
 const ManagerPayrollSummary = () => {
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    const handleView = (row) => {
+        setSelectedRow(row);
+        setOpenModal(true);
+    };
+
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     return (
-        <Box mb="20px" mr="20px" ml="20px" overflowY="none"
+        <Box
+            sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}
         >
-
             {/* DASHBOARD CARDS */}
             <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px">
                 <DashboardCard
@@ -87,172 +94,207 @@ const ManagerPayrollSummary = () => {
             </Box>
 
             <Box
-                marginTop="25px"
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
+                mt={4}
                 mb={2}
-                gap="10px">
-
+            >
                 <Typography
-                    Color="#172224"
-                    fontSize="20px"
+                    variant="h5"
                     sx={{
-                        fontFamily: "TTHoves-Bold, sans-serif",}}>
+                        fontSize: "20px",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        color: theme.palette.text.primary,
+                    }}
+                >
                     Employee Payroll Details
                 </Typography>
-
                 <SearchBar
                     placeholder="Enter Employee Name"
-                    width="450px"
-
+                    width="350px"
                 />
             </Box>
 
             {/* TABLE CONTAINER */}
             <Box
-                backgroundColor="rgba(255, 255, 255, 0.2)"
-                borderRadius="12px"
-                p="20px"
-                paddingBottom="20px"
                 sx={{
-                    maxHeight: "550px",
+                    height: "68.9%",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
                     backdropFilter: "blur(12px)",
-                    fontFamily: "'TTHoves-Regular', sans-serif",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.4)",
+                    p: "12px 24px",
                     transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.01)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
                 {/* HEADER ROW */}
                 <Box
-                    display="grid"
-                    gridTemplateColumns="1.5fr 1fr 1fr 1fr 1fr 0.9fr"
-                    alignItems="center"
-                    fontWeight= "600px"
-                    color="#333"
-                    p="12px 16px"
                     sx={{
-                        borderBottom: "1px solid #ddd",
-                        fontFamily: "TTHoves-Bold, sans-serif",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(6, 1fr)",
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        p: "8px 0",
+                        width: "100%",
+                        alignItems: "center",
+                        textAlign: "center",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif", }}>
-                        Employee
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Gross
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Deductions
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Benefits
-                    </Typography>
-                    <Typography Color="#172224" fontWeight={600} sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        Net
-                    </Typography>
-                    <Typography
-                        Color="#172224"
-                        fontWeight={600}
-                        textAlign="center"
-                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif" }}
-                    >
-                        Action
-                    </Typography>
+                    <span>Employee Name</span>
+                    <span>Gross</span>
+                    <span>Deductions</span>
+                    <span>Benefits</span>
+                    <span>Net</span>
+                    <span>Action</span>
                 </Box>
 
                 {/* DATA ROWS */}
                 <Box
                     sx={{
-                        maxHeight: "430px",
                         overflowY: "auto",
-                        pr: "8px",
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: "5px",
-                        gap: "10px",
-                        height: "85%",
-                    }}>
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    }}
+                >
                     {employeePayrollData.map((row) => (
                         <Box
-                            display="grid"
-                            gridTemplateColumns="1.5fr 1fr 1fr 1fr 1fr 0.9fr"
-                            alignItems="center"
-                            p="16px"
-                            mt="10px"
-                            justifyContent = "space-between"
-                            borderRadius="10px"
-                            backgroundColor = "rgba(255, 255, 255, 0.25)"
-                            boxShadow="0 1px 4px rgba(0,0,0,0.06)"
                             sx={{
-                                borderBottom: "1px solid #eee",
-                                fontFamily: "'TT-Hoves Bold', sans-serif",
+                                marginTop: "10px",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(6, 1fr)",
+                                alignItems: "center",
+                                bgcolor: "#fff",
+                                color: "#1b2223",
+                                borderRadius: "8px",
+                                width: "100%",
+                                minHeight: "83px",
+                                transition: "all 0.3s ease",
                                 "&:hover": {
-                                    backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
+                                textAlign: "center",
                             }}
                         >
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.name}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.gross}
-                            </Typography>
-                            <Typography ml="20px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.deductions}
-                            </Typography>
-                            <Typography ml="10px" sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
-                                {row.benefits}
-                            </Typography>
-                            <Typography
-                                sx={{
-                                    fontFamily: "'TTHoves-Bold', sans-serif",
-                                    fontWeight: 500,
-                                }}
-                            >
-                                {row.net}
-                            </Typography>
-                            <Button
-                                disableRipple
-                                sx={{
-                                    ml: "100px",
+                            <span>{row.name}</span>
+                            <span>{row.gross}</span>
+                            <span>{row.deductions}</span>
+                            <span>{row.benefits}</span>
+                            <span>{row.net}</span>
+                            <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
+                                <IconButton
+                                    onClick={() => handleView(row)}
+                                    sx={{
                                     backgroundColor: "#172224",
                                     color: "#fff",
-                                    width: "40px",
-                                    height: "36px",
-                                    minWidth: "36px",
-                                    padding: 0,
+                                    width: 40,
+                                    height: 40,
                                     borderRadius: "50%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
                                     transition: "all 0.2s ease",
                                     "&:hover": {
-                                        backgroundColor: "#1e2d2f",
+                                        backgroundColor: "#2E3B3D",
+                                        color: "#fff",
                                         transform: "translateY(-3px)",
                                     },
                                     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                 }}
-                            >
-                                <i className="ri-eye-fill" style={{ fontSize: "18px" }}></i>
-                            </Button>
-
+                                >
+                                    <RiPencilFill style={{fontSize: 19}}/>
+                                </IconButton>
+                            </Box>
                         </Box>
                     ))}
-
                 </Box>
             </Box>
+            <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
+                {selectedRow && (
+                    <>
+                        <Typography variant="h3" mb={3} sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                        }}>
+                            Employee Payroll Details
+                        </Typography>
 
+                        {/* Employee Field */}
+                        <Box mb="10px">
+                            <Typography sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                mb: "5px"
+                            }}>
+                                Employee Name
+                            </Typography>
+                            <ViewTextField value={selectedRow.name} />
+                        </Box>
+
+                        {/* Grid for other fields */}
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{ md: "1fr 1fr" }}
+                            gap="20px"
+                            mb="18px"
+                        >
+                            {/* Gross */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Gross
+                                </Typography>
+                                <ViewTextField value={selectedRow.gross} label="Gross" />
+                            </Box>
+
+                            {/* Deductions */}
+                            <Box>
+                                <Typography sx={{
+                                    color: "#fff",
+                                    fontWeight: 500,
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Deductions
+                                </Typography>
+                                <ViewTextField value={selectedRow.deductions} label="Deductions" />
+                            </Box>
+
+                            {/* Benefits */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Benefits
+                                </Typography>
+                                <ViewTextField value={selectedRow.benefits} label="Benefits" />
+                            </Box>
+
+                            {/* Net */}
+                            <Box>
+                                <Typography sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    mb: "5px"
+                                }}>
+                                    Net
+                                </Typography>
+                                <ViewTextField value={selectedRow.net} label="Net" />
+                            </Box>
+
+                        </Box>
+                    </>
+                )}
+            </BoxModal>
         </Box>
-
-
     );
 };
 

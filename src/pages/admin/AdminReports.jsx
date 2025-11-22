@@ -1,58 +1,78 @@
-import React, { useState } from "react";
-import { Box, Typography, useTheme } from "@mui/material";
+import React, {useState} from "react";
+import {Box, Typography, useTheme} from "@mui/material";
 import ActionButton from "../../components/ActionButton.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 
+const deductionData = [
+    ["Jhervin Jimenez", "₱1,200", "₱500", "₱400", "₱200", "₱2,300"],
+    ["Symon Banana", "₱1,100", "₱480", "₱390", "₱180", "₱2,150"],
+    ["Sisa Marie", "₱1,300", "₱520", "₱410", "₱220", "₱2,450"],
+    ["Jane Cruz", "₱1,300", "₱520", "₱410", "₱220", "₱2,450"],
+];
+
 export default function AdminReports() {
     const theme = useTheme();
-    const [filter, setFilter] = useState("");
 
-    const deductionData = [
-        ["Jhervin Jimenez", "₱1,200", "₱500", "₱400", "₱200", "₱2,300"],
-        ["Symon Banana", "₱1,100", "₱480", "₱390", "₱180", "₱2,150"],
-        ["Jane Cruz", "₱1,300", "₱520", "₱410", "₱220", "₱2,450"],
-    ];
+    const [filter, setFilter] = useState("")
 
     return (
-        <Box
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                width: "100%",
-                height: "100%",
-                fontFamily: theme.typography.fontFamily,
-                overflow: "hidden",
-            }}
-        >
-            <Typography
-                variant="h5"
-                sx={{
-                    fontSize: "20px",
-                    fontFamily: "'TTHoves-Bold', sans-serif",
-                    color: theme.palette.text.primary,
-                }}
-            >
-                Reports and Analytics
-            </Typography>
+        <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
             <Box
                 sx={{
+                    alignItems: "center",
                     display: "flex",
-                    flexDirection: "column",
-                    flex: 1,
-                    gap: 2,
-                    backgroundColor:
-                        theme.palette.mode === "dark"
-                            ? "rgba(255, 255, 255, 0.05)"
-                            : "rgba(255, 255, 255, 0.2)",
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: "15px",
-                    p: 2,
-                    overflow: "hidden",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    mb: 3,
                 }}
             >
-                {/* Top bar */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                <Typography
+                    variant="h5"
+                    sx={{
+                        fontSize: "20px",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        color: theme.palette.text.primary,
+                    }}
+                >
+                    Reports and Analytics
+                </Typography>
+
+                <Box
+                    sx={{
+                        display: "flex", alignItems: "center", flexWrap: "wrap",
+                    }}
+                >
+                    <ActionButton
+                        text="Generate Report"
+                        width="180px"
+                    />
+                </Box>
+            </Box>
+
+            <Box
+                sx={{
+                    height: "90.9%",
+                    backgroundColor: theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.05)"
+                        : "rgba(255, 255, 255, 0.2)",
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: "15px",
+                    backdropFilter: "blur(12px)",
+                    p: 2,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
                     <Typography
                         variant="h6"
                         sx={{
@@ -63,12 +83,17 @@ export default function AdminReports() {
                     >
                         Payroll Summary Report
                     </Typography>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                        <ActionButton text="Export PDF" width="150px" />
+                    <Box sx={{ display: "flex" }}>
+                        <ActionButton
+                            text="Export PDF"
+                            width="150px"
+                            mr={1}
+                        />
                         <FilterSelect
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            options={[]}
+                            options={[
+                            ]}
                         />
                     </Box>
                 </Box>
@@ -76,21 +101,20 @@ export default function AdminReports() {
                 <Box
                     sx={{
                         display: "flex",
-                        flex: 1,
-                        flexDirection: { xs: "column", md: "row" },
                         gap: 2,
-                        overflow: "hidden",
+                        alignItems: "flex-start",
+                        mt: 1,
+                        flexDirection: { xs: "column", md: "row" },
                     }}
                 >
                     <Box
                         sx={{
                             flex: 1.2,
-                            minHeight: 200,
+                            height: 267,
                             backgroundColor:
                                 theme.palette.mode === "dark"
                                     ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
-                            borderRadius: "12px",
+                                    : "rgba(255, 255, 255, 0.1)",                            borderRadius: "12px",
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
@@ -103,6 +127,7 @@ export default function AdminReports() {
 
                     <Box
                         sx={{
+                            height: 278,
                             flex: 1.8,
                             display: "flex",
                             flexDirection: "column",
@@ -113,52 +138,48 @@ export default function AdminReports() {
                             border: `1px solid ${theme.palette.divider}`,
                             borderRadius: "15px",
                             p: 2,
-                            overflow: "hidden",
+                            position: "sticky",
+                            mb: "0",
                         }}
                     >
-                        {/* Table Header */}
                         <Box
                             sx={{
                                 display: "grid",
                                 gridTemplateColumns: "repeat(6, 1fr)",
-                                fontWeight: 700,
                                 color: theme.palette.text.primary,
+                                fontWeight: 700,
                                 p: 1,
                             }}
                         >
-                            {["Employee", "Tax", "SSS", "PhilHealth", "Pag-IBIG", "Total"].map(
-                                (header) => (
-                                    <span key={header} style={{ textAlign: "center" }}>
-                    {header}
-                  </span>
-                                )
-                            )}
+                            <span style={{ textAlign: "center" }}>Employee</span>
+                            <span style={{ textAlign: "center" }}>Tax</span>
+                            <span style={{ textAlign: "center" }}>SSS</span>
+                            <span style={{ textAlign: "center" }}>PhilHealth</span>
+                            <span style={{ textAlign: "center" }}>Pag-IBIG</span>
+                            <span style={{ textAlign: "center" }}>Total</span>
                         </Box>
 
-                        <Box
-                            sx={{
-                                mt: 1,
-                                flex: 1,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 1,
-                                overflowY: "auto",
-                                "&::-webkit-scrollbar": { width: 0, height: 0 },
-                                scrollbarWidth: "none",
-                                msOverflowStyle: "none",
-                            }}
+                        <Box sx={{
+                            mt: "10px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                            overflowY: "auto",
+                            "&::-webkit-scrollbar": { width: 0, height: 0 },
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none", }}
                         >
                             {deductionData.map((row, i) => (
                                 <Box
                                     key={i}
                                     sx={{
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                                         display: "grid",
                                         gridTemplateColumns: "repeat(6, 1fr)",
-                                        alignItems: "center",
                                         borderRadius: "8px",
-                                        minHeight: 45,
-                                        p: 1,
-                                        textAlign: "center",
+                                        alignItems: "center",
+                                        minHeight: "45px",
+                                        width: "100%",
                                         color: "#1b2223",
                                         bgcolor: "#fff",
                                         transition: "all 0.3s ease",
@@ -166,6 +187,8 @@ export default function AdminReports() {
                                             transform: "translateY(-2px)",
                                             boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                         },
+                                        p: 1,
+                                        textAlign: "center",
                                     }}
                                 >
                                     {row.map((cell, j) => (
@@ -179,29 +202,29 @@ export default function AdminReports() {
 
                 <Box
                     sx={{
+                        height: 280,
                         display: "grid",
                         gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
                         gap: 2,
-                        flex: 1,
-                        overflow: "hidden",
+                        mt: 2,
                     }}
                 >
                     <Box
                         sx={{
-                            display: "flex",
-                            flexDirection: "column",
                             borderRadius: "12px",
                             p: 2,
                             backgroundColor:
                                 theme.palette.mode === "dark"
                                     ? "rgba(255, 255, 255, 0.05)"
                                     : "rgba(255, 255, 255, 0.1)",
-                            border: `1px solid ${theme.palette.divider}`,
-                            overflow: "hidden",
+                            border: `1px solid ${theme.palette.divider}`,                          minHeight: 150,
+                            display: "flex",
+                            flexDirection: "column",
                         }}
                     >
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                             <Typography
+                                variant="h6"
                                 sx={{
                                     fontSize: "17px",
                                     fontFamily: "'TTHoves-Bold', sans-serif",
@@ -210,7 +233,10 @@ export default function AdminReports() {
                             >
                                 Department Summary
                             </Typography>
-                            <ActionButton text="Export PDF" width="150px" />
+                            <ActionButton
+                                text="Export PDF"
+                                width="150px"
+                            />
                         </Box>
                         <Box
                             sx={{
@@ -229,20 +255,20 @@ export default function AdminReports() {
 
                     <Box
                         sx={{
-                            display: "flex",
-                            flexDirection: "column",
                             borderRadius: "12px",
                             p: 2,
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.1)",
                             border: `1px solid ${theme.palette.divider}`,
-                            overflow: "hidden",
+                            minHeight: 150,
+                            display: "flex",
+                            flexDirection: "column",
                         }}
                     >
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                             <Typography
+                                variant="h6"
                                 sx={{
                                     fontSize: "17px",
                                     fontFamily: "'TTHoves-Bold', sans-serif",
@@ -251,7 +277,10 @@ export default function AdminReports() {
                             >
                                 Tax and Compliance
                             </Typography>
-                            <ActionButton text="Export PDF" width="150px" />
+                            <ActionButton
+                                text="Export PDF"
+                                width="150px"
+                            />
                         </Box>
                         <Box
                             sx={{
@@ -266,10 +295,6 @@ export default function AdminReports() {
                             (Chart/Graph Placeholder)
                         </Box>
                     </Box>
-                </Box>
-
-                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <ActionButton text="Generate Report" width="180px" />
                 </Box>
             </Box>
         </Box>
