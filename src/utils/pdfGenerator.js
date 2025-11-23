@@ -7,6 +7,21 @@
  */
 
 /**
+ * Escape HTML to prevent XSS attacks
+ * @param {string} str - String to escape
+ * @returns {string} - Escaped string safe for HTML
+ */
+const escapeHtml = (str) => {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+
+/**
  * Generate a payslip PDF for an employee
  * @param {Object} employeeData - Employee payroll data
  * @param {string} employeeData.name - Employee name
@@ -19,12 +34,20 @@
 export const generatePayslipPDF = (employeeData) => {
     const { name, id, period, earning, deduction, netpay } = employeeData;
     
+    // Escape all user-provided data to prevent XSS
+    const safeName = escapeHtml(name);
+    const safeId = escapeHtml(id);
+    const safePeriod = escapeHtml(period);
+    const safeEarning = escapeHtml(earning);
+    const safeDeduction = escapeHtml(deduction);
+    const safeNetpay = escapeHtml(netpay);
+    
     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Payslip - ${name}</title>
+    <title>Payslip - ${safeName}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -96,31 +119,31 @@ export const generatePayslipPDF = (employeeData) => {
     <div class="info-section">
         <div class="info-row">
             <div class="label">Employee Name:</div>
-            <div class="value">${name}</div>
+            <div class="value">${safeName}</div>
         </div>
         <div class="info-row">
             <div class="label">Employee ID:</div>
-            <div class="value">${id}</div>
+            <div class="value">${safeId}</div>
         </div>
         <div class="info-row">
             <div class="label">Pay Period:</div>
-            <div class="value">${period}</div>
+            <div class="value">${safePeriod}</div>
         </div>
     </div>
     
     <div class="summary">
         <div class="info-row">
             <div class="label">Gross Earnings:</div>
-            <div class="value">${earning}</div>
+            <div class="value">${safeEarning}</div>
         </div>
         <div class="info-row">
             <div class="label">Total Deductions:</div>
-            <div class="value">${deduction}</div>
+            <div class="value">${safeDeduction}</div>
         </div>
     </div>
     
     <div class="net-pay">
-        Net Pay: ${netpay}
+        Net Pay: ${safeNetpay}
     </div>
     
     <div class="footer">
@@ -152,12 +175,15 @@ export const generatePayslipPDF = (employeeData) => {
  * @param {string} title - Report title
  */
 export const generateReportPDF = (reportData, title = 'Payroll Report') => {
+    // Escape title to prevent XSS
+    const safeTitle = escapeHtml(title);
+    
     const rows = reportData.map(item => `
         <tr>
-            <td>${item.date || ''}</td>
-            <td>${item.period || ''}</td>
-            <td>${item.amount || ''}</td>
-            <td>${item.status || ''}</td>
+            <td>${escapeHtml(item.date || '')}</td>
+            <td>${escapeHtml(item.period || '')}</td>
+            <td>${escapeHtml(item.amount || '')}</td>
+            <td>${escapeHtml(item.status || '')}</td>
         </tr>
     `).join('');
     
@@ -166,7 +192,7 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>${title}</title>
+    <title>${safeTitle}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -223,7 +249,7 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
 <body>
     <div class="header">
         <div class="company-name">ERP System Payroll</div>
-        <div class="report-title">${title}</div>
+        <div class="report-title">${safeTitle}</div>
     </div>
     
     <div class="summary">
