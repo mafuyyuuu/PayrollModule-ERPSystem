@@ -83,7 +83,6 @@ export default function PayrollReports() {
         if (filteredReports.length === 0) {
             console.warn('No reports to export');
             // Using alert for user feedback as no notification system exists
-            // eslint-disable-next-line no-alert
             alert('No reports to export');
             return;
         }
@@ -94,7 +93,6 @@ export default function PayrollReports() {
         if (filteredReports.length === 0) {
             console.warn('No reports to export');
             // Using alert for user feedback as no notification system exists
-            // eslint-disable-next-line no-alert
             alert('No reports to export');
             return;
         }

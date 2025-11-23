@@ -130,7 +130,6 @@ export default function PayrollPendingRequest() {
         if (filteredRequests.length === 0) {
             console.warn('No requests to export');
             // Using alert for user feedback as no notification system exists
-            // eslint-disable-next-line no-alert
             alert('No requests to export');
             return;
         }

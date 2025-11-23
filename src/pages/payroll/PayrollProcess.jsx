@@ -140,7 +140,6 @@ export default function PayoutProcessing() {
         if (!selectedEmployee) {
             console.warn('No employee selected for payslip generation');
             // Using alert for user feedback as no notification system exists
-            // eslint-disable-next-line no-alert
             alert('No employee selected');
             return;
         }

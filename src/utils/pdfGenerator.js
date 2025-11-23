@@ -162,7 +162,6 @@ export const generatePayslipPDF = (employeeData) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         console.error('Failed to open print window for payslip. Please check popup blocker settings.');
-        // eslint-disable-next-line no-alert
         alert('Unable to open print window. Please check your popup blocker settings.');
         return;
     }
@@ -295,7 +294,6 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         console.error('Failed to open print window for report. Please check popup blocker settings.');
-        // eslint-disable-next-line no-alert
         alert('Unable to open print window. Please check your popup blocker settings.');
         return;
     }
@@ -318,7 +316,6 @@ export const exportToCSV = (data, filename = 'export.csv') => {
     if (!data || data.length === 0) {
         console.warn('No data to export');
         // Using alert for user feedback as no notification system exists
-        // eslint-disable-next-line no-alert
         alert('No data to export');
         return;
     }
