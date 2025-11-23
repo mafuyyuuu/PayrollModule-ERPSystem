@@ -276,6 +276,9 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
  */
 export const exportToCSV = (data, filename = 'export.csv') => {
     if (!data || data.length === 0) {
+        console.warn('No data to export');
+        // Using alert for user feedback as no notification system exists
+        // eslint-disable-next-line no-alert
         alert('No data to export');
         return;
     }
@@ -307,4 +310,7 @@ export const exportToCSV = (data, filename = 'export.csv') => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Clean up the URL object to prevent memory leak
+    URL.revokeObjectURL(url);
 };
