@@ -3,7 +3,7 @@ import {Box, InputBase} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import {useTheme} from "@mui/material/styles";
 
-const SearchBar = ({placeholder = "Search...", width = "450px", onChange}) => {
+const SearchBar = ({placeholder = "Search...", width = "450px", value, onChange}) => {
     const theme = useTheme();
 
     return (<Box
@@ -30,6 +30,7 @@ const SearchBar = ({placeholder = "Search...", width = "450px", onChange}) => {
             />
             <InputBase
                 placeholder={placeholder}
+                value={value || ""}
                 onChange={onChange}
                 sx={{
                     fontFamily: "'TT Hoves Pro', sans-serif",

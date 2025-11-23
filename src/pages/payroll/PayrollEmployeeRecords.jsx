@@ -10,8 +10,10 @@ export default function PayrollEmployeeRecords() {
 
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [userModalOpen, setUserModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("");
     const [employeeRecords, setEmployeeRecords] = useState([]);
+    const [filteredRecords, setFilteredRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -52,16 +54,48 @@ export default function PayrollEmployeeRecords() {
                 }));
 
                 setEmployeeRecords(transformedData);
+                setFilteredRecords(transformedData);
                 setLoading(false);
-            } catch (err) {
-                console.error('❌ Error fetching employees:', err);
-                setError(err.message);
+            } catch (_err) {
+                console.error('❌ Error fetching employees:', _err);
+                setError(_err.message);
                 setLoading(false);
             }
         };
 
         fetchEmployees();
     }, []);
+
+    // Filter records based on search term and filter
+    useEffect(() => {
+        let filtered = employeeRecords;
+
+        // Apply search filter
+        if (searchTerm) {
+            filtered = filtered.filter(record =>
+                record.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                record.id.toString().includes(searchTerm)
+            );
+        }
+
+        // Apply department/position filter
+        if (filter && filter !== 'all') {
+            filtered = filtered.filter(record =>
+                record.department === filter || record.position === filter
+            );
+        }
+
+        setFilteredRecords(filtered);
+    }, [searchTerm, filter, employeeRecords]);
+
+    // Get unique departments and positions for filter options
+    const departments = [...new Set(employeeRecords.map(rec => rec.department))];
+    const positions = [...new Set(employeeRecords.map(rec => rec.position))];
+    const filterOptions = [
+        { value: 'all', label: 'All' },
+        ...departments.map(dept => ({ value: dept, label: `Dept: ${dept}` })),
+        ...positions.map(pos => ({ value: pos, label: `Pos: ${pos}` })),
+    ];
 
     return (
         <Box
@@ -95,9 +129,14 @@ export default function PayrollEmployeeRecords() {
                     <SearchBar
                         placeholder="Enter Employee Name"
                         width="350px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
                     <FilterSelect
+                        width={200}
+                        placeholder="Filter by Dept/Position"
+                        options={filterOptions}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
@@ -120,6 +159,11 @@ export default function PayrollEmployeeRecords() {
                     },
                 }}
             >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px" }}>
+                        Showing {filteredRecords.length} of {employeeRecords.length} employees
+                    </Typography>
+                </Box>
                 <Box
                     sx={{
                         display: "grid",
@@ -164,7 +208,12 @@ export default function PayrollEmployeeRecords() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {employeeRecords.map((item, index) => (
+                        {filteredRecords.length === 0 ? (
+                            <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                No employees found matching your filters.
+                            </Box>
+                        ) : (
+                            filteredRecords.map((item, index) => (
                             <Box
                                 key={index}
                                 sx={{
@@ -214,7 +263,8 @@ export default function PayrollEmployeeRecords() {
                                     </IconButton>
                                 </Box>
                             </Box>
-                        ))}
+                        ))
+                        )}
                     </Box>
                 )}
             </Box>

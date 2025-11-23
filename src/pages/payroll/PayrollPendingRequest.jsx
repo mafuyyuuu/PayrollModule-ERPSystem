@@ -1,17 +1,21 @@
-import {Box, Typography, useTheme, IconButton} from "@mui/material";
+import {Box, Typography, useTheme, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button} from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import React, {useState, useEffect} from "react";
 import {RiCheckFill, RiCloseFill, RiPencilFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
+import { exportToCSV } from "../../utils/pdfGenerator.js";
 
 export default function PayrollPendingRequest() {
     const theme = useTheme();
 
+    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("");
     const [employeeRequests, setEmployeeRequests] = useState([]);
+    const [filteredRequests, setFilteredRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, action: null, requestId: null });
 
     // Fetch pending requests
     useEffect(() => {
@@ -41,10 +45,11 @@ export default function PayrollPendingRequest() {
                 }));
 
                 setEmployeeRequests(transformedData);
+                setFilteredRequests(transformedData);
                 setLoading(false);
-            } catch (err) {
-                console.error('❌ Error fetching pending requests:', err);
-                setError(err.message);
+            } catch (_err) {
+                console.error('❌ Error fetching pending requests:', _err);
+                setError(_err.message);
                 setLoading(false);
             }
         };
@@ -52,34 +57,81 @@ export default function PayrollPendingRequest() {
         fetchPendingRequests();
     }, []);
 
-    const handleApprove = async (requestId) => {
+    // Filter requests based on search term and filter
+    useEffect(() => {
+        let filtered = employeeRequests;
+
+        // Apply search filter
+        if (searchTerm) {
+            filtered = filtered.filter(request =>
+                request.employee.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        // Apply type/status filter
+        if (filter) {
+            if (filter === 'all') {
+                // Show all
+            } else if (['Pending', 'Approved', 'Rejected'].includes(filter)) {
+                // Filter by status
+                filtered = filtered.filter(request => request.status === filter);
+            } else {
+                // Filter by type
+                filtered = filtered.filter(request => request.type === filter);
+            }
+        }
+
+        setFilteredRequests(filtered);
+    }, [searchTerm, filter, employeeRequests]);
+
+    // Get unique request types for filter options
+    const requestTypes = [...new Set(employeeRequests.map(req => req.type))];
+    const filterOptions = [
+        { value: 'all', label: 'All' },
+        ...requestTypes.map(type => ({ value: type, label: type })),
+        { value: 'Pending', label: 'Status: Pending' },
+        { value: 'Approved', label: 'Status: Approved' },
+        { value: 'Rejected', label: 'Status: Rejected' },
+    ];
+
+    const openConfirmDialog = (action, requestId) => {
+        setConfirmDialog({ open: true, action, requestId });
+    };
+
+    const closeConfirmDialog = () => {
+        setConfirmDialog({ open: false, action: null, requestId: null });
+    };
+
+    const handleConfirmAction = async () => {
+        const { action, requestId } = confirmDialog;
         try {
-            const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}/approve`, {
+            const endpoint = action === 'approve' ? 'approve' : 'reject';
+            const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}/${endpoint}`, {
                 method: 'PUT',
             });
 
             if (response.ok) {
-                // Refresh the list
-                window.location.reload();
+                // Update the local state instead of reloading
+                setEmployeeRequests(prev => 
+                    prev.map(req => 
+                        req.requestId === requestId 
+                            ? { ...req, status: action === 'approve' ? 'Approved' : 'Rejected' }
+                            : req
+                    )
+                );
+                closeConfirmDialog();
             }
-        } catch (err) {
-            console.error('Error approving request:', err);
+        } catch (_err) {
+            console.error(`Error ${action}ing request:`, _err);
         }
     };
 
-    const handleReject = async (requestId) => {
-        try {
-            const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}/reject`, {
-                method: 'PUT',
-            });
-
-            if (response.ok) {
-                // Refresh the list
-                window.location.reload();
-            }
-        } catch (err) {
-            console.error('Error rejecting request:', err);
+    const handleExportCSV = () => {
+        if (filteredRequests.length === 0) {
+            alert('No requests to export');
+            return;
         }
+        exportToCSV(filteredRequests, 'pending_requests.csv');
     };
 
     return (
@@ -112,9 +164,17 @@ export default function PayrollPendingRequest() {
                         display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
                     }}
                 >
-                    <SearchBar placeholder="Enter Username" width="350px"/>
+                    <SearchBar 
+                        placeholder="Enter Username" 
+                        width="350px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
 
                     <FilterSelect
+                        width={200}
+                        placeholder="Filter by Type/Status"
+                        options={filterOptions}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
@@ -137,6 +197,11 @@ export default function PayrollPendingRequest() {
                     },
                 }}
             >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px" }}>
+                        Showing {filteredRequests.length} of {employeeRequests.length} requests
+                    </Typography>
+                </Box>
                 <Box
                     sx={{
                         display: "grid",
@@ -181,7 +246,12 @@ export default function PayrollPendingRequest() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {employeeRequests.map((item, index) => (
+                        {filteredRequests.length === 0 ? (
+                            <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                No requests found matching your filters.
+                            </Box>
+                        ) : (
+                            filteredRequests.map((item, index) => (
                             <Box
                                 key={index}
                                 sx={{
@@ -225,7 +295,7 @@ export default function PayrollPendingRequest() {
                                             {/*Accept Button */}
                                             <IconButton
                                                 disableRipple
-                                                onClick={() => handleApprove(item.requestId)}
+                                                onClick={() => openConfirmDialog('approve', item.requestId)}
                                                 sx={{
                                                     backgroundColor: "#172224",
                                                     color: "green",
@@ -247,7 +317,7 @@ export default function PayrollPendingRequest() {
                                             {/* Reject Button */}
                                             <IconButton
                                                 disableRipple
-                                                onClick={() => handleReject(item.requestId)}
+                                                onClick={() => openConfirmDialog('reject', item.requestId)}
                                                 sx={{
                                                     backgroundColor: "#172224",
                                                     color: "red",
@@ -288,14 +358,38 @@ export default function PayrollPendingRequest() {
                                     )}
                                 </Box>
                             </Box>
-                        ))}
+                        ))
+                        )}
                     </Box>
                 )}
             </Box>
 
+            {/* Confirmation Dialog */}
+            <Dialog open={confirmDialog.open} onClose={closeConfirmDialog}>
+                <DialogTitle>
+                    Confirm {confirmDialog.action === 'approve' ? 'Approval' : 'Rejection'}
+                </DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to {confirmDialog.action === 'approve' ? 'approve' : 'reject'} this request?
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeConfirmDialog} color="inherit">
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleConfirmAction} 
+                        color={confirmDialog.action === 'approve' ? 'success' : 'error'}
+                        variant="contained"
+                    >
+                        {confirmDialog.action === 'approve' ? 'Approve' : 'Reject'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <ActionButton text="Export Payslip PDF" width="200px"/>
-                <ActionButton text="Export CSV" width="200px"/>
+                <ActionButton text="Export CSV" width="200px" onClick={handleExportCSV}/>
             </Box>
         </Box>
     );

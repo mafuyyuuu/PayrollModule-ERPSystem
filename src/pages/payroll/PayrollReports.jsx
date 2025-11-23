@@ -3,12 +3,15 @@ import ActionButton from "../../components/ActionButton.jsx";
 import React, {useState, useEffect} from "react";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
+import { generateReportPDF, exportToCSV } from "../../utils/pdfGenerator.js";
 
 export default function PayrollReports() {
     const theme = useTheme();
 
+    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("");
     const [reports, setReports] = useState([]);
+    const [filteredReports, setFilteredReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -37,16 +40,60 @@ export default function PayrollReports() {
                 }));
 
                 setReports(transformedData);
+                setFilteredReports(transformedData);
                 setLoading(false);
-            } catch (err) {
-                console.error('❌ Error fetching reports:', err);
-                setError(err.message);
+            } catch (_err) {
+                console.error('❌ Error fetching reports:', _err);
+                setError(_err.message);
                 setLoading(false);
             }
         };
 
         fetchReports();
     }, []);
+
+    // Filter reports based on search term and filter
+    useEffect(() => {
+        let filtered = reports;
+
+        // Apply search filter (by period)
+        if (searchTerm) {
+            filtered = filtered.filter(report =>
+                report.period.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                report.date.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        // Apply status filter
+        if (filter && filter !== 'all') {
+            filtered = filtered.filter(report => report.status === filter);
+        }
+
+        setFilteredReports(filtered);
+    }, [searchTerm, filter, reports]);
+
+    // Get unique statuses for filter options
+    const statuses = [...new Set(reports.map(rep => rep.status))];
+    const filterOptions = [
+        { value: 'all', label: 'All' },
+        ...statuses.map(status => ({ value: status, label: `Status: ${status}` })),
+    ];
+
+    const handleExportPDF = () => {
+        if (filteredReports.length === 0) {
+            alert('No reports to export');
+            return;
+        }
+        generateReportPDF(filteredReports, 'Payroll Reports and History');
+    };
+
+    const handleExportCSV = () => {
+        if (filteredReports.length === 0) {
+            alert('No reports to export');
+            return;
+        }
+        exportToCSV(filteredReports, 'payroll_reports.csv');
+    };
 
     return (
         <Box
@@ -78,9 +125,17 @@ export default function PayrollReports() {
                         display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
                     }}
                 >
-                    <SearchBar placeholder="Enter Username" width="350px"/>
+                    <SearchBar 
+                        placeholder="Search by period or date" 
+                        width="350px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
 
                     <FilterSelect
+                        width={180}
+                        placeholder="Filter by Status"
+                        options={filterOptions}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
@@ -103,6 +158,11 @@ export default function PayrollReports() {
                     },
                 }}
             >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px" }}>
+                        Showing {filteredReports.length} of {reports.length} reports
+                    </Typography>
+                </Box>
                 <Box
                     sx={{
                         display: "grid",
@@ -145,7 +205,12 @@ export default function PayrollReports() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {reports.map((item, index) => (
+                        {filteredReports.length === 0 ? (
+                            <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                No reports found matching your filters.
+                            </Box>
+                        ) : (
+                            filteredReports.map((item, index) => (
                             <Box
                                 key={index}
                                 sx={{
@@ -170,14 +235,15 @@ export default function PayrollReports() {
                                 <span>{item.amount}</span>
                                 <span>{item.status}</span>
                             </Box>
-                        ))}
+                        ))
+                        )}
                     </Box>
                 )}
             </Box>
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <ActionButton text="Export Payslip PDF" width="200px"/>
-                <ActionButton text="Export CSV" width="200px"/>
+                <ActionButton text="Export Payslip PDF" width="200px" onClick={handleExportPDF}/>
+                <ActionButton text="Export CSV" width="200px" onClick={handleExportCSV}/>
             </Box>
         </Box>
     );
