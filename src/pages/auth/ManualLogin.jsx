@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../components/UserContext.jsx';
-import './AdminLogin.css';
+import './ManualLogin.css';
 import logo from '../../assets/lenscape.png';
 
-function AdminLogin() {
-    const [username, setUsername] = useState('');
+function ManualLogin() {
+    const [name, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
@@ -17,11 +17,10 @@ function AdminLogin() {
     };
 
     const handleLogin = (e) => {
-        e.preventDefault(); // prevent page reload
+        e.preventDefault();
 
         if (!user) return;
 
-        // redirect based on role
         switch (user.role) {
             case 'admin':
                 navigate('/admin');
@@ -52,17 +51,20 @@ function AdminLogin() {
 
             <div className="right-container">
                 <h2>Login</h2>
+
                 <form onSubmit={handleLogin}>
+
+                    {/* Username */}
                     <div className="input-field">
                         <label htmlFor="username">Username</label>
                         <input
-                            type="username"
-                            value={username}
+                            type="text"
+                            value={name}
                             onChange={(e) => setUsername(e.target.value)}
                             required
                         />
-                        <i className='bx bx-envelope'></i>
                     </div>
+
                     <div className="input-field">
                         <label htmlFor="password">Password</label>
                         <input
@@ -71,8 +73,8 @@ function AdminLogin() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
-                        <i className='bx bx-lock'></i>
                     </div>
+
                     <div className="show-forgot">
                         <label>
                             <input
@@ -82,8 +84,10 @@ function AdminLogin() {
                             />
                             Show Password
                         </label>
+
                         <a href="#">Forgot Password?</a>
                     </div>
+
                     <button type="submit" className="login-btn">Login</button>
                 </form>
             </div>
@@ -91,4 +95,4 @@ function AdminLogin() {
     );
 }
 
-export default AdminLogin;
+export default ManualLogin;
