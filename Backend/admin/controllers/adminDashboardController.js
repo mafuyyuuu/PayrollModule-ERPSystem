@@ -1,4 +1,4 @@
-// backend/admin/AdminDashboard/controllers/dashboardControllers.js
+// backend/admin/controllers/dashboardControllers.js
 import {
     getTotalEmployees,
     getProcessedPayouts,
