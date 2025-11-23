@@ -160,6 +160,13 @@ export const generatePayslipPDF = (employeeData) => {
 
     // Create a new window with the HTML content
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        console.error('Failed to open print window for payslip. Please check popup blocker settings.');
+        // eslint-disable-next-line no-alert
+        alert('Unable to open print window. Please check your popup blocker settings.');
+        return;
+    }
+    
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     
@@ -286,6 +293,13 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
 
     // Create a new window with the HTML content
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        console.error('Failed to open print window for report. Please check popup blocker settings.');
+        // eslint-disable-next-line no-alert
+        alert('Unable to open print window. Please check your popup blocker settings.');
+        return;
+    }
+    
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     
