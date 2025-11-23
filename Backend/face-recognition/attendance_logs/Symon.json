@@ -1,0 +1,22 @@
+[
+  {
+    "action": "time_in",
+    "timestamp": "2025-11-12 15:00:34"
+  },
+  {
+    "action": "time_in",
+    "timestamp": "2025-11-12 15:01:05"
+  },
+  {
+    "action": "time_in",
+    "timestamp": "2025-11-12 15:12:01"
+  },
+  {
+    "action": "time_in",
+    "timestamp": "2025-11-12 15:13:46"
+  },
+  {
+    "action": "time_in",
+    "timestamp": "2025-11-12 15:14:13"
+  }
+]

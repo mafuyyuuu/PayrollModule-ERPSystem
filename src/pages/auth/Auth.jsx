@@ -23,7 +23,7 @@ export default function Auth() {
                 autoResumeDelay={3000}
                 autoRampDuration={0.6}
             />
-            <Outlet /> {/* THIS must exist*/}
+            <Outlet />
         </div>
     );
 }

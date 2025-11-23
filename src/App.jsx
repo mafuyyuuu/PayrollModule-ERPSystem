@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 // Auth pages
 import Auth from "./pages/auth/Auth.jsx";
 import Landing from "./pages/auth/Landing.jsx";
+import ManualLogin from './pages/auth/ManualLogin.jsx';
 import Login from "./pages/auth/Login.jsx";
 
 // Layout
@@ -53,17 +54,10 @@ function App() {
                 <UserProvider>
                     <Router>
                         <Routes>
-                            {/* landing and login
-
-                             <Route element={<Auth />}>
-                                <Route path="/" element={<Landing />} />
-                                <Route path="/login" element={<Login />} />
-                            </Route>
-
-                            */}
-
+                            {/* landing and login */}
                             <Route element={<Auth />}>
-                                <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+                                <Route path="/" element={<Landing />} />
+                                <Route path="/ManualLogin" element={<ManualLogin />} />
                                 <Route path="/login" element={<Login />} />
                             </Route>
 

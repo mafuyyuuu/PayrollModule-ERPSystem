@@ -1,10 +1,11 @@
 import React, {useState} from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-    Box, Button, Typography, IconButton, Select, MenuItem, TextField, Checkbox, FormControlLabel, InputBase,
+    Box, Button, Typography, IconButton, Select, MenuItem, TextField, Checkbox, FormControlLabel, InputBase, Tooltip,
+    Switch,
 } from "@mui/material";
-import {RiPencilFill, RiEyeFill} from "react-icons/ri";
-import {useTheme} from "@mui/material/styles";
+import {RiPencilFill} from "react-icons/ri";
+import {styled, useTheme} from "@mui/material/styles";
 import BoxModal from "../../components/BoxModal";
 import ActionButton from "../../components/ActionButton.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
@@ -19,10 +20,74 @@ export default function AdminConfiguration() {
     const [modalType, setModalType] = useState("");
     const [showRemove, setShowRemove] = useState(false);
     const [filter, setFilter] = useState("");
-
     const [selectedRule, setSelectedRule] = useState("");
     const [selectedFreq, setSelectedFreq] = useState("");
     const [selectedDept, setSelectedDept] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [period, setPeriod] = useState("");
+
+    const generatePeriod = (start, end) => {
+        if (!start || !end) return;
+
+        const startDateObj = new Date(start);
+        const endDateObj = new Date(end);
+
+        const startDay = startDateObj.getDate();
+        const endDay = endDateObj.getDate();
+
+        const monthName = startDateObj.toLocaleString("default", { month: "long" });
+        const year = startDateObj.getFullYear();
+
+        let periodText = "";
+
+        // 1st half: 1–15
+        if (startDay >= 1 && startDay <= 15 && endDay >= 1 && endDay <= 15) {
+            periodText = `1st Half of ${monthName} ${year}`;
+        }
+        // 2nd half: 16–31
+        else if (startDay >= 16 && endDay >= 16) {
+            periodText = `2nd Half of ${monthName} ${year}`;
+        }
+        // Invalid range
+        else {
+            periodText = "Invalid range — must both be 1–15 or 16–31";
+        }
+
+        setPeriod(periodText);
+    };
+
+    const ModernSwitch = styled(Switch)({
+        width: 50,
+        height: 28,
+        padding: 0,
+        borderRadius: 14,
+
+        "& .MuiSwitch-switchBase": {
+            padding: 2,
+            "&.Mui-checked": {
+                transform: "translateX(22px)",
+                color: "#fff",
+                "& + .MuiSwitch-track": {
+                    backgroundColor: "#3A4F50",
+                    opacity: 1,
+                },
+            },
+        },
+
+        "& .MuiSwitch-thumb": {
+            width: 24,
+            height: 24,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            borderRadius: 12,
+        },
+
+        "& .MuiSwitch-track": {
+            borderRadius: 14,
+            backgroundColor: "#bdbdbd",
+            opacity: 1,
+        },
+    });
 
     const [rulesFromDB, setRulesFromDB] = useState([{
         id: 1, type: "Benefit", description: "Additional fixed compensation for specific purposes"
@@ -287,17 +352,21 @@ export default function AdminConfiguration() {
                                             -openModal("rule");
                                         }}
                                         sx={{
-                                            bgcolor: "#3A4F50",
+                                            backgroundColor: "#172224",
                                             color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                            transition: "all 0.3s ease",
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
                                             "&:hover": {
-                                                transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
                                             },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <RiPencilFill/>
+                                        <RiPencilFill style={{fontSize: 19}}/>
                                     </IconButton>
                                 </Box>
                             </Box>
@@ -417,17 +486,21 @@ export default function AdminConfiguration() {
                                             openModal("cutoff", cutoff);
                                         }}
                                         sx={{
-                                            bgcolor: "#3A4F50",
+                                            backgroundColor: "#172224",
                                             color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                            transition: "all 0.3s ease",
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
                                             "&:hover": {
-                                                transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
                                             },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <RiPencilFill/>
+                                        <RiPencilFill style={{fontSize: 19}}/>
                                     </IconButton>
                                 </Box>
                             </Box>
@@ -515,32 +588,21 @@ export default function AdminConfiguration() {
                                     <IconButton
                                         onClick={() => openModal("employee", group)}
                                         sx={{
-                                            bgcolor: "#3A4F50",
+                                            backgroundColor: "#172224",
                                             color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                            transition: "all 0.3s ease",
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
                                             "&:hover": {
-                                                transform: "translateY(-3px)", bgcolor: "#2E3B3D",
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
                                             },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <RiEyeFill/>
-                                    </IconButton>
-                                    <IconButton
-                                        onClick={() => openModal("employee", group)}
-                                        sx={{
-                                            bgcolor: "#3A4F50",
-                                            color: "#fff",
-                                            width: "30px",
-                                            height: "30px",
-                                            transition: "all 0.3s ease",
-                                            "&:hover": {
-                                                transform: "translateY(-3px)", bgcolor: "#2E3B3D",
-                                            },
-                                        }}
-                                    >
-                                        <RiPencilFill/>
+                                        <RiPencilFill style={{fontSize: 19}}/>
                                     </IconButton>
                                 </Box>
                             </Box>
@@ -563,14 +625,29 @@ export default function AdminConfiguration() {
                         color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
                     }}
                 >
-                    <Typography
-                        variant="h5"
+                    <Box
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            mb: 2
                         }}
                     >
-                        Add Rule
-                    </Typography>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                            }}
+                        >
+                            Add Rule
+                        </Typography>
+
+                        <Box sx={{display: "flex", alignItems: "center", gap: 1}}>
+                            <Tooltip title="Active or Inactive?">
+                                <ModernSwitch/>
+                            </Tooltip>
+                        </Box>
+                    </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
@@ -583,36 +660,36 @@ export default function AdminConfiguration() {
                             onChange={(e) => setSelectedRule(e.target.value)}
                             displayEmpty
                             sx={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
+                                backgroundColor: "#cacace",
                                 borderRadius: "13px",
-                                color: "#fff",
+                                color: "#1F2829",
                                 fontSize: "18px",
                                 "& .MuiSelect-select": {
                                     padding: "8px 12px",
                                 },
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.4)",
+                                    border: "none",
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.9)",
+                                    border: "none",
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.6)",
+                                    border: "none",
                                 },
                                 "& .MuiSvgIcon-root": {
-                                    color: "#fff",
+                                    color: "#1F2829",
                                 },
                             }}
                             MenuProps={{
                                 PaperProps: {
                                     sx: {
-                                        backgroundColor: "#ffffff", color: "#1e1e1e",
+                                        backgroundColor: "#ffffff", color: "#1F2829",
                                     }
                                 }
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span
-                                    style={{color: "rgba(255,255,255,0.4"}}>Select Rule Type</span>;
+                                    style={{color: "#828689"}}>Select Rule Type</span>;
                                 return selected;
                             }}
                         >
@@ -637,17 +714,17 @@ export default function AdminConfiguration() {
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
                                     fontSize: "18px",
                                     "& fieldset": {
-                                        borderColor: "rgba(255,255,255,0.4)",
+                                        border: "none",
                                     },
                                     "&:hover fieldset": {
-                                        borderColor: "rgba(255,255,255,0.6)",
+                                        border: "none",
                                     },
                                     "&.Mui-focused fieldset": {
-                                        borderColor: "rgba(255,255,255,0.9)",
+                                        border: "none",
                                     },
                                 }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
@@ -669,20 +746,20 @@ export default function AdminConfiguration() {
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
-                                    fontSize: "18px",
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
                                     "& fieldset": {
-                                        borderColor: "rgba(255,255,255,0.4)",
+                                        border: "none",
                                     },
                                     "&:hover fieldset": {
-                                        borderColor: "rgba(255,255,255,0.6)",
+                                        border: "none",
                                     },
                                     "&.Mui-focused fieldset": {
-                                        borderColor: "rgba(255,255,255,0.9)",
+                                        border: "none",
                                     },
-                                },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
                         />
                     </Box>
@@ -692,12 +769,32 @@ export default function AdminConfiguration() {
                             display: "flex", justifyContent: showRemove ? "center" : "flex-end", gap: 2, mt: 3,
                         }}
                     >
-                        {showRemove && (<ActionButton
-                            text="Remove"
-                            width="200px"
-                            color="#b22222"
-                            onClick={closeModal}
-                        />)}
+                        {showRemove && (
+                            <Box
+                                component="button"
+                                onClick={closeModal}
+                                sx={{
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#8b1a1a",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#a32020",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Remove
+                            </Box>
+                        )}
 
                         <Box
                             component="button"
@@ -742,44 +839,121 @@ export default function AdminConfiguration() {
                         Add Cutoff
                     </Typography>
 
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Formula or Fixed Amount
+                            sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#FFFFFF",
+                                fontSize: "18px",
+                            }}
+                        >
+                            Payroll Period
                         </Typography>
 
-                        <Box sx={{display: "flex", gap: 1}}>
-                            {[...Array(2)].map((_, i) => (<input
-                                key={i}
-                                type="date"
-                                style={{
-                                    flex: 1,
-                                    padding: "10px",
-                                    height: "45px",
-                                    borderRadius: "13px",
-                                    fontSize: "18px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
-                                    border: "1px solid rgba(255,255,255,0.4)",
-                                    outline: "none",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    boxSizing: "border-box",
-                                    transition: "border-color 0.25s ease",
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.6)";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.4)";
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.9)";
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = "rgba(255,255,255,0.4)";
-                                }}
-                            />))}
+                        {/* Start + End Dates */}
+                        <Box sx={{ display: "flex", gap: 1 }}>
+
+                            {/* Start Date */}
+                            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                <Typography
+                                    sx={{
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#FFFFFF",
+                                        fontSize: "16px",
+                                    }}
+                                >
+                                    Start Date
+                                </Typography>
+
+                                <input
+                                    type="date"
+                                    style={{
+                                        padding: "10px",
+                                        height: "43px",
+                                        borderRadius: "13px",
+                                        fontSize: "18px",
+                                        backgroundColor: "#cacace",
+                                        border: "none",
+                                        color: "#1F2829",
+                                        outline: "none",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        boxSizing: "border-box",
+                                    }}
+                                    value={startDate}
+                                    onChange={(e) => {
+                                        setStartDate(e.target.value);
+                                        generatePeriod(e.target.value, endDate);
+                                    }}
+                                />
+                            </Box>
+
+                            {/* End Date */}
+                            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                <Typography
+                                    sx={{
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#FFFFFF",
+                                        fontSize: "16px",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    End Date
+                                </Typography>
+
+                                <input
+                                    type="date"
+                                    style={{
+                                        padding: "10px",
+                                        height: "43px",
+                                        borderRadius: "13px",
+                                        fontSize: "18px",
+                                        backgroundColor: "#cacace",
+                                        border: "none",
+                                        color: "#1F2829",
+                                        outline: "none",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        boxSizing: "border-box",
+                                    }}
+                                    value={endDate}
+                                    onChange={(e) => {
+                                        setEndDate(e.target.value);
+                                        generatePeriod(startDate, e.target.value);
+                                    }}
+                                />
+                            </Box>
                         </Box>
+                    </Box>
+
+                    {/* Auto-generated Period */}
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#FFFFFF",
+                                fontSize: "18px",
+                            }}
+                        >
+                            Period
+                        </Typography>
+
+                        <TextField
+                            value={period}
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "13px",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { fontSize: "18px" },
+                            }}
+                        />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
@@ -794,37 +968,36 @@ export default function AdminConfiguration() {
                             onChange={(e) => setSelectedFreq(e.target.value)}
                             displayEmpty
                             sx={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
+                                backgroundColor: "#cacace",
                                 borderRadius: "13px",
-                                color: "#fff",
+                                color: "#1F2829",
                                 fontSize: "18px",
                                 "& .MuiSelect-select": {
                                     padding: "8px 12px",
                                 },
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.4)",
+                                    border: "none",
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.9)",
+                                    border: "none",
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.6)",
+                                    border: "none",
                                 },
                                 "& .MuiSvgIcon-root": {
-                                    color: "#fff",
+                                    color: "#1F2829",
                                 },
                             }}
                             MenuProps={{
                                 PaperProps: {
                                     sx: {
-                                        backgroundColor: "#ffffff", color: "#1e1e1e",
-                                    },
-                                },
+                                        backgroundColor: "#ffffff", color: "#1F2829",
+                                    }
+                                }
                             }}
                             renderValue={(selected) => {
-                                if (!selected) return (<span style={{color: "rgba(255,255,255,0.4)"}}>
-                                    Select Frequency
-                                </span>);
+                                if (!selected) return <span
+                                    style={{color: "#828689"}}>Select Frequency</span>;
                                 return selected;
                             }}
                         >
@@ -846,37 +1019,36 @@ export default function AdminConfiguration() {
                             onChange={(e) => setSelectedDept(e.target.value)}
                             displayEmpty
                             sx={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
+                                backgroundColor: "#cacace",
                                 borderRadius: "13px",
-                                color: "#fff",
+                                color: "#1F2829",
                                 fontSize: "18px",
                                 "& .MuiSelect-select": {
                                     padding: "8px 12px",
                                 },
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.4)",
+                                    border: "none",
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.9)",
+                                    border: "none",
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(255,255,255,0.6)",
+                                    border: "none",
                                 },
                                 "& .MuiSvgIcon-root": {
-                                    color: "#fff",
+                                    color: "#1F2829",
                                 },
                             }}
                             MenuProps={{
                                 PaperProps: {
                                     sx: {
-                                        backgroundColor: "#ffffff", color: "#1e1e1e",
-                                    },
-                                },
+                                        backgroundColor: "#ffffff", color: "#1F2829",
+                                    }
+                                }
                             }}
                             renderValue={(selected) => {
-                                if (!selected) return (<span style={{color: "rgba(255,255,255,0.4)"}}>
-                                        Select Department
-                                    </span>);
+                                if (!selected) return <span
+                                    style={{color: "#828689"}}>Select Department</span>;
                                 return selected;
                             }}
                         >
@@ -904,12 +1076,32 @@ export default function AdminConfiguration() {
                             display: "flex", justifyContent: showRemove ? "center" : "flex-end", gap: 2, mt: 1,
                         }}
                     >
-                        {showRemove && (<ActionButton
-                            text="Remove"
-                            width="200px"
-                            color="#b22222"
-                            onClick={closeModal}
-                        />)}
+                        {showRemove && (
+                            <Box
+                                component="button"
+                                onClick={closeModal}
+                                sx={{
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#8b1a1a",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#a32020",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Remove
+                            </Box>
+                        )}
                         <Box
                             component="button"
                             sx={{
@@ -957,7 +1149,6 @@ export default function AdminConfiguration() {
                                     display: "flex",
                                     alignItems: "center",
                                     borderRadius: "9px",
-                                    border: `1px solid ${theme.palette.divider}`,
                                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.01)" : "rgba(255, 255, 255, 0.2)",
                                     backdropFilter: "blur(12px)",
                                     px: "15px",
@@ -1007,7 +1198,8 @@ export default function AdminConfiguration() {
                             flexDirection: "column",
                             gap: "8px"
                         }}>
-                            {employeeGroupsFromDB.map((emp, i) => (<Box
+                            {employeeGroupsFromDB.map((emp, i) => (
+                                <Box
                                     key={i}
                                     sx={{
                                         display: "grid",

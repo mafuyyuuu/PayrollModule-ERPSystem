@@ -1,0 +1,115 @@
+.logout-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Changed from 1000 */
+    backdrop-filter: blur(5px);
+}
+
+
+.logout-container {
+    position: relative;
+    display: flex;
+    top: 0%;
+    justify-content: space-between;
+    width: 800px;
+    padding: 2rem;
+    max-width: 90vw;
+    border-radius: 4rem;
+    backdrop-filter: blur(30px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.right-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.right-container h2 {
+    font-family: 'TTHoves-Bold', sans-serif;
+    font-size: 2rem;
+    color: white;
+    align-self: center;
+    margin-bottom: 1rem;
+}
+
+.right-container video {
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.right-container img {
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: none;
+}
+
+.right-container img[src] {
+    display: block;
+}
+
+.right-container p {
+    color: white;
+    font-family: 'TTHoves-DemiBold', sans-serif;
+    font-size: 1rem;
+    text-align: center;
+    margin: 0.5rem 0;
+    min-height: 1.5rem;
+}
+
+.login-btn {
+    font-family: 'TTHoves-DemiBold', sans-serif;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.login-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        width: 90%;
+        padding: 2rem;
+    }
+
+    .right-container video {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+    }
+
+    .right-container h2 {
+        font-size: 1.5rem;
+    }
+}

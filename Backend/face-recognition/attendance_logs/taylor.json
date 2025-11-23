@@ -1,0 +1,20 @@
+[
+  {
+    "employee_id": "taylor",
+    "name": "Unknown",
+    "timestamp": "2025-11-12T01:05:17.105972",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "taylor",
+    "name": "Unknown",
+    "timestamp": "2025-11-12T01:06:16.668845",
+    "action": "time_in"
+  },
+  {
+    "employee_id": "taylor",
+    "name": "Unknown",
+    "timestamp": "2025-11-12T01:07:53.587260",
+    "action": "time_in"
+  }
+]

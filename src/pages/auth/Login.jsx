@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../components/UserContext.jsx";
 import * as faceapi from "face-api.js";
-import "./Login.css";
+import ActionButton from "../../components/ActionButton.jsx";
 
 function Login() {
     const videoRef = useRef();
@@ -53,11 +54,11 @@ function Login() {
             const ctx = canvas.getContext("2d");
             ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, width, height);
 
-            // Optional: preview cropped face
-            const previewImg = document.getElementById("face-preview");
-            if (previewImg) {
-                previewImg.src = canvas.toDataURL("image/jpeg");
-            }
+            // // Optional: preview cropped face
+            // const previewImg = document.getElementById("face-preview");
+            // if (previewImg) {
+            //     previewImg.src = canvas.toDataURL("image/jpeg");
+            // }
 
             // Convert face image to Blob
             const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg"));
@@ -88,14 +89,15 @@ function Login() {
 
                 const userData = {
                     name: data.name,
-                    role: data.role || "employee",
+                    role: data.role,  // Use 'role' (string) for navigation
+                    role_id: data.role_id,  // Keep role_id for reference
                     employee_id: data.employee_id,
                 };
                 setUser(userData);
 
                 // Redirect after 1.5s delay
                 setTimeout(() => {
-                    switch (userData.role) {
+                    switch (userData.role) {  // Use 'role' not 'role_id'
                         case "admin":
                             navigate("/admin/dashboard");
                             break;
@@ -130,9 +132,44 @@ function Login() {
     };
 
     return (
-        <div className="login-container">
-            <div className="right-container">
-                <h2>Facial Recognition Login</h2>
+        <Box
+            sx={{
+                backdropFilter: "blur(30px)",
+                WebkitBackdropFilter: "blur(30px)",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderRadius: "4rem",
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                p: 4,
+                width: { xs: "90%", sm: "600px", md: "800px" },
+                height: { xs: "auto", sm: "70%", md: "600px" },
+                maxHeight: "90vh",
+                overflowY: "auto",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+            }}
+        >
+            <Box
+                sx={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                <Typography
+                    variant="h2"
+                    sx={{
+                        fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "30px", color: "#FFFFFF", mb: 2,
+                    }}
+                >
+                    Facial Recognition Login
+                </Typography>
 
                 <video
                     ref={videoRef}
@@ -142,23 +179,30 @@ function Login() {
                     height="300"
                     style={{ borderRadius: "10px", border: "2px solid #ccc" }}
                 />
+
                 <img
                     id="face-preview"
                     alt="Face preview"
                     style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
                 />
-                <p>{status}</p>
 
-                <button
-                    onClick={handleFaceLogin}
-                    className="login-btn"
-                    disabled={loading}
-                    style={{ marginTop: "10px" }}
+                <Typography
+                    variant="h5"
+                    sx={{
+                        fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "18px", color: "#FFFFFF", mb: 2,
+                    }}
                 >
-                    {loading ? "Processing..." : "Login with Face"}
-                </button>
-            </div>
-        </div>
+                    {status}
+                </Typography>
+
+                <ActionButton
+                    text={loading ? "Processing..." : "Login with Face"}
+                    width="200px"
+                    onClick={handleFaceLogin}
+                    disabled={loading}
+                />
+            </Box>
+        </Box>
     );
 }
 

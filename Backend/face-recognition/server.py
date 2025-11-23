@@ -14,7 +14,7 @@ DB_CONFIG = {
     "host": "localhost",
     "user": "payrollsystem",
     "password": "payroll",
-    "database": "testdb"
+    "database": "payrollmanagementsystem"
 }
 
 app = FastAPI()
@@ -53,20 +53,23 @@ if os.path.exists(embeddings_file):
 else:
     embeddings_db = {}
 
-# Load employees
+# Load employees with role information
 if os.path.exists(employees_file):
     with open(employees_file, "r") as f:
-        employees = json.load(f)
+        raw = json.load(f)
+    # Now employees stores: {employee_id: {"name": "...", "role_id": ...}}
+    employees = {int(k): v for k, v in raw.items()}
 else:
     employees = {}
 
-def log_attendance_to_db(employee_id, name, action, timestamp):
+def log_attendance_to_db(employee_id, name, action, timestamp, time_out=None):
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor()
 
         date_str = timestamp.split(" ")[0]
         time_str = timestamp.split(" ")[1]
+        calc_time_out = time_out or time_str
 
         # Check if there's already a record for this employee today
         cursor.execute("""
@@ -87,21 +90,23 @@ def log_attendance_to_db(employee_id, name, action, timestamp):
                 print(f"✅ {name} checked in at {time_str}")
 
         elif action == "check_out":
-            if record and record[2] is None:  # only update if no time_out
+            if record and record[2] is None:
                 time_in = record[1]
                 if time_in:
                     # Calculate overtime hours
-                    cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, time_str))
-                    total_minutes = cursor.fetchone()[0]
-                    total_hours = total_minutes / 60.0
-                    overtime = max(0, total_hours - 8)  # Overtime after 8 hours
-
-                    cursor.execute("""
-                                   UPDATE timesheets
-                                   SET time_out = %s, overtime_hours = %s
-                                   WHERE timesheet_id = %s
-                                   """, (time_str, round(overtime, 2), record[0]))
-                    print(f"✅ {name} checked out at {time_str} (Overtime: {round(overtime, 2)}h)")
+                    cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, calc_time_out))
+                    result = cursor.fetchone()
+                    total_minutes = result[0] if result and result[0] is not None else 0
+                    total_hours = total_minutes / 60.0 if total_minutes else 0.0
+                    overtime = max(0.0, total_hours - 8)
+                    cursor.execute(
+                        """
+                        UPDATE timesheets
+                        SET time_out = %s, overtime_hours = %s
+                        WHERE timesheet_id = %s
+                        """,
+                        (calc_time_out, round(overtime, 2), record[0])
+                    )
                 else:
                     print(f"⚠️ Missing time_in for {employee_id}")
             else:
@@ -122,16 +127,41 @@ def save_embeddings():
 
 def save_employees():
     with open(employees_file, "w") as f:
-        json.dump(employees, f, indent=2)
+        json.dump({str(k): v for k, v in employees.items()}, f, indent=2)
 
+# POST /register - Register new employee or add samples
 # POST /register - Register new employee or add samples
 @app.post("/register")
 async def register_face(
         files: list[UploadFile] = File(...),
         employee_id: int = Form(...),
-        name: str = Form(...)
+        name: str = Form(...),
+        role_id: int = Form(default=4)
 ):
     try:
+        print(f"📝 Attempting to register employee ID: {employee_id}, Name: {name}, Role: {role_id}")
+
+        # ✅ CHECK: Is this employee already registered?
+        if employee_id in embeddings_db:
+            print(f"⚠️ WARNING: Employee {employee_id} already exists!")
+            # Ask user if they want to update or cancel
+            return {
+                "success": False,
+                "error": f"Employee ID {employee_id} is already registered. Use /update endpoint to update.",
+                "existing_data": employees.get(employee_id)
+            }
+
+        # ✅ CHECK: Does this name already exist under a different ID?
+        for existing_id, data in employees.items():
+            existing_name = data.get("name") if isinstance(data, dict) else data
+            if existing_name == name and existing_id != employee_id:
+                print(f"⚠️ WARNING: Name '{name}' already registered under ID {existing_id}")
+                return {
+                    "success": False,
+                    "error": f"Name '{name}' is already registered under employee ID {existing_id}",
+                    "existing_employee_id": existing_id
+                }
+
         os.makedirs(f"faces_db/{employee_id}", exist_ok=True)
         embeddings_db[employee_id] = []
 
@@ -158,15 +188,83 @@ async def register_face(
         mean_embedding = np.mean(all_embeddings, axis=0)
         embeddings_db[employee_id] = mean_embedding.tolist()
 
-        with open(embeddings_file, "wb") as f:
-            pickle.dump(embeddings_db, f)
+        save_embeddings()
 
-        employees[employee_id] = name
+        # Store both name and role_id
+        employees[employee_id] = {
+            "name": name,
+            "role_id": role_id
+        }
         save_employees()
 
-        return {"success": True, "message": f"Registered {name} with {len(files)} samples."}
+        print(f"✅ Successfully registered {name} (ID: {employee_id}, Role: {role_id})")
+        return {"success": True, "message": f"Registered {name} with role_id {role_id} and {len(files)} samples."}
 
     except Exception as e:
+        print(f"❌ Registration error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+
+# Add this NEW endpoint after /register
+@app.put("/update/{employee_id}")
+async def update_face(
+        employee_id: int,
+        files: list[UploadFile] = File(...),
+        name: str = Form(None),
+        role_id: int = Form(None)
+):
+    """Update existing employee's face embeddings and/or info"""
+    try:
+        if employee_id not in embeddings_db:
+            return {"success": False, "error": f"Employee ID {employee_id} not found"}
+
+        print(f"🔄 Updating employee ID: {employee_id}")
+
+        # Update face embeddings if files provided
+        if files and len(files) > 0:
+            all_embeddings = []
+            os.makedirs(f"faces_db/{employee_id}", exist_ok=True)
+
+            for idx, file in enumerate(files):
+                save_path = f"faces_db/{employee_id}/{employee_id}_updated_{idx}.jpg"
+                with open(save_path, "wb") as f:
+                    shutil.copyfileobj(file.file, f)
+
+                result = DeepFace.represent(
+                    img_path=save_path,
+                    model_name="Facenet512",
+                    detector_backend="mtcnn",
+                    enforce_detection=True
+                )[0]["embedding"]
+
+                emb = np.array(result, dtype=np.float32)
+                emb /= np.linalg.norm(emb)
+                all_embeddings.append(emb)
+
+            mean_embedding = np.mean(all_embeddings, axis=0)
+            embeddings_db[employee_id] = mean_embedding.tolist()
+            save_embeddings()
+
+        # Update name and/or role if provided
+        current_data = employees.get(employee_id, {})
+        if isinstance(current_data, str):
+            current_data = {"name": current_data, "role_id": 4}
+
+        if name:
+            current_data["name"] = name
+        if role_id:
+            current_data["role_id"] = role_id
+
+        employees[employee_id] = current_data
+        save_employees()
+
+        print(f"✅ Updated employee {employee_id}: {current_data}")
+        return {"success": True, "message": f"Updated employee {employee_id}", "data": current_data}
+
+    except Exception as e:
+        print(f"❌ Update error: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -217,23 +315,29 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         best_match_id = None
         best_score = -1.0
 
+        print(f"🔍 Comparing against {len(embeddings_db)} registered employees: {list(embeddings_db.keys())}")
+
         for emp_id, emb in embeddings_db.items():
             try:
                 emb_array = np.array(emb, dtype=np.float32)
-            except Exception:
+            except Exception as e:
+                print(f"⚠️ Error converting embedding for employee {emp_id}: {e}")
                 continue
             emb_norm = np.linalg.norm(emb_array)
             if emb_norm == 0 or np.isnan(emb_norm) or np.isinf(emb_norm):
+                print(f"⚠️ Invalid embedding norm for employee {emp_id}")
                 continue
             emb_array /= emb_norm
-            sim = float(np.dot(emb_array, uploaded_embedding))  # ensure native float
+            sim = float(np.dot(emb_array, uploaded_embedding))
+            print(f"  Employee {emp_id}: similarity = {sim:.4f}")
             if sim > best_score:
                 best_score = sim
                 best_match_id = emp_id
 
-        THRESHOLD = 0.75  # tighten/loosen after testing
+        THRESHOLD = 0.75
 
-        # If no good match found -> return not matched
+        print(f"🎯 Best match: Employee {best_match_id} with score {best_score:.4f} (threshold: {THRESHOLD})")
+
         if not best_match_id or best_score < THRESHOLD:
             return {
                 "matched": False,
@@ -242,14 +346,130 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
                 "confidence": float(round(best_score * 100, 2)) if best_score != -1.0 else None
             }
 
-        # 3) We have a match: determine action based on DB (preferred source of truth)
-        employee_id = best_match_id  # note: in your registration code keys are ints
-        name = employees.get(employee_id, "Unknown")
+        employee_id = best_match_id
+
+        # ✅ Get employee name and stored role_id from local storage
+        employee_data = employees.get(employee_id, {"name": "Unknown", "role_id": None})
+        if isinstance(employee_data, dict):
+            name = employee_data.get("name", "Unknown")
+            stored_role_id = employee_data.get("role_id")
+        else:
+            # Backward compatibility: if employees[id] is just a string
+            name = employee_data if isinstance(employee_data, str) else "Unknown"
+            stored_role_id = None
 
         now = datetime.datetime.now()
         date_str = now.strftime("%Y-%m-%d")
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-        log_file = f"attendance_logs/{employee_id}.json"
+
+        # ✅ Fetch role from database (most authoritative source)
+        try:
+            connection = mysql.connector.connect(**DB_CONFIG)
+            cursor = connection.cursor()
+
+            # Get role from UserAccounts table with JOIN to Roles
+            cursor.execute("""
+                           SELECT ua.role_id, r.role_name
+                           FROM UserAccounts ua
+                                    LEFT JOIN Roles r ON ua.role_id = r.role_id
+                           WHERE ua.employee_id = %s
+                               LIMIT 1
+                           """, (int(employee_id),))
+            role_row = cursor.fetchone()
+
+            cursor.close()
+            connection.close()
+
+            # Map role_id to role name for frontend
+            role_map = {
+                1: 'admin',
+                2: 'manager',
+                3: 'payroll',
+                4: 'employee'
+            }
+
+            if role_row and role_row[0]:
+                role_id = role_row[0]
+                user_role = role_map.get(role_id, 'employee')
+                print(f"✅ Retrieved role from DB: {user_role} (role_id: {role_id})")
+            elif stored_role_id:
+                # Fallback to stored role if DB doesn't have it
+                role_id = stored_role_id
+                user_role = role_map.get(role_id, 'employee')
+                print(f"⚠️ Using stored role: {user_role} (role_id: {role_id})")
+            else:
+                # Default to employee if no role found anywhere
+                role_id = 4
+                user_role = 'employee'
+                print(f"⚠️ No role found, defaulting to employee")
+
+        except Exception as role_error:
+            print(f"⚠️ Error fetching role from DB: {role_error}")
+            # Fallback to stored role or default
+            if stored_role_id:
+                role_id = stored_role_id
+                role_map = {1: 'admin', 2: 'manager', 3: 'payroll', 4: 'employee'}
+                user_role = role_map.get(role_id, 'employee')
+            else:
+                role_id = 4
+                user_role = 'employee'
+
+        # Handle logout action
+        if action == "logout":
+            try:
+                connection = mysql.connector.connect(**DB_CONFIG)
+                cursor = connection.cursor()
+
+                cursor.execute("""
+                               SELECT timesheet_id, time_in, time_out
+                               FROM timesheets
+                               WHERE employee_id = %s AND date = %s
+                               """, (int(employee_id), date_str))
+                record = cursor.fetchone()
+
+                if record and record[2] is None:
+                    time_in = record[1]
+                    time_out = timestamp.split(" ")[1]
+
+                    # Calculate overtime with NULL check
+                    cursor.execute("SELECT TIMESTAMPDIFF(MINUTE, %s, %s)", (time_in, time_out))
+                    result = cursor.fetchone()
+                    total_minutes = result[0] if result and result[0] is not None else 0
+
+                    if total_minutes > 0:
+                        total_hours = total_minutes / 60.0
+                        overtime = max(0, total_hours - 8)
+                    else:
+                        overtime = 0.0
+
+                    cursor.execute("""
+                                   UPDATE timesheets
+                                   SET time_out = %s, overtime_hours = %s
+                                   WHERE timesheet_id = %s
+                                   """, (time_out, round(overtime, 2), record[0]))
+                    connection.commit()
+                    print(f"✅ {name} logged out at {time_out} (Overtime: {round(overtime, 2)}h)")
+                else:
+                    print(f"⚠️ No active session for {name} today")
+
+                cursor.close()
+                connection.close()
+
+            except Error as db_error:
+                print(f"⚠️ Database error during logout: {db_error}")
+
+            return {
+                "matched": True,
+                "attendance_recorded": True,
+                "employee_id": employee_id,
+                "role_id": role_id,
+                "role": user_role,
+                "name": name,
+                "action": "time_out",
+                "timestamp": timestamp,
+                "similarity": float(best_score),
+                "confidence": float(round(best_score * 100, 2))
+            }
 
         # Determine next action by checking DB record for today
         try:
@@ -268,51 +488,31 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
             record = None
 
         if record:
-            # record = (timesheet_id, time_in, time_out)
             time_in_val = record[1]
             time_out_val = record[2]
             if time_in_val and not time_out_val:
                 next_action = "check_out"
             elif time_in_val and time_out_val:
-                # If both exist, allow a new check_in for new period
                 next_action = "check_in"
             else:
                 next_action = "check_in"
         else:
             next_action = "check_in"
 
-        # 4) Update JSON logs (for frontend / fallback)
-        if os.path.exists(log_file):
-            with open(log_file, "r") as f:
-                logs = json.load(f)
-            # convert old list format to dict keyed by date (backwards compat)
-            if isinstance(logs, list):
-                logs = {date_str: logs}
-        else:
-            logs = {}
-
-        if date_str not in logs:
-            logs[date_str] = []
-
-        log_entry = {"action": next_action, "timestamp": timestamp}
-        logs[date_str].append(log_entry)
-
-        with open(log_file, "w") as f:
-            json.dump(logs, f, indent=2)
-
-        # 5) Sync to DB (this will insert or update timesheets)
+        # Sync to DB
         try:
-            # call your existing helper which handles insert/update/overtime
             log_attendance_to_db(int(employee_id), name, next_action, timestamp)
         except Exception as db_log_error:
-            # do not fail the entire recognition if DB logging fails; log the error
             print("⚠️ Error writing attendance to DB:", db_log_error)
 
-        # 6) Return success to frontend
+        # Return success to frontend with role
+        print(f"🎉 Successful login: {name} (ID: {employee_id}, Role: {user_role})")
         return {
             "matched": True,
             "employee_id": employee_id,
+            "role_id": role_id,
             "name": name,
+            "role": user_role,
             "action": next_action,
             "timestamp": timestamp,
             "similarity": float(best_score),
@@ -320,32 +520,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         }
 
     except Exception as e:
-        # final catch-all: print to backend and return helpful message to frontend
         print("❌ Unexpected error in /recognize:", e)
+        import traceback
+        traceback.print_exc()
         return {"matched": False, "error": f"Unexpected server error: {str(e)}"}
-
-# GET /attendance/{employee_id} - Fetch logs
-@app.get("/attendance/{employee_id}")
-def get_attendance(employee_id: str):
-    log_file = f"attendance_logs/{employee_id}.json"
-    if os.path.exists(log_file):
-        with open(log_file, "r") as f:
-            logs = json.load(f)
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
-        return logs.get(today, [])
-    return []
-
-# GET /employees - List all employees and sample counts
-@app.get("/employees")
-def list_employees():
-    return {
-        "total": len(embeddings_db),
-        "employees": [
-            {
-                "employee_id": emp_id,
-                "name": employees.get(emp_id, "Unknown"),
-                "samples": len(embeddings_db[emp_id])
-            }
-            for emp_id in embeddings_db
-        ]
-    }

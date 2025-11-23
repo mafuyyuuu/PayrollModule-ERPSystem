@@ -25,9 +25,14 @@ export default function Landing() {
                 </p>
             </FadeContent>
 
-            <button className="continue-btn" onClick={() => navigate('/login')}>
-                Continue
-            </button>
+            <div className = "button-container">
+                <button className="loginadmin-btn" onClick={() => navigate('/ManualLogin')}>
+                    Login as Admin
+                </button>
+                <button className="continue-btn" onClick={() => navigate('/login')}>
+                    Login as Employee
+                </button>
+            </div>
         </div>
     );
 }

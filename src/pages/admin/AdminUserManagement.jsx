@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, { useRef, useState } from "react";
 import {
-    Box, IconButton, MenuItem, Select, TextField, Typography, useTheme,
+    Modal, Box, IconButton, MenuItem, Select, TextField, Typography, useTheme,
 } from "@mui/material";
 import {RiPencilFill} from "react-icons/ri";
 import SearchBar from "../../components/SearchBar.jsx";
@@ -10,8 +10,13 @@ import BoxModal from "../../components/BoxModal.jsx";
 export default function AdminUserManagement() {
     const theme = useTheme();
 
+    const videoRef = useRef();
+    const [status, setStatus] = useState("Initializing camera...");
+    const [loading, setLoading] = useState(false);
+
     const [selectedUser, setSelectedUser] = useState(null);
     const [userModalOpen, setUserModalOpen] = useState(false);
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
     const handleAddUser = () => {
@@ -73,10 +78,11 @@ export default function AdminUserManagement() {
         >
             <Box
                 sx={{
+                    alignItems: "center",
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 3,
+                    mb: 2,
                 }}
             >
                 <Typography
@@ -103,7 +109,7 @@ export default function AdminUserManagement() {
 
             <Box
                 sx={{
-                    height: "85%",
+                    height: "90.9%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
@@ -140,7 +146,6 @@ export default function AdminUserManagement() {
 
                 <Box
                     sx={{
-                        maxHeight: "530px",
                         overflowY: "auto",
                         "&::-webkit-scrollbar": {width: 0, height: 0},
                         scrollbarWidth: "none",
@@ -176,17 +181,21 @@ export default function AdminUserManagement() {
                             <IconButton
                                 onClick={() => handleEditUser(user)}
                                 sx={{
-                                    bgcolor: "#3A4F50",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                transition: "all 0.2s ease",
+                                "&:hover": {
+                                    backgroundColor: "#2E3B3D",
                                     color: "#fff",
-                                    width: "32px",
-                                    height: "32px",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-3px)", bgcolor: "#2E3B3D",
-                                    },
-                                }}
+                                    transform: "translateY(-3px)",
+                                },
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                            }}
                             >
-                                <RiPencilFill/>
+                                <RiPencilFill style={{fontSize: 19}}/>
                             </IconButton>
                         </Box>
                     </Box>))}
@@ -196,7 +205,7 @@ export default function AdminUserManagement() {
                 open={userModalOpen}
                 onClose={handleCloseModal}
                 width="450px"
-                height="470"
+                height="470px"
             >
                 <Typography
                     variant="h5"
@@ -214,7 +223,7 @@ export default function AdminUserManagement() {
                             User ID
                         </Typography>
                         <TextField
-                            placeholder="User ID"
+                            placeholder="Enter user ID"
                             value={selectedUser?.id || ""}
                             onChange={(e) =>
                                 !isEditing && setSelectedUser(prev => ({...prev, id: e.target.value}))
@@ -222,16 +231,21 @@ export default function AdminUserManagement() {
                             variant="outlined"
                             size="small"
                             sx={{
-                                width: "150px",
                                 "& .MuiOutlinedInput-root": {
-                                    fontSize: "16px",
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
-                                    "& fieldset": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&:hover fieldset": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "&.Mui-focused fieldset": {borderColor: "rgba(255,255,255,0.9)"},
-                                },
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        border: "none",
+                                    },
+                                    "&:hover fieldset": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        border: "none",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
                         />
                     </Box>
@@ -242,7 +256,7 @@ export default function AdminUserManagement() {
                             Full Name
                         </Typography>
                         <TextField
-                            placeholder="Enter Full Name"
+                            placeholder="Enter full name"
                             value={selectedUser?.name || ""}
                             onChange={(e) => setSelectedUser(prev => ({...prev, name: e.target.value}))} fullWidth
                             variant="outlined"
@@ -250,14 +264,20 @@ export default function AdminUserManagement() {
                             sx={{
                                 width: "228px",
                                 "& .MuiOutlinedInput-root": {
-                                    fontSize: "16px",
                                     borderRadius: "13px",
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                    color: "#fff",
-                                    "& fieldset": {borderColor: "rgba(255,255,255,0.4)"},
-                                    "&:hover fieldset": {borderColor: "rgba(255,255,255,0.6)"},
-                                    "&.Mui-focused fieldset": {borderColor: "rgba(255,255,255,0.9)"},
-                                },
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": {
+                                        border: "none",
+                                    },
+                                    "&:hover fieldset": {
+                                        border: "none",
+                                    },
+                                    "&.Mui-focused fieldset": {
+                                        border: "none",
+                                    },
+                                }, "& .MuiInputBase-input": {fontSize: "18px"},
                             }}
                         />
                     </Box>
@@ -275,21 +295,35 @@ export default function AdminUserManagement() {
                         onChange={(e) => setSelectedUser(prev => ({...prev, role: e.target.value}))}
                         displayEmpty
                         sx={{
-                            backgroundColor: "rgba(255,255,255,0.2)",
+                            backgroundColor: "#cacace",
                             borderRadius: "13px",
-                            color: "#fff",
+                            color: "#1F2829",
                             fontSize: "18px",
-                            "& .MuiSelect-select": {padding: "8px 12px"},
-                            "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                            "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                            "& .MuiSvgIcon-root": {color: "#fff"},
+                            "& .MuiSelect-select": {
+                                padding: "8px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: "#1F2829",
+                            },
                         }}
                         MenuProps={{
-                            PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                            PaperProps: {
+                                sx: {
+                                    backgroundColor: "#ffffff", color: "#1F2829",
+                                }
+                            }
                         }}
                         renderValue={(selected) => {
-                            if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Role</span>;
+                            if (!selected) return <span style={{color: "#828689"}}>Select Role</span>;
                             return selected;
                         }}
                     >
@@ -313,21 +347,35 @@ export default function AdminUserManagement() {
                         onChange={(e) => setSelectedUser(prev => ({...prev, status: e.target.value}))}
                         displayEmpty
                         sx={{
-                            backgroundColor: "rgba(255,255,255,0.2)",
+                            backgroundColor: "#cacace",
                             borderRadius: "13px",
-                            color: "#fff",
+                            color: "#1F2829",
                             fontSize: "18px",
-                            "& .MuiSelect-select": {padding: "8px 12px"},
-                            "& .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.4)"},
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.9)"},
-                            "&:hover .MuiOutlinedInput-notchedOutline": {borderColor: "rgba(255,255,255,0.6)"},
-                            "& .MuiSvgIcon-root": {color: "#fff"},
+                            "& .MuiSelect-select": {
+                                padding: "8px 12px",
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                border: "none",
+                            },
+                            "& .MuiSvgIcon-root": {
+                                color: "#1F2829",
+                            },
                         }}
                         MenuProps={{
-                            PaperProps: {sx: {backgroundColor: "#ffffff", color: "#1e1e1e"}}
+                            PaperProps: {
+                                sx: {
+                                    backgroundColor: "#ffffff", color: "#1F2829",
+                                }
+                            }
                         }}
                         renderValue={(selected) => {
-                            if (!selected) return <span style={{color: "rgba(255,255,255,0.4)"}}>Select Status</span>;
+                            if (!selected) return <span style={{color: "#828689"}}>Select Status</span>;
                             return selected;
                         }}
                     >
@@ -345,16 +393,35 @@ export default function AdminUserManagement() {
                     }}
                 >
                     {isEditing && (
-                        <ActionButton
-                            text="Remove"
-                            width="200px"
-                            color="#b22222"
+                        <Box
+                            component="button"
                             onClick={() => {
                                 handleCloseModal();
                             }}
-                        />
+                            sx={{
+                                display: "flex-end",
+                                fontSize: "16px",
+                                backgroundColor: "#8b1a1a",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "200px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#a32020",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Remove
+                        </Box>
                     )}
                     <Box
+                        onClick={() => setConfirmModalOpen(true)}
                         component="button"
                         sx={{
                             display: "flex-end",
@@ -379,6 +446,85 @@ export default function AdminUserManagement() {
                     </Box>
                 </Box>
             </BoxModal>
+
+            <Modal
+                open={confirmModalOpen}
+                onClose={() => setConfirmModalOpen(false)}
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <Box
+                    sx={{
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                        backdropFilter: "blur(12px)",
+                        WebkitBackdropFilter: "blur(12px)",
+                        boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                                ? "0 8px 32px rgba(0,0,0,0.6)"
+                                : "0 8px 32px rgba(0,0,0,0.1)",
+                        borderRadius: 3,
+                        p: 4,
+                        width: { xs: "90%", sm: "600px", md: "800px" },
+                        height: { xs: "auto", sm: "70%", md: "600px" },
+                        maxHeight: "90vh",
+                        overflowY: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography
+                        variant="h2"
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            fontSize: "30px",
+                            color: "#FFFFFF",
+                            mb: 2,
+                            textAlign: "center",
+                        }}
+                    >
+                        Facial Recognition
+                    </Typography>
+
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        width="400"
+                        height="300"
+                        style={{ borderRadius: "10px", border: "2px solid #ccc" }}
+                    />
+
+                    <img
+                        id="face-preview"
+                        alt="Face preview"
+                        style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
+                    />
+
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            fontSize: "18px",
+                            color: "#FFFFFF",
+                            mb: 2,
+                            mt: 2,
+                            textAlign: "center",
+                        }}
+                    >
+                        {status}
+                    </Typography>
+
+                    <ActionButton
+                        text={loading ? "Processing..." : "Recognition..."}
+                        width="200px"
+                        disabled={loading}
+                    />
+                </Box>
+            </Modal>
         </Box>
     );
 }
