@@ -55,7 +55,7 @@ export default function AdminApproval() {
             type: "Overtime",
             period: "Aug. 1 - Aug. 11, 2025",
             dateFiled: "Aug. 11, 2025",
-            status: "Rejected"
+            status: "Approved"
         },
         {
             id: "EX002",
@@ -428,7 +428,7 @@ export default function AdminApproval() {
                             </Typography>
 
                             <Box sx={{display: "flex", alignItems: "center", gap: 1}}>
-                                <Tooltip title="Workflow is Active or Inactive">
+                                <Tooltip title="Active or Inactive?">
                                     <ModernSwitch/>
                                 </Tooltip>
                             </Box>

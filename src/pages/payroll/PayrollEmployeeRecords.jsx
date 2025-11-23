@@ -106,7 +106,7 @@ export default function PayrollEmployeeRecords() {
 
             <Box
                 sx={{
-                    height: "91%",
+                    height: "90.3%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",

@@ -506,6 +506,7 @@ export default function AdminPayrollSetup() {
                         </Typography>
 
                         <TextField
+                            placeholder="Enter component name"
                             fullWidth
                             value={selectedComponent?.component || ""}
                             variant="outlined"
@@ -571,7 +572,7 @@ export default function AdminPayrollSetup() {
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span
-                                    style={{color: "#828689"}}>Select Role</span>;
+                                    style={{color: "#828689"}}>Select Type</span>;
                                 return selected;
                             }}
                         >
@@ -585,10 +586,11 @@ export default function AdminPayrollSetup() {
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
                             sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Formula / Fixed Amount
+                            Formula or Fixed Amount
                         </Typography>
 
                         <TextField
+                            placeholder="Enter formula or amount"
                             fullWidth
                             value={selectedComponent?.formula || ""}
                             variant="outlined"

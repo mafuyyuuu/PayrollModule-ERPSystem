@@ -144,13 +144,9 @@ export default function PayoutProcessing() {
                         sx={{
                             display: "inline-block",
                             borderRadius: "15px",
-                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                            transition: "box-shadow 0.3s ease, transform 0.3s ease",
                             "&:hover": {
-                                transform: "scale(1.02)",
-                                boxShadow:
-                                    theme.palette.mode === "light"
-                                        ? "0 4px 20px rgba(0,0,0,0.15)"
-                                        : "0 4px 20px rgba(0,0,0,0.3)",
+                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
                             },
                         }}
                     >
@@ -187,8 +183,8 @@ export default function PayoutProcessing() {
                                 if (!selected)
                                     return (
                                         <span style={{fontSize: "16px", color: "#bdbdbd"}}>
-                                        Select Payroll Duration
-                                    </span>
+                                            Select Payroll Duration
+                                        </span>
                                     );
                                 return selected;
                             }}
