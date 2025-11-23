@@ -1,11 +1,9 @@
 import {Box, Typography, useTheme} from "@mui/material";
-import {tokens} from "../../theme";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { useEffect, useState } from "react";
 
 const PayrollDashboard = () => {
     const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
 
     // State for dashboard data
     const [dashboardData, setDashboardData] = useState({
@@ -87,12 +85,6 @@ const PayrollDashboard = () => {
                 />
             </Box>
 
-            {error && (
-                <Box sx={{ color: 'error.main', p: 2, mb: 2 }}>
-                    Error loading dashboard: {error}
-                </Box>
-            )}
-
             {/* PAYOUT SCHEDULE TIMELINE */}
             <Box
                 sx={{
@@ -114,7 +106,23 @@ const PayrollDashboard = () => {
                     gap: "10px",
                 }}
             >
-                <Typography variant="h4">Payout Schedule Timeline</Typography>
+                <Typography
+                    variant="h5"
+                    sx={{
+                        mb: 2,
+                        fontSize: "18px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        color: error ? 'error.main' : 'inherit',
+                    }}
+                >
+                    {!error && (
+                        <i
+                            className="ri-calendar-2-line"
+                            style={{ fontSize: 18, marginRight: "10px" }}
+                        ></i>
+                    )}
+                    {error ? `Error loading dashboard: ${error}` : "Payout Schedule Timeline"}
+                </Typography>
             </Box>
         </Box>
     );
