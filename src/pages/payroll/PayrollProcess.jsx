@@ -16,16 +16,19 @@ import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
 import {RiDownload2Line, RiEyeFill} from "react-icons/ri";
+import { generatePayslipPDF } from "../../utils/pdfGenerator.js";
 
 export default function PayoutProcessing() {
     const theme = useTheme();
 
+    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("");
     const [open, setOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedPayroll, setSelectedPayroll] = useState("");
     const [payrollHistory, setPayrollHistory] = useState([]);
     const [employeesProcess, setEmployeesProcess] = useState([]);
+    const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -49,8 +52,8 @@ export default function PayoutProcessing() {
                 }));
 
                 setPayrollHistory(transformedData);
-            } catch (err) {
-                console.error('❌ Error fetching payroll history:', err);
+            } catch (_err) {
+                console.error('❌ Error fetching payroll history:', _err);
                 // Set default data if fetch fails
                 setPayrollHistory([
                     {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
@@ -78,6 +81,7 @@ export default function PayoutProcessing() {
                 const transformedData = data.map(payroll => ({
                     id: payroll.employee_id,
                     name: payroll.employee_name || `Employee ${payroll.employee_id}`,
+                    department: payroll.department || 'N/A',
                     earning: `₱${parseFloat(payroll.gross_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
                     deduction: `₱${parseFloat(payroll.total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
                     netpay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
@@ -86,10 +90,11 @@ export default function PayoutProcessing() {
                 }));
 
                 setEmployeesProcess(transformedData);
+                setFilteredEmployees(transformedData);
                 setLoading(false);
-            } catch (err) {
-                console.error('❌ Error fetching payroll process:', err);
-                setError(err.message);
+            } catch (_err) {
+                console.error('❌ Error fetching payroll process:', _err);
+                setError(_err.message);
                 setLoading(false);
             }
         };
@@ -97,12 +102,53 @@ export default function PayoutProcessing() {
         fetchPayrollProcess();
     }, []);
 
+    // Filter employees based on search term and filter
+    useEffect(() => {
+        let filtered = employeesProcess;
+
+        // Apply search filter
+        if (searchTerm) {
+            filtered = filtered.filter(emp =>
+                emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                emp.id.toString().includes(searchTerm)
+            );
+        }
+
+        // Apply department filter
+        if (filter && filter !== 'all') {
+            filtered = filtered.filter(emp => emp.department === filter);
+        }
+
+        setFilteredEmployees(filtered);
+    }, [searchTerm, filter, employeesProcess]);
+
+    // Get unique departments for filter options
+    const departments = [...new Set(employeesProcess.map(emp => emp.department))];
+    const filterOptions = [
+        { value: 'all', label: 'All' },
+        ...departments.map(dept => ({ value: dept, label: dept })),
+    ];
+
     const handleOpen = (employeeProcess) => {
         setSelectedEmployee(employeeProcess);
         setOpen(true);
     };
 
     const handleClose = () => setOpen(false);
+
+    const handleGeneratePayslip = () => {
+        if (!selectedEmployee) {
+            console.warn('No employee selected for payslip generation');
+            // Using alert for user feedback as no notification system exists
+            alert('No employee selected');
+            return;
+        }
+        generatePayslipPDF(selectedEmployee);
+    };
+
+    const handleDownloadPayslip = (employee) => {
+        generatePayslipPDF(employee);
+    };
 
     return (
         <Box
@@ -133,9 +179,17 @@ export default function PayoutProcessing() {
                         display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
                     }}
                 >
-                    <SearchBar placeholder="Enter Username" width="350px"/>
+                    <SearchBar 
+                        placeholder="Enter Username" 
+                        width="350px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
 
                     <FilterSelect
+                        width={180}
+                        placeholder="Filter by Department"
+                        options={filterOptions}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
@@ -215,6 +269,11 @@ export default function PayoutProcessing() {
                     },
                 }}
             >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px" }}>
+                        Showing {filteredEmployees.length} of {employeesProcess.length} employees
+                    </Typography>
+                </Box>
                 <Box
                     sx={{
                         display: "grid",
@@ -260,7 +319,12 @@ export default function PayoutProcessing() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {employeesProcess.map((item, index) => (
+                        {filteredEmployees.length === 0 ? (
+                            <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                No employees found matching your filters.
+                            </Box>
+                        ) : (
+                            filteredEmployees.map((item, index) => (
                             <Box
                                 key={index}
                                 sx={{
@@ -308,6 +372,7 @@ export default function PayoutProcessing() {
                                         <RiEyeFill style={{ fontSize: 19 }}/>
                                     </IconButton>
                                     <IconButton
+                                        onClick={() => handleDownloadPayslip(item)}
                                         sx={{
                                             backgroundColor: "#172224",
                                             color: "#fff",
@@ -327,13 +392,14 @@ export default function PayoutProcessing() {
                                     </IconButton>
                                 </Box>
                             </Box>
-                        ))}
+                        ))
+                        )}
                     </Box>
                 )}
             </Box>
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <ActionButton text="Generate Payslip" width="200px"/>
+                <ActionButton text="Generate Payslip" width="200px" onClick={handleGeneratePayslip}/>
                 <ActionButton text="Bulk Payout" width="200px"/>
                 <ActionButton text="Release Payout" width="200px"/>
             </Box>
@@ -553,6 +619,7 @@ export default function PayoutProcessing() {
                         Send to Email
                     </Button>
                     <Button
+                        onClick={handleGeneratePayslip}
                         sx={{
                             width: "80%",
                             padding: "10px",
