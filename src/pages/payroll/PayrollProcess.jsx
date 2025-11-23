@@ -2,152 +2,553 @@ import React, {useState, useEffect} from "react";
 import {
     Box,
     Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
     TextField,
     Typography,
     useTheme,
     Select,
     MenuItem,
-    IconButton,
+    IconButton, Checkbox,
 } from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
 import {RiDownload2Line, RiEyeFill} from "react-icons/ri";
-import { generatePayslipPDF } from "../../utils/pdfGenerator.js";
+import BoxModal from "../../components/BoxModal.jsx";
+import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
+import {PDFViewer} from "@react-pdf/renderer";
 
 export default function PayoutProcessing() {
     const theme = useTheme();
 
-    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("");
     const [open, setOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedPayroll, setSelectedPayroll] = useState("");
-    const [payrollHistory, setPayrollHistory] = useState([]);
-    const [employeesProcess, setEmployeesProcess] = useState([]);
-    const [filteredEmployees, setFilteredEmployees] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [modalType, setModalType] = useState("");
+    const [selectedEmployees, setSelectedEmployees] = useState([]);
+
+    // const [payrollHistory, setPayrollHistory] = useState([]);
+    // const [employeesProcess, setEmployeesProcess] = useState([]);
+    // const [loading, setLoading] = useState(true);
+    // const [error, setError] = useState(null);
+
+    const [payrollHistory, setPayrollHistory] = useState([
+        {
+            duration: "Oct 1–15, 2025",
+            amount: "₱20,500.00",
+            ref: "REF20251001",
+        },
+        {
+            duration: "Sep 16–30, 2025",
+            amount: "₱20,200.00",
+            ref: "REF20250930",
+        },
+        {
+            duration: "Sep 1–15, 2025",
+            amount: "₱19,850.00",
+            ref: "REF20250915",
+        },
+        {
+            duration: "Aug 16–31, 2025",
+            amount: "₱20,100.00",
+            ref: "REF20250831",
+        },
+    ]);
+
+    const [employeesProcess, setEmployeesProcess] = useState([
+        {
+            id: "EMP-001",
+            name: "John Dela Cruz",
+            earning: "₱25,000.00",
+            deduction: "₱3,500.00",
+            netpay: "₱21,500.00",
+            status: "Processed",
+            period: "Oct 1–15, 2025",
+        },
+        {
+            id: "EMP-002",
+            name: "Maria Santos",
+            earning: "₱22,000.00",
+            deduction: "₱2,800.00",
+            netpay: "₱19,200.00",
+            status: "Processed",
+            period: "Oct 1–15, 2025",
+        },
+        {
+            id: "EMP-003",
+            name: "Carlos Ramirez",
+            earning: "₱30,000.00",
+            deduction: "₱4,200.00",
+            netpay: "₱25,800.00",
+            status: "Pending",
+            period: "Oct 1–15, 2025",
+        },
+        {
+            id: "EMP-004",
+            name: "Ana Villanueva",
+            earning: "₱18,500.00",
+            deduction: "₱1,900.00",
+            netpay: "₱16,600.00",
+            status: "Processed",
+            period: "Oct 1–15, 2025",
+        },
+        {
+            id: "EMP-005",
+            name: "Samuel Reyes",
+            earning: "₱27,500.00",
+            deduction: "₱3,200.00",
+            netpay: "₱24,300.00",
+            status: "Processing",
+            period: "Oct 1–15, 2025",
+        },
+    ]);
 
     // Fetch payroll history (cutoff periods)
-    useEffect(() => {
-        const fetchPayrollHistory = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/cutoffs');
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch payroll history');
-                }
-
-                const data = await response.json();
-                console.log('✅ Payroll history:', data);
-
-                const transformedData = data.map(cutoff => ({
-                    duration: `${new Date(cutoff.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(cutoff.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-                    amount: `₱${parseFloat(cutoff.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    ref: `REF${cutoff.cutoff_id}`
-                }));
-
-                setPayrollHistory(transformedData);
-            } catch (_err) {
-                console.error('❌ Error fetching payroll history:', _err);
-                // Set default data if fetch fails
-                setPayrollHistory([
-                    {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
-                    {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
-                ]);
-            }
-        };
-
-        fetchPayrollHistory();
-    }, []);
+    // useEffect(() => {
+    //     const fetchPayrollHistory = async () => {
+    //         try {
+    //             const response = await fetch('http://localhost:8080/api/cutoffs');
+    //
+    //             if (!response.ok) {
+    //                 throw new Error('Failed to fetch payroll history');
+    //             }
+    //
+    //             const data = await response.json();
+    //             console.log('✅ Payroll history:', data);
+    //
+    //             const transformedData = data.map(cutoff => ({
+    //                 duration: `${new Date(cutoff.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(cutoff.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+    //                 amount: `₱${parseFloat(cutoff.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+    //                 ref: `REF${cutoff.cutoff_id}`
+    //             }));
+    //
+    //             setPayrollHistory(transformedData);
+    //         } catch (err) {
+    //             console.error('❌ Error fetching payroll history:', err);
+    //             // Set default data if fetch fails
+    //             setPayrollHistory([
+    //                 {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
+    //                 {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
+    //             ]);
+    //         }
+    //     };
+    //
+    //     fetchPayrollHistory();
+    // }, []);
 
     // Fetch payroll processing data
-    useEffect(() => {
-        const fetchPayrollProcess = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/payroll');
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch payroll data');
-                }
-
-                const data = await response.json();
-                console.log('✅ Payroll process data:', data);
-
-                const transformedData = data.map(payroll => ({
-                    id: payroll.employee_id,
-                    name: payroll.employee_name || `Employee ${payroll.employee_id}`,
-                    department: payroll.department || 'N/A',
-                    earning: `₱${parseFloat(payroll.gross_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    deduction: `₱${parseFloat(payroll.total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    netpay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    status: payroll.status || "Pending",
-                    period: payroll.pay_period || "N/A"
-                }));
-
-                setEmployeesProcess(transformedData);
-                setFilteredEmployees(transformedData);
-                setLoading(false);
-            } catch (_err) {
-                console.error('❌ Error fetching payroll process:', _err);
-                setError(_err.message);
-                setLoading(false);
-            }
-        };
-
-        fetchPayrollProcess();
-    }, []);
-
-    // Filter employees based on search term and filter
-    useEffect(() => {
-        let filtered = employeesProcess;
-
-        // Apply search filter
-        if (searchTerm) {
-            filtered = filtered.filter(emp =>
-                emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                emp.id.toString().includes(searchTerm)
-            );
-        }
-
-        // Apply department filter
-        if (filter && filter !== 'all') {
-            filtered = filtered.filter(emp => emp.department === filter);
-        }
-
-        setFilteredEmployees(filtered);
-    }, [searchTerm, filter, employeesProcess]);
-
-    // Get unique departments for filter options
-    const departments = [...new Set(employeesProcess.map(emp => emp.department))];
-    const filterOptions = [
-        { value: 'all', label: 'All' },
-        ...departments.map(dept => ({ value: dept, label: dept })),
-    ];
-
-    const handleOpen = (employeeProcess) => {
-        setSelectedEmployee(employeeProcess);
-        setOpen(true);
-    };
+    // useEffect(() => {
+    //     const fetchPayrollProcess = async () => {
+    //         try {
+    //             const response = await fetch('http://localhost:8080/api/payroll');
+    //
+    //             if (!response.ok) {
+    //                 throw new Error('Failed to fetch payroll data');
+    //             }
+    //
+    //             const data = await response.json();
+    //             console.log('✅ Payroll process data:', data);
+    //
+    //             const transformedData = data.map(payroll => ({
+    //                 id: payroll.employee_id,
+    //                 name: payroll.employee_name || `Employee ${payroll.employee_id}`,
+    //                 earning: `₱${parseFloat(payroll.gross_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+    //                 deduction: `₱${parseFloat(payroll.total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+    //                 netpay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+    //                 status: payroll.status || "Pending",
+    //                 period: payroll.pay_period || "N/A"
+    //             }));
+    //
+    //             setEmployeesProcess(transformedData);
+    //             setLoading(false);
+    //         } catch (err) {
+    //             console.error('❌ Error fetching payroll process:', err);
+    //             setError(err.message);
+    //             setLoading(false);
+    //         }
+    //     };
+    //
+    //     fetchPayrollProcess();
+    // }, []);
 
     const handleClose = () => setOpen(false);
 
-    const handleGeneratePayslip = () => {
-        if (!selectedEmployee) {
-            console.warn('No employee selected for payslip generation');
-            // Using alert for user feedback as no notification system exists
-            alert('No employee selected');
-            return;
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            // Select all employees
+            setSelectedEmployees([...employeesProcess]);
+        } else {
+            // Deselect all
+            setSelectedEmployees([]);
         }
-        generatePayslipPDF(selectedEmployee);
     };
 
-    const handleDownloadPayslip = (employee) => {
-        generatePayslipPDF(employee);
+    const payslip = (employee) => {
+        setSelectedEmployee(employee);
+        setModalType("payslip");
+        setOpen(true);
+    };
+
+    const downloadPayslip = (employee) => {
+        setSelectedEmployee(employee);
+        setModalType("downloadPayslip");
+        setOpen(true);
+    };
+
+    const generatePayslip = (employee) => {
+        setSelectedEmployee(employee);
+        setModalType("generatePayslip");
+        setOpen(true);
+    };
+
+    const bulkPayout = (employee) => {
+        setSelectedEmployee(employee);
+        setModalType("leave");
+        setOpen(true);
+    };
+
+    const releasePayout = (employee) => {
+        setSelectedEmployee(employee);
+        setModalType("releasePayout");
+        setOpen(true);
+    };
+
+    const renderModalCards = () => {
+        switch (modalType) {
+            case "payslip":
+                return selectedEmployee ? (
+                    <>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                mb: 2
+                            }}
+                        >
+                            Employee Payslip Details
+                        </Typography>
+
+                        {/* Name */}
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#FFFFFF",
+                                    fontSize: "18px"
+                                }}
+                            >
+                                Name
+                            </Typography>
+                            <TextField
+                                value={selectedEmployee.name}
+                                InputProps={{readOnly: true}}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {border: "none"},
+                                        "&:hover fieldset": {border: "none"},
+                                        "&.Mui-focused fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                                size="small"
+                            />
+                        </Box>
+
+                        {/* Period */}
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#FFFFFF",
+                                    fontSize: "18px"
+                                }}
+                            >
+                                Period
+                            </Typography>
+                            <TextField
+                                value={selectedEmployee.period || selectedPayroll || "N/A"}
+                                InputProps={{readOnly: true}}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {border: "none"},
+                                        "&:hover fieldset": {border: "none"},
+                                        "&.Mui-focused fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                                size="small"
+                            />
+                        </Box>
+
+                        {/* Earnings */}
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#FFFFFF",
+                                    fontSize: "18px"
+                                }}
+                            >
+                                Earnings
+                            </Typography>
+                            <TextField
+                                value={selectedEmployee.earning}
+                                InputProps={{readOnly: true}}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {border: "none"},
+                                        "&:hover fieldset": {border: "none"},
+                                        "&.Mui-focused fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                                size="small"
+                            />
+                        </Box>
+
+                        {/* Deduction */}
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#FFFFFF",
+                                    fontSize: "18px"
+                                }}
+                            >
+                                Deduction
+                            </Typography>
+                            <TextField
+                                value={selectedEmployee.deduction}
+                                InputProps={{readOnly: true}}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {border: "none"},
+                                        "&:hover fieldset": {border: "none"},
+                                        "&.Mui-focused fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                                size="small"
+                            />
+                        </Box>
+
+                        {/* Net Pay */}
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#FFFFFF",
+                                    fontSize: "18px"
+                                }}
+                            >
+                                Net Pay
+                            </Typography>
+                            <TextField
+                                value={selectedEmployee.netpay}
+                                InputProps={{readOnly: true}}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {border: "none"},
+                                        "&:hover fieldset": {border: "none"},
+                                        "&.Mui-focused fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                                size="small"
+                            />
+                        </Box>
+                    </>
+                ) : null;
+
+            case "downloadPayslip":
+                return selectedEmployee ? (
+                    <>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                mb: 2,
+                            }}
+                        >
+                            Payslip for {selectedEmployee.name}
+                        </Typography>
+
+                        <PDFViewer width="100%" height={600} showToolbar={false}>
+                            <PayslipDocument employee={selectedEmployee} />
+                        </PDFViewer>
+
+                        <Box sx={{ mt: 2 }}>
+                            <PayslipActions employee={selectedEmployee} />
+                        </Box>
+                    </>
+                ) : null;
+
+            case "generatePayslip":
+                return (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <Typography
+                            variant="h5"
+                            sx={{ color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif" }}
+                        >
+                            Generate Payslip
+                        </Typography>
+
+                        <Typography sx={{ color: "#ddd", lineHeight: 1.6 }}>
+                            You're about to generate a payslip for:
+                            <br />
+                            <strong>{selectedEmployee?.name}</strong>
+                        </Typography>
+
+                        <Box sx={{ ml: 1, mt: 1, color: "#ccc", lineHeight: 1.6 }}>
+                            <div>• Earnings: {selectedEmployee?.earning}</div>
+                            <div>• Deductions: {selectedEmployee?.deduction}</div>
+                            <div>• Net Pay: {selectedEmployee?.netpay}</div>
+                            <div>• Period: {selectedEmployee?.period}</div>
+                        </Box>
+
+                        <Typography sx={{ color: "#ffaa00", mt: 1 }}>
+                            Note: This will generate a preview inside the modal.
+                        </Typography>
+
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
+                            <Button
+                                sx={{
+                                    backgroundColor: "#2e2e2e",
+                                    color: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "8px 20px",
+                                    "&:hover": { backgroundColor: "#444" },
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={() => setModalType("modalPayslip")}
+                                sx={{
+                                    backgroundColor: "#0066cc",
+                                    color: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "8px 20px",
+                                    "&:hover": { backgroundColor: "#1576e0" },
+                                }}
+                            >
+                                Generate
+                            </Button>
+                        </Box>
+                    </Box>
+                );
+
+            case "bulkPayout":
+                return (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <Typography
+                            variant="h5"
+                            sx={{ color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif" }}
+                        >
+                            Confirm Bulk Payout
+                        </Typography>
+
+                        <Typography sx={{ color: "#ddd", lineHeight: 1.6 }}>
+                            You are about to release **bulk payouts** for the selected employees.
+                            <br />
+                            This action cannot be undone.
+                        </Typography>
+
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
+                            <Button
+                                sx={{
+                                    backgroundColor: "#2e2e2e",
+                                    color: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "8px 20px",
+                                    "&:hover": { backgroundColor: "#444" },
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                sx={{
+                                    backgroundColor: "#00a86b",
+                                    color: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "8px 20px",
+                                    "&:hover": { backgroundColor: "#0cc982" },
+                                }}
+                            >
+                                Confirm
+                            </Button>
+                        </Box>
+                    </Box>
+                );
+
+            case "releasePayout":
+                return (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <Typography
+                            variant="h5"
+                            sx={{ color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif" }}
+                        >
+                            Confirm Release
+                        </Typography>
+
+                        <Typography sx={{ color: "#ddd", lineHeight: 1.6 }}>
+                            You are about to release a payout for:
+                            <br />
+                            <strong>{selectedEmployee?.name}</strong>
+                        </Typography>
+
+                        <Box sx={{ ml: 1, mt: 1, color: "#ccc", lineHeight: 1.6 }}>
+                            <div>• Type: {selectedEmployee?.leaveType}</div>
+                            <div>• Dates: {selectedEmployee?.startDate} to {selectedEmployee?.endDate}</div>
+                            <div>• Status: {selectedEmployee?.status}</div>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
+                            <Button
+                                sx={{
+                                    backgroundColor: "#00a86b",
+                                    color: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "8px 20px",
+                                    "&:hover": { backgroundColor: "#0cc982" },
+                                }}
+                            >
+                                Confirm
+                            </Button>
+                        </Box>
+                    </Box>
+                );
+
+
+            default:
+                return <Typography sx={{color: "#fff"}}>No data available</Typography>;
+        }
     };
 
     return (
@@ -179,17 +580,9 @@ export default function PayoutProcessing() {
                         display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
                     }}
                 >
-                    <SearchBar 
-                        placeholder="Enter Username" 
-                        width="350px"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <SearchBar placeholder="Enter Username" width="350px"/>
 
                     <FilterSelect
-                        width={180}
-                        placeholder="Filter by Department"
-                        options={filterOptions}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
@@ -269,82 +662,117 @@ export default function PayoutProcessing() {
                     },
                 }}
             >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px" }}>
-                        Showing {filteredEmployees.length} of {employeesProcess.length} employees
-                    </Typography>
-                </Box>
                 <Box
                     sx={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(7, 1fr)",
-                        color: theme.palette.text.primary,
-                        fontWeight: 700,
-                        p: "8px 0",
-                        width: "100%",
+                        display: "flex",
                         alignItems: "center",
-                        textAlign: "center",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 10,
+                        gap: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
-                    <span>Employee ID</span>
-                    <span>Employee Name</span>
-                    <span>Earning</span>
-                    <span>Deduction</span>
-                    <span>Netpay</span>
-                    <span>Status</span>
-                    <span>Actions</span>
-                </Box>
+                    <Checkbox
+                        checked={selectedEmployees.length === employeesProcess.length && employeesProcess.length > 0}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        sx={{
+                            p: 0,
+                            mr: "10px",
+                            color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                            borderRadius: "5px",
+                            "&.Mui-checked": {
+                                color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                            },
+                            "& .MuiSvgIcon-root": { fontSize: 25 },
+                        }}
+                    />
 
-                {error && (
-                    <Box sx={{ color: 'error.main', p: 2, textAlign: 'center' }}>
-                        Error: {error}
-                    </Box>
-                )}
-
-                {loading ? (
-                    <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>
-                        Loading payroll data...
-                    </Box>
-                ) : (
                     <Box
                         sx={{
-                            overflowY: "auto",
-                            "&::-webkit-scrollbar": {width: 0, height: 0},
-                            scrollbarWidth: "none",
-                            msOverflowStyle: "none",
-                            mt: "8px",
-                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(7, 1fr)",
+                            color: theme.palette.text.primary,
+                            fontWeight: 700,
+                            p: "8px 0",
+                            width: "100%",
+                            alignItems: "center",
+                            textAlign: "center",
                         }}
                     >
-                        {filteredEmployees.length === 0 ? (
-                            <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
-                                No employees found matching your filters.
-                            </Box>
-                        ) : (
-                            filteredEmployees.map((item, index) => (
-                            <Box
-                                key={index}
+                        <span style={{paddingLeft: "15px", textAlign: "left"}}>Employee ID</span>
+                        <span>Employee Name</span>
+                        <span>Earning</span>
+                        <span>Deduction</span>
+                        <span>Netpay</span>
+                        <span>Status</span>
+                        <span>Actions</span>
+                    </Box>
+                </Box>
+
+                {/*{error && (*/}
+                {/*    <Box sx={{ color: 'error.main', p: 2, textAlign: 'center' }}>*/}
+                {/*        Error: {error}*/}
+                {/*    </Box>*/}
+                {/*)}*/}
+
+                {/*{loading ? (*/}
+                {/*    <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>*/}
+                {/*        Loading payroll data...*/}
+                {/*    </Box>*/}
+                {/*) : (*/}
+                <Box
+                    sx={{
+                        overflowY: "auto",
+                        "&::-webkit-scrollbar": {width: 0, height: 0},
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                        mt: "8px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    }}
+                >
+                    {employeesProcess.map((item, index) => (
+                        <Box
+                            key={index}
+                            sx={{
+                                marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
+                            }}
+                        >
+                            <Checkbox
+                                checked={selectedEmployees.includes(item)}
+                                onChange={() => {
+                                    setSelectedEmployees((prev) =>
+                                        prev.includes(item)
+                                            ? prev.filter((e) => e.id !== item.id)
+                                            : [...prev, item]
+                                    );
+                                }}
                                 sx={{
-                                    marginTop: "10px",
+                                    p: 0,
+                                    mr: "10px",
+                                    color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                    borderRadius: "5px",
+                                    "&.Mui-checked": {
+                                        color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                    },
+                                    "& .MuiSvgIcon-root": { fontSize: 25 },
+                                }}
+                            />
+
+                            <Box
+                                sx={{
                                     display: "grid",
                                     gridTemplateColumns: "repeat(7, 1fr)",
                                     alignItems: "center",
+                                    textAlign: "center",
                                     bgcolor: "#fff",
-                                    color: "#1b2223",
                                     borderRadius: "8px",
                                     width: "100%",
-                                    minHeight: "83px",
+                                    minHeight: "80px",
                                     transition: "all 0.3s ease",
                                     "&:hover": {
                                         transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                     },
-                                    textAlign: "center",
                                 }}
                             >
-                                <span>{item.id}</span>
+                                <span style={{paddingLeft: "15px", textAlign: "left"}}>{item.id}</span>
                                 <span>{item.name}</span>
                                 <span>{item.earning}</span>
                                 <span>{item.deduction}</span>
@@ -353,7 +781,7 @@ export default function PayoutProcessing() {
 
                                 <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
                                     <IconButton
-                                        onClick={() => handleOpen(item)}
+                                        onClick={() => payslip(item)}
                                         sx={{
                                             backgroundColor: "#172224",
                                             color: "#fff",
@@ -369,10 +797,10 @@ export default function PayoutProcessing() {
                                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                                         }}
                                     >
-                                        <RiEyeFill style={{ fontSize: 19 }}/>
+                                        <RiEyeFill style={{fontSize: 19}}/>
                                     </IconButton>
                                     <IconButton
-                                        onClick={() => handleDownloadPayslip(item)}
+                                        onClick={() => downloadPayslip(item)} // updated function name
                                         sx={{
                                             backgroundColor: "#172224",
                                             color: "#fff",
@@ -392,248 +820,36 @@ export default function PayoutProcessing() {
                                     </IconButton>
                                 </Box>
                             </Box>
-                        ))
-                        )}
-                    </Box>
-                )}
+                        </Box>
+                    ))}
+                </Box>
+                {/*)}*/}
             </Box>
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <ActionButton text="Generate Payslip" width="200px" onClick={handleGeneratePayslip}/>
-                <ActionButton text="Bulk Payout" width="200px"/>
-                <ActionButton text="Release Payout" width="200px"/>
+                <ActionButton
+                    onClick={() => selectedEmployee && generatePayslip(selectedEmployee)}
+                    text="Generate Payslip"
+                    width="200px"
+                />
+                <ActionButton
+                    onClick={() => selectedEmployee && bulkPayout(selectedEmployee)}
+                    text="Bulk Payout"
+                    width="200px"
+                />
+                <ActionButton
+                    onClick={() => selectedEmployee && releasePayout(selectedEmployee)}
+                    text="Release Payout"
+                    width="200px"
+                />
             </Box>
 
-            {/* Custom Blur Layer */}
-            {open && (
-                <Box
-                    sx={{
-                        position: "fixed",
-                        top: "160px",
-                        left: "250px",
-                        right: 0,
-                        bottom: 0,
-                        backdropFilter: "blur(5px)",
-                        backgroundColor: "rgba(255,255,255,0.2)",
-                        zIndex: 1200,
-                    }}
-                />
-            )}
-
-            <Dialog
+            <BoxModal
                 open={open}
                 onClose={handleClose}
-                hideBackdrop
-                PaperProps={{
-                    sx: {
-                        top: "55px",
-                        left: "5%",
-                        borderRadius: "50px",
-                        padding: 6,
-                        background: "rgba(28,28,28,0.4)",
-                        width: "430px",
-                        height: "550px",
-                    },
-                }}
             >
-                <DialogTitle>
-                    <Typography
-                        variant="h3"
-                        sx={{
-                            fontFamily: "'TTHoves-bold', sans-serif",
-                            fontWeight: "500", textAlign: "start", color: "white", m: "-15px -25px -5px"
-                        }}
-                    >
-                        Generate Payslip
-                    </Typography>
-                </DialogTitle>
-
-                <DialogContent
-                    sx={{
-                        backgroundColor: "transparent",
-                        border: "none",
-                        width: "100%",
-                        gap: 3,
-                        scrollbarWidth: "none",
-                        p: 0,
-                    }}
-                >
-                    {selectedEmployee && (
-                        <Box sx={{scrollbarWidth: "none"}}>
-                            {/* Name */}
-                            <Box>
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        fontSize: "0.9rem",
-                                        color: "white",
-                                        mt: 1,
-                                    }}
-                                >
-                                    Name
-                                </Typography>
-                                <TextField
-                                    value={selectedEmployee.name}
-                                    InputProps={{
-                                        readOnly: true,
-                                        sx: {
-                                            width: "33.5vh",
-                                            borderRadius: "10px",
-                                            backgroundColor: "#ebebeb",
-                                            "& .MuiOutlinedInput-notchedOutline": {border: "none"},
-                                        },
-                                    }}
-                                    size="small"
-                                />
-                            </Box>
-
-                            {/* Period */}
-                            <Box>
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        fontSize: "0.9rem",
-                                        color: "white",
-                                        mt: 1,
-                                    }}
-                                >
-                                    Period
-                                </Typography>
-                                <TextField
-                                    value={selectedEmployee.period || selectedPayroll || "N/A"}
-                                    InputProps={{
-                                        readOnly: true,
-                                        sx: {
-                                            width: "33.5vh",
-                                            borderRadius: "10px",
-                                            backgroundColor: "#ebebeb",
-                                            "& .MuiOutlinedInput-notchedOutline": {border: "none"},
-                                        },
-                                    }}
-                                    size="small"
-                                />
-                            </Box>
-
-                            {/* Earnings */}
-                            <Box>
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        fontSize: "0.9rem",
-                                        color: "white",
-                                        mt: 1,
-                                    }}
-                                >
-                                    Earnings
-                                </Typography>
-                                <TextField
-                                    value={selectedEmployee.earning}
-                                    InputProps={{
-                                        readOnly: true,
-                                        sx: {
-                                            width: "33.5vh",
-                                            borderRadius: "10px",
-                                            backgroundColor: "#ebebeb",
-                                            "& .MuiOutlinedInput-notchedOutline": {border: "none"},
-                                        },
-                                    }}
-                                    size="small"
-                                />
-                            </Box>
-
-                            {/* Deduction */}
-                            <Box>
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        fontSize: "0.9rem",
-                                        color: "white",
-                                        mt: 1,
-                                    }}
-                                >
-                                    Deduction
-                                </Typography>
-                                <TextField
-                                    value={selectedEmployee.deduction}
-                                    InputProps={{
-                                        readOnly: true,
-                                        sx: {
-                                            width: "33.5vh",
-                                            borderRadius: "10px",
-                                            backgroundColor: "#ebebeb",
-                                            "& .MuiOutlinedInput-notchedOutline": {border: "none"},
-                                        },
-                                    }}
-                                    size="small"
-                                />
-                            </Box>
-
-                            {/* Net Pay */}
-                            <Box>
-                                <Typography
-                                    sx={{
-                                        fontWeight: "bold",
-                                        fontSize: "0.9rem",
-                                        color: "white",
-                                        mt: 1,
-                                    }}
-                                >
-                                    Net Pay
-                                </Typography>
-                                <TextField
-                                    value={selectedEmployee.netpay}
-                                    InputProps={{
-                                        readOnly: true,
-                                        sx: {
-                                            width: "33.5vh",
-                                            borderRadius: "10px",
-                                            backgroundColor: "#ebebeb",
-                                            "& .MuiOutlinedInput-notchedOutline": {border: "none"},
-                                        },
-                                    }}
-                                    size="small"
-                                />
-                            </Box>
-                        </Box>
-                    )}
-                </DialogContent>
-
-                <Box
-                    sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 2,
-                        mb: -1.4,
-                    }}
-                >
-                    <Button
-                        sx={{
-                            width: "80%",
-                            backgroundColor: "#1F2D3D",
-                            color: "#fff",
-                            borderRadius: "50px",
-                            textTransform: "none",
-                            fontFamily: "'TTHoves-bold', sans-serif",
-                        }}
-                    >
-                        Send to Email
-                    </Button>
-                    <Button
-                        onClick={handleGeneratePayslip}
-                        sx={{
-                            width: "80%",
-                            padding: "10px",
-                            backgroundColor: "#1F2D3D",
-                            color: "#fff",
-                            borderRadius: "50px",
-                            textTransform: "none",
-                            fontFamily: "'TTHoves-bold', sans-serif",
-                        }}
-                    >
-                        Download PDF
-                    </Button>
-                </Box>
-            </Dialog>
+                {renderModalCards()}
+            </BoxModal>
         </Box>
     );
 }
