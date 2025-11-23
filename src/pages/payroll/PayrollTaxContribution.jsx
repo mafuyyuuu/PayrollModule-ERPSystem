@@ -1,11 +1,38 @@
-import { Box, Typography } from "@mui/material";
+import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
 import {Line, LineChart, ResponsiveContainer} from "recharts";
-import {useState, useEffect} from "react";
+import React, {useState, useEffect} from "react";
+import ActionButton from "../../components/ActionButton.jsx";
 
 export default function PayrollTaxContribution() {
+    const theme = useTheme();
+
+    const [selectedDept, setSelectedDept] = useState("");
+    const [selectedPeriod, setSelectedPeriod] = useState("");
     const [earningsData, setEarningsData] = useState([]);
     const [deadlines, setDeadlines] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const periodHistory = [
+        {ref: "001", period: "Jan 1 - Jan 15, 2025"},
+        {ref: "002", period: "Jan 16 - Jan 31, 2025"},
+        {ref: "003", period: "Feb 1 - Feb 15, 2025"},
+        {ref: "004", period: "Feb 16 - Feb 28, 2025"},
+        {ref: "005", period: "Mar 1 - Mar 15, 2025"},
+        {ref: "006", period: "Mar 16 - Mar 31, 2025"},
+        {ref: "007", period: "Apr 1 - Apr 15, 2025"},
+        {ref: "008", period: "Apr 16 - Apr 30, 2025"},
+    ];
+
+    const departments = [
+        {id: "dept001", name: "Human Resources"},
+        {id: "dept002", name: "Finance"},
+        {id: "dept003", name: "Payroll"},
+        {id: "dept004", name: "IT Department"},
+        {id: "dept005", name: "Operations"},
+        {id: "dept006", name: "Marketing"},
+        {id: "dept007", name: "Sales"},
+        {id: "dept008", name: "Customer Support"},
+    ];
 
     // Fetch tax and contribution data
     useEffect(() => {
@@ -25,11 +52,11 @@ export default function PayrollTaxContribution() {
                     month: item.month,
                     earnings: item.total_contributions
                 })) || [
-                    { month: "Jan", earnings: 20000 },
-                    { month: "Feb", earnings: 23000 },
-                    { month: "Mar", earnings: 21000 },
-                    { month: "Apr", earnings: 26000 },
-                    { month: "May", earnings: 24000 },
+                    {month: "Jan", earnings: 20000},
+                    {month: "Feb", earnings: 23000},
+                    {month: "Mar", earnings: 21000},
+                    {month: "Apr", earnings: 26000},
+                    {month: "May", earnings: 24000},
                 ];
 
                 setEarningsData(chartData);
@@ -44,9 +71,9 @@ export default function PayrollTaxContribution() {
                     }),
                     status: item.status
                 })) || [
-                    { contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed" },
-                    { contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status : "Completed" },
-                    { contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed" },
+                    {contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed"},
+                    {contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status: "Completed"},
+                    {contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed"},
                 ];
 
                 setDeadlines(deadlinesData);
@@ -55,16 +82,16 @@ export default function PayrollTaxContribution() {
                 console.error('❌ Error fetching tax data:', err);
                 // Set default data
                 setEarningsData([
-                    { month: "Jan", earnings: 20000 },
-                    { month: "Feb", earnings: 23000 },
-                    { month: "Mar", earnings: 21000 },
-                    { month: "Apr", earnings: 26000 },
-                    { month: "May", earnings: 24000 },
+                    {month: "Jan", earnings: 20000},
+                    {month: "Feb", earnings: 23000},
+                    {month: "Mar", earnings: 21000},
+                    {month: "Apr", earnings: 26000},
+                    {month: "May", earnings: 24000},
                 ]);
                 setDeadlines([
-                    { contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed" },
-                    { contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status : "Completed" },
-                    { contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed" },
+                    {contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed"},
+                    {contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status: "Completed"},
+                    {contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed"},
                 ]);
                 setLoading(false);
             }
@@ -76,20 +103,21 @@ export default function PayrollTaxContribution() {
     return (
         <Box
             width="100%"
-            height="63.5vh"
+            height="80%"
         >
             <Box
-                display="grid"
-                gridTemplateColumns="repeat(4, 1fr)"
+                sx={{
+                    alignItems: "center",
+                    display: "flex",
+                    mb: 2,
+                }}
             >
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     Tax and Contributions
@@ -98,276 +126,392 @@ export default function PayrollTaxContribution() {
 
             <Box
                 display="grid"
-                gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
+                gridTemplateColumns={{
+                    xs: "1fr",
+                    md: "2fr 1fr",
+                }}
                 gap="20px"
-                mt="30px"
+                mt="25px"
                 alignItems="stretch"
-                height="100%"
             >
                 <Box
-                    backgroundColor="rgba(255, 255, 255, 0.2)"
                     borderRadius="12px"
-                    width="100%"
                     p="24px"
-                    color="#222"
                     sx={{
-                        fontFamily: "'TTHoves-Regular', sans-serif",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.2)",
+                        fontFamily: theme.typography.fontFamily,
+                        color: theme.palette.text.primary,
+                        border: `1px solid ${theme.palette.divider}`,
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
                             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                        }
+                        },
+                        height: {xs: "350px", sm: "380px", md: "100%"}
                     }}
                 >
-                    <Typography
-                        variant="h3"
-                        sx={{
-                            mb: 3,
-                            fontSize: "20px",
-                            fontFamily: "'TTHoves-demiBold', sans-serif",
-                            color: "#222",
-                        }}
-                    >
-                        <i
-                            className="ri-bar-chart-2-line"
-                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
-                        ></i>
-                        Contributions Overview
-                    </Typography>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            mb: 1,
-                            ml: 2,
-                            fontSize: "16px",
-                            fontFamily: "'TTHoves-medium', sans-serif",
-                            color: "#222",
-                        }}
-                    >
-                        Total Contributions Over Time Graph
-                    </Typography>
                     <Box
-                        backgroundColor="rgba(255, 255, 255, 0.2)"
-                        borderRadius="12px"
-                        p="24px"
-                        lineHeight={4}
-                        color="#222"
                         sx={{
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            transition: "all 0.3s ease",
-                            "&:hover": {
-                                transform: "scale(1.02)",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                            }
+                            alignItems: "center",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            width: "100%",
                         }}
                     >
-                        <ResponsiveContainer width="100%" height={185}>
-                            <LineChart data={earningsData}>
-                                <Line
-                                    type="monotone"
-                                    dataKey="earnings"
-                                    stroke="#3A4F50"
-                                    strokeWidth={3}
-                                    dot={{ r: 4, strokeWidth: 1 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                mb: 2,
+                                fontSize: "18px",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            }}
+                        >
+                            <i
+                                className="ri-bar-chart-2-line"
+                                style={{fontSize: 18, marginRight: "10px"}}
+                            ></i>
+                            Contributions Overview
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: "inline-block",
+                                    borderRadius: "15px",
+                                    transition: "box-shadow 0.3s ease, transform 0.3s ease",
+                                    "&:hover": {
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                                    },
+                                }}
+                            >
+                                <Select
+                                    value={selectedPeriod}
+                                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                                    displayEmpty
+                                    sx={{
+                                        backgroundColor:
+                                            theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.05)"
+                                                : "rgba(255, 255, 255, 0.3)",
+                                        borderRadius: "15px",
+                                        width: "200px",
+                                        fontSize: "16px",
+                                        color: theme.palette.text.primary,
+                                        "& .MuiSelect-select": {
+                                            padding: "8px 12px",
+                                        },
+                                        "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: theme.palette.divider,
+                                        },
+                                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: theme.palette.divider,
+                                        },
+                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                            border: "none",
+                                        },
+                                        "& .MuiSvgIcon-root": {
+                                            color: theme.palette.text.primary,
+                                        },
+                                    }}
+                                    renderValue={(selected) => {
+                                        if (!selected)
+                                            return (
+                                                <span style={{fontSize: "16px", color: "#bdbdbd"}}>
+                                                    Select Period
+                                                </span>
+                                            );
+                                        return selected;
+                                    }}
+                                >
+                                    {periodHistory.map((item) => (
+                                        <MenuItem key={item.ref} value={item.period}>
+                                            {item.period}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </Box>
+                            <Box
+                                sx={{
+                                    display: "inline-block",
+                                    borderRadius: "15px",
+                                    transition: "box-shadow 0.3s ease, transform 0.3s ease",
+                                    "&:hover": {
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
+                                    },
+                                }}
+                            >
+                                <Select
+                                    value={selectedDept}
+                                    onChange={(e) => setSelectedDept(e.target.value)}
+                                    displayEmpty
+                                    sx={{
+                                        backgroundColor:
+                                            theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.05)"
+                                                : "rgba(255, 255, 255, 0.3)",
+                                        borderRadius: "15px",
+                                        width: "200px",
+                                        fontSize: "16px",
+                                        color: theme.palette.text.primary,
+                                        "& .MuiSelect-select": {
+                                            padding: "8px 12px",
+                                        },
+                                        "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: theme.palette.divider,
+                                        },
+                                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: theme.palette.divider,
+                                        },
+                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                            border: "none",
+                                        },
+                                        "& .MuiSvgIcon-root": {
+                                            color: theme.palette.text.primary,
+                                        },
+                                    }}
+                                    renderValue={(selected) => {
+                                        if (!selected)
+                                            return (
+                                                <span style={{fontSize: "16px", color: "#bdbdbd"}}>
+                                                    Select Department
+                                                </span>
+                                            );
+                                        return selected;
+                                    }}
+                                >
+                                    {departments.map((dept) => (
+                                        <MenuItem key={dept.id} value={dept.name}>
+                                            {dept.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </Box>
+                        </Box>
                     </Box>
 
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            mt: 2,
-                            mb: 1,
-                            ml: 2,
-                            fontSize: "16px",
-                            fontFamily: "'TTHoves-medium', sans-serif",
-                            color: "#222",
-                        }}
-                    >
-                        Department Level Breakdown Line Bar
-                    </Typography>
-                    <Box
-                        backgroundColor="rgba(255, 255, 255, 0.2)"
-                        borderRadius="12px"
-                        p="24px"
-                        lineHeight={4}
-                        color="#222"
-                        sx={{
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                            border: "1px solid rgba(255, 255, 255, 0.4)",
-                            transition: "all 0.3s ease",
-                            "&:hover": {
-                                transform: "scale(1.02)",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                            }
-                        }}
-                    >
-                        <ResponsiveContainer width="100%" height={185}>
-                            <LineChart data={earningsData}>
-                                <Line
-                                    type="monotone"
-                                    dataKey="earnings"
-                                    stroke="#3A4F50"
-                                    strokeWidth={3}
-                                    dot={{ r: 4, strokeWidth: 1 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                    <Box sx={{display: "flex", gap: 2, flexWrap: "wrap"}}>
+                        {/* Total Contributions Over Time Graph */}
+                        <Box sx={{flex: 1, minWidth: 300}}>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    mb: 1,
+                                    mt: 2,
+                                    fontSize: "16px",
+                                    fontFamily: "'TTHoves-medium', sans-serif",
+                                }}
+                            >
+                                Total Contributions Over Time Graph
+                            </Typography>
+                            <Box
+                                borderRadius="12px"
+                                p="24px"
+                                sx={{
+                                    color: theme.palette.text.primary,
+                                    backgroundColor:
+                                        theme.palette.mode === "dark"
+                                            ? "rgba(255, 255, 255, 0.05)"
+                                            : "rgba(255, 255, 255, 0.2)",
+                                    fontFamily: theme.typography.fontFamily,
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "scale(1.02)",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                                    },
+                                    height: 458,
+                                }}
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={earningsData}>
+                                        <Line
+                                            type="monotone"
+                                            dataKey="earnings"
+                                            stroke="#3A4F50"
+                                            strokeWidth={3}
+                                            dot={{r: 4, strokeWidth: 1}}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </Box>
+                        </Box>
+
+                        {/* Department Level Breakdown Line Bar */}
+                        <Box sx={{flex: 1, minWidth: 300}}>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    mt: 2,
+                                    mb: 1,
+                                    fontSize: "16px",
+                                    fontFamily: "'TTHoves-medium', sans-serif",
+                                }}
+                            >
+                                Department Level Breakdown Line Bar
+                            </Typography>
+                            <Box
+                                borderRadius="12px"
+                                p="24px"
+                                sx={{
+                                    backgroundColor:
+                                        theme.palette.mode === "dark"
+                                            ? "rgba(255, 255, 255, 0.05)"
+                                            : "rgba(255, 255, 255, 0.2)",
+                                    fontFamily: theme.typography.fontFamily,
+                                    color: theme.palette.mode === "dark"
+                                        ? "rgba(255, 255, 255, 0.05)"
+                                        : "rgba(255, 255, 255, 0.2)",
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "scale(1.02)",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                                    },
+                                    height: 458,
+                                }}
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={earningsData}>
+                                        <Line
+                                            type="monotone"
+                                            dataKey="earnings"
+                                            stroke="#3A4F50"
+                                            strokeWidth={3}
+                                            dot={{r: 4, strokeWidth: 1}}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </Box>
+                        </Box>
                     </Box>
                 </Box>
 
                 <Box
-                    backgroundColor="rgba(255, 255, 255, 0.2)"
                     borderRadius="12px"
-                    p="24px"
                     lineHeight={4}
-                    color="#222"
-                    width="67vh"
+                    p="24px"
                     sx={{
-                        fontFamily: "'TTHoves-Regular', sans-serif",
-                        boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.4)",
+                        backgroundColor:
+                            theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.2)",
+                        fontFamily: theme.typography.fontFamily,
+                        color: theme.palette.text.primary,
+                        border: `1px solid ${theme.palette.divider}`,
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
                             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                        }
+                        },
                     }}
                 >
                     <Typography
-                        variant="h3"
+                        variant="h5"
                         sx={{
-                            mb: 1.5,
-                            fontSize: "20px",
-                            fontFamily: "'TTHoves-demiBold', sans-serif",
-                            color: "#222",
+                            mb: 2,
+                            fontSize: "18px",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
                         <i
                             className="ri-bar-chart-2-line"
-                            style={{ fontSize: 18, color: "#222", marginRight: "10px" }}
+                            style={{fontSize: 18, marginRight: "10px"}}
                         ></i>
                         Upcoming Deadlines
                     </Typography>
 
                     <Box
                         sx={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr 0.8fr",
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                            border: "none",
-                            marginBottom:"-10px",
-                            fontWeight: 600,
+                            height: "497px",
+                            display: "flex",
+                            flexDirection: "column",
                         }}
                     >
-                        <span style={{ justifySelf: "start", paddingLeft:"8px"}}>Contributions</span>
-                        <span style={{ justifySelf: "center", paddingRight:"80px" }}>Deadline</span>
-                        <span style={{ justifySelf: "end", paddingRight: "80px"}}>Status</span>
-                    </Box>
+                        {/* Header */}
+                        <Box sx={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(3, 1fr)",
+                            color: theme.palette.text.primary,
+                            border: "none",
+                            marginBottom: "-10px",
+                            fontWeight: 600,
+                            textAlign: "center",
+                        }}>
+                            <span>Contributions</span>
+                            <span>Deadline</span>
+                            <span>Status</span>
+                        </Box>
 
-                    {loading ? (
-                        <Box sx={{ p: 2, textAlign: 'center' }}>
-                            Loading deadlines...
-                        </Box>
-                    ) : (
-                        <Box
-                            sx={{
-                                maxHeight: "100%",
-                                overflowY: "auto",
-                                pr: "8px",
-                                display: "flex",
-                                flexDirection: "column",
-                                mt: "5px",
-                                gap: "10px",
-                                height: "85%",
-                                scrollbarWidth: "none",
-                                msOverflowStyle: "none",
-                                "&::-webkit-scrollbar": {
-                                    width: 0,
-                                    height: 0,
-                                },
-                            }}
-                        >
-                            {deadlines.map((item, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        display: "grid",
-                                        gridTemplateColumns: "0.9fr 1.1fr 0.9fr",
-                                        backgroundColor: "rgba(255, 255, 255, 0.25)",
-                                        backdropFilter: "blur(12px)",
-                                        borderRadius: "10px",
-                                        marginTop: "3px",
-                                        fontFamily: "'TTHoves-Bold', sans-serif",
-                                        transition: "all 0.3s ease",
-                                        border: "1px solid rgba(255,255,255,0.3)",
-                                        "&:hover": {
-                                            backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                            transform: "translateY(-2px)",
-                                            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                        },
-                                    }}
-                                >
-                                    <span style={{ justifySelf: "start", paddingLeft: "20px", fontWeight: 600}}>{item.contribution}</span>
-                                    <span style={{ justifySelf: "center" }}>{item.deadline}</span>
-                                    <span style={{ justifySelf: "center", color: item.status === "Completed" ? "limegreen" : "#FFC107" }}>{item.status}</span>
-                                </Box>
-                            ))}
-                        </Box>
-                    )}
+                        {/* Content */}
+                        {loading ? (
+                            <Box sx={{p: 2, textAlign: "center", flex: 1}}>
+                                Loading deadlines...
+                            </Box>
+                        ) : (
+                            <Box
+                                sx={{
+                                    flex: 1,
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    overflowY: "auto",
+                                    gap: "4px",
+                                    scrollbarWidth: "none",
+                                    msOverflowStyle: "none",
+                                    "&::-webkit-scrollbar": {width: 0, height: 0},
+                                }}
+                            >
+                                {deadlines.map((item, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            marginTop: "10px",
+                                            display: "grid",
+                                            gridTemplateColumns: {xs: "1fr", sm: "repeat(3, 1fr)"},
+                                            alignItems: "center",
+                                            bgcolor: "#fff",
+                                            color: "#1b2223",
+                                            borderRadius: "8px",
+                                            width: "100%",
+                                            minHeight: "83px",
+                                            transition: "all 0.3s ease",
+                                            "&:hover": {
+                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                            },
+                                            textAlign: "center",
+                                            p: {xs: 1, sm: 0}, // padding for mobile
+                                            gap: {xs: 1, sm: 0}, // small gap on mobile
+                                        }}
+                                    >
+                                        <span>{item.contribution}</span>
+                                        <span>{item.deadline}</span>
+                                        <span
+                                            style={{
+                                                color:
+                                                    item.status === "Completed"
+                                                        ? "limegreen"
+                                                        : "#FFC107",
+                                            }}
+                                        >
+                                            {item.status}
+                                        </span>
+                                    </Box>
+                                ))}
+                            </Box>
+                        )}
+                    </Box>
                 </Box>
             </Box>
-            <Box textAlign="end" marginTop="30px">
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        marginRight: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Export PDF
-                </button>
-                <button
-                    style={{
-                        backgroundColor: "#152022",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 1)",
-                        fontFamily: "'TTHoves-bold', sans-serif",
-                        fontSize: "14px",
-                        padding: "13px 30px",
-                        borderRadius: "50px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "translateY(-3px)")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                >
-                    Export CSV
-                </button>
+
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+                <ActionButton text="Export PDF" width="200px"/>
+                <ActionButton text="Export CSV" width="200px"/>
             </Box>
         </Box>
     );

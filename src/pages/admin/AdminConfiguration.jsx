@@ -1,10 +1,11 @@
 import React, {useState} from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-    Box, Button, Typography, IconButton, Select, MenuItem, TextField, Checkbox, FormControlLabel, InputBase,
+    Box, Button, Typography, IconButton, Select, MenuItem, TextField, Checkbox, FormControlLabel, InputBase, Tooltip,
+    Switch,
 } from "@mui/material";
 import {RiPencilFill} from "react-icons/ri";
-import {useTheme} from "@mui/material/styles";
+import {styled, useTheme} from "@mui/material/styles";
 import BoxModal from "../../components/BoxModal";
 import ActionButton from "../../components/ActionButton.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
@@ -18,10 +19,74 @@ export default function AdminConfiguration() {
     const [modalType, setModalType] = useState("");
     const [showRemove, setShowRemove] = useState(false);
     const [filter, setFilter] = useState("");
-
     const [selectedRule, setSelectedRule] = useState("");
     const [selectedFreq, setSelectedFreq] = useState("");
     const [selectedDept, setSelectedDept] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [period, setPeriod] = useState("");
+
+    const generatePeriod = (start, end) => {
+        if (!start || !end) return;
+
+        const startDateObj = new Date(start);
+        const endDateObj = new Date(end);
+
+        const startDay = startDateObj.getDate();
+        const endDay = endDateObj.getDate();
+
+        const monthName = startDateObj.toLocaleString("default", { month: "long" });
+        const year = startDateObj.getFullYear();
+
+        let periodText = "";
+
+        // 1st half: 1–15
+        if (startDay >= 1 && startDay <= 15 && endDay >= 1 && endDay <= 15) {
+            periodText = `1st Half of ${monthName} ${year}`;
+        }
+        // 2nd half: 16–31
+        else if (startDay >= 16 && endDay >= 16) {
+            periodText = `2nd Half of ${monthName} ${year}`;
+        }
+        // Invalid range
+        else {
+            periodText = "Invalid range — must both be 1–15 or 16–31";
+        }
+
+        setPeriod(periodText);
+    };
+
+    const ModernSwitch = styled(Switch)({
+        width: 50,
+        height: 28,
+        padding: 0,
+        borderRadius: 14,
+
+        "& .MuiSwitch-switchBase": {
+            padding: 2,
+            "&.Mui-checked": {
+                transform: "translateX(22px)",
+                color: "#fff",
+                "& + .MuiSwitch-track": {
+                    backgroundColor: "#3A4F50",
+                    opacity: 1,
+                },
+            },
+        },
+
+        "& .MuiSwitch-thumb": {
+            width: 24,
+            height: 24,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            borderRadius: 12,
+        },
+
+        "& .MuiSwitch-track": {
+            borderRadius: 14,
+            backgroundColor: "#bdbdbd",
+            opacity: 1,
+        },
+    });
 
     const [rulesFromDB, setRulesFromDB] = useState([{
         id: 1, type: "Benefit", description: "Additional fixed compensation for specific purposes"
@@ -559,14 +624,29 @@ export default function AdminConfiguration() {
                         color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
                     }}
                 >
-                    <Typography
-                        variant="h5"
+                    <Box
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            mb: 2
                         }}
                     >
-                        Add Rule
-                    </Typography>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                            }}
+                        >
+                            Add Rule
+                        </Typography>
+
+                        <Box sx={{display: "flex", alignItems: "center", gap: 1}}>
+                            <Tooltip title="Active or Inactive?">
+                                <ModernSwitch/>
+                            </Tooltip>
+                        </Box>
+                    </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
@@ -758,44 +838,121 @@ export default function AdminConfiguration() {
                         Add Cutoff
                     </Typography>
 
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Formula or Fixed Amount
+                            sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#FFFFFF",
+                                fontSize: "18px",
+                            }}
+                        >
+                            Payroll Period
                         </Typography>
 
-                        <Box sx={{display: "flex", gap: 1}}>
-                            {[...Array(2)].map((_, i) => (<input
-                                key={i}
-                                type="date"
-                                style={{
-                                    flex: 1,
-                                    padding: "10px",
-                                    height: "43px",
-                                    borderRadius: "13px",
-                                    fontSize: "18px",
-                                    backgroundColor: "#cacace",
-                                    border: "none",
-                                    color: "#1F2829",
-                                    outline: "none",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    boxSizing: "border-box",
-                                    transition: "border-color 0.25s ease",
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.border = "none";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.border = "none";
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.border = "none";
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.border = "none";
-                                }}
-                            />))}
+                        {/* Start + End Dates */}
+                        <Box sx={{ display: "flex", gap: 1 }}>
+
+                            {/* Start Date */}
+                            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                <Typography
+                                    sx={{
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#FFFFFF",
+                                        fontSize: "16px",
+                                    }}
+                                >
+                                    Start Date
+                                </Typography>
+
+                                <input
+                                    type="date"
+                                    style={{
+                                        padding: "10px",
+                                        height: "43px",
+                                        borderRadius: "13px",
+                                        fontSize: "18px",
+                                        backgroundColor: "#cacace",
+                                        border: "none",
+                                        color: "#1F2829",
+                                        outline: "none",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        boxSizing: "border-box",
+                                    }}
+                                    value={startDate}
+                                    onChange={(e) => {
+                                        setStartDate(e.target.value);
+                                        generatePeriod(e.target.value, endDate);
+                                    }}
+                                />
+                            </Box>
+
+                            {/* End Date */}
+                            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                <Typography
+                                    sx={{
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#FFFFFF",
+                                        fontSize: "16px",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    End Date
+                                </Typography>
+
+                                <input
+                                    type="date"
+                                    style={{
+                                        padding: "10px",
+                                        height: "43px",
+                                        borderRadius: "13px",
+                                        fontSize: "18px",
+                                        backgroundColor: "#cacace",
+                                        border: "none",
+                                        color: "#1F2829",
+                                        outline: "none",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        boxSizing: "border-box",
+                                    }}
+                                    value={endDate}
+                                    onChange={(e) => {
+                                        setEndDate(e.target.value);
+                                        generatePeriod(startDate, e.target.value);
+                                    }}
+                                />
+                            </Box>
                         </Box>
+                    </Box>
+
+                    {/* Auto-generated Period */}
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#FFFFFF",
+                                fontSize: "18px",
+                            }}
+                        >
+                            Period
+                        </Typography>
+
+                        <TextField
+                            value={period}
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "13px",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { fontSize: "18px" },
+                            }}
+                        />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>

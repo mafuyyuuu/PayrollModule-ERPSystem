@@ -9,6 +9,7 @@ import BoxModal from "../../components/BoxModal.jsx";
 
 export default function AdminUserManagement() {
     const theme = useTheme();
+
     const videoRef = useRef();
     const [status, setStatus] = useState("Initializing camera...");
     const [loading, setLoading] = useState(false);
@@ -222,7 +223,7 @@ export default function AdminUserManagement() {
                             User ID
                         </Typography>
                         <TextField
-                            placeholder="User ID"
+                            placeholder="Enter user ID"
                             value={selectedUser?.id || ""}
                             onChange={(e) =>
                                 !isEditing && setSelectedUser(prev => ({...prev, id: e.target.value}))
@@ -255,7 +256,7 @@ export default function AdminUserManagement() {
                             Full Name
                         </Typography>
                         <TextField
-                            placeholder="Enter Full Name"
+                            placeholder="Enter full name"
                             value={selectedUser?.name || ""}
                             onChange={(e) => setSelectedUser(prev => ({...prev, name: e.target.value}))} fullWidth
                             variant="outlined"
