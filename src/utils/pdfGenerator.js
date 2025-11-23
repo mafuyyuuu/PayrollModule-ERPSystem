@@ -1,7 +1,7 @@
 /**
  * PDF Generator Utility
  * Provides functions to generate PDF documents for payslips and reports
- * 
+ *
  * Note: This is a basic implementation that creates downloadable HTML-based PDFs.
  * For production use, consider using libraries like jsPDF or pdfmake for better formatting.
  */
@@ -33,7 +33,7 @@ const escapeHtml = (str) => {
  */
 export const generatePayslipPDF = (employeeData) => {
     const { name, id, period, earning, deduction, netpay } = employeeData;
-    
+
     // Escape all user-provided data to prevent XSS
     const safeName = escapeHtml(name);
     const safeId = escapeHtml(id);
@@ -41,7 +41,7 @@ export const generatePayslipPDF = (employeeData) => {
     const safeEarning = escapeHtml(earning);
     const safeDeduction = escapeHtml(deduction);
     const safeNetpay = escapeHtml(netpay);
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -148,11 +148,11 @@ export const generatePayslipPDF = (employeeData) => {
     
     <div class="footer">
         <p>This is a computer-generated payslip. No signature required.</p>
-        <p>Generated on ${new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        })}</p>
+        <p>Generated on ${new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })}</p>
     </div>
 </body>
 </html>
@@ -165,10 +165,10 @@ export const generatePayslipPDF = (employeeData) => {
         alert('Unable to open print window. Please check your popup blocker settings.');
         return;
     }
-    
+
     printWindow.document.write(htmlContent);
     printWindow.document.close();
-    
+
     // Trigger print dialog after content is loaded
     printWindow.onload = function() {
         printWindow.print();
@@ -183,7 +183,7 @@ export const generatePayslipPDF = (employeeData) => {
 export const generateReportPDF = (reportData, title = 'Payroll Report') => {
     // Escape title to prevent XSS
     const safeTitle = escapeHtml(title);
-    
+
     const rows = reportData.map(item => `
         <tr>
             <td>${escapeHtml(item.date || '')}</td>
@@ -192,7 +192,7 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
             <td>${escapeHtml(item.status || '')}</td>
         </tr>
     `).join('');
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -278,13 +278,13 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
     
     <div class="footer">
         <p>This is a computer-generated report.</p>
-        <p>Generated on ${new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })}</p>
+        <p>Generated on ${new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })}</p>
     </div>
 </body>
 </html>
@@ -297,10 +297,10 @@ export const generateReportPDF = (reportData, title = 'Payroll Report') => {
         alert('Unable to open print window. Please check your popup blocker settings.');
         return;
     }
-    
+
     printWindow.document.write(htmlContent);
     printWindow.document.close();
-    
+
     // Trigger print dialog after content is loaded
     printWindow.onload = function() {
         printWindow.print();
@@ -322,11 +322,11 @@ export const exportToCSV = (data, filename = 'export.csv') => {
 
     // Get headers from first object
     const headers = Object.keys(data[0]);
-    
+
     // Create CSV content
     const csvContent = [
         headers.join(','),
-        ...data.map(row => 
+        ...data.map(row =>
             headers.map(header => {
                 const value = row[header] || '';
                 // Escape commas and quotes in values
@@ -339,15 +339,15 @@ export const exportToCSV = (data, filename = 'export.csv') => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up the URL object to prevent memory leak
     URL.revokeObjectURL(url);
 };
