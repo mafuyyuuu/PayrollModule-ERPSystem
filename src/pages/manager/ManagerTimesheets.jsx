@@ -1,10 +1,9 @@
-import {Box, Typography, IconButton} from "@mui/material";
+import {Box, Typography, IconButton, TextField} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
-import ViewTextField from "../../components/ViewTextField.jsx";
 import {RiCheckFill, RiCloseFill, RiPencilFill} from "react-icons/ri";
 import React, {useState} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
@@ -302,96 +301,278 @@ const ManagerTimesheets = () => {
             <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
                 {selectedRow && (
                     <>
-                        <Typography variant="h3" mb={3} sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                        }}>
-                            Timesheet Approval Details
-                        </Typography>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 2
+                            }}
+                        >
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                                }}
+                            >
+                                Timesheet Approval Details
+                            </Typography>
+                        </Box>
 
                         {/* Employee Field */}
-                        <Box mb="10px">
-                            <Typography sx={{
-                                fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                mb: "5px"
-                            }}>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                 Employee
                             </Typography>
-                            <ViewTextField value={selectedRow.employee}/>
+                            <TextField
+                                value={selectedRow.employee}
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {
+                                            border: "none",
+                                        },
+                                        "&:hover fieldset": {
+                                            border: "none",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            border: "none",
+                                        },
+                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                            />
                         </Box>
 
                         {/* Grid for other fields */}
                         <Box
                             display="grid"
                             gridTemplateColumns={{md: "1fr 1fr"}}
-                            gap="20px"
-                            mb="18px"
+                            gap={1}
+                            mt={2}
                         >
                             {/* Date */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                     Date
                                 </Typography>
-                                <ViewTextField value={selectedRow.date} label="Date"/>
+                                <TextField
+                                    value={selectedRow.date}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
 
                             {/* Status */}
-                            <Box>
-                                <Typography sx={{
-                                    color: "#fff",
-                                    fontWeight: 500,
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                     Status
                                 </Typography>
-                                <ViewTextField value={selectedRow.status} label="Status"/>
+                                <TextField
+                                    value={selectedRow.status}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
+                        </Box>
 
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{md: "1fr 1fr"}}
+                            gap={1}
+                            mt={2}
+                        >
                             {/* Time In */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                >
                                     Time In
                                 </Typography>
-                                <ViewTextField value={selectedRow.timeIn} label="Time In"/>
+                                <TextField
+                                    value={selectedRow.timeIn}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
 
                             {/* Time Out */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                >
                                     Time Out
                                 </Typography>
-                                <ViewTextField value={selectedRow.timeOut} label="Time Out"/>
+                                <TextField
+                                    value={selectedRow.timeOut}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
+                        </Box>
 
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{md: "1fr 1fr"}}
+                            gap={1}
+                            mt={2}
+                        >
                             {/* Total Hours */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                >
                                     Total Hours
                                 </Typography>
-                                <ViewTextField value={selectedRow.totalHours} label="Total Hours"/>
+                                <TextField
+                                    value={selectedRow.totalHours}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
 
                             {/* Overtime */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                >
                                     Overtime
                                 </Typography>
-                                <ViewTextField value={selectedRow.overtime} label="Overtime"/>
+                                <TextField
+                                    value={selectedRow.overtime}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
                         </Box>
                     </>

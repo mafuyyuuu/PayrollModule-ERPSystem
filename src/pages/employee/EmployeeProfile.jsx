@@ -4,11 +4,9 @@ import {
     Typography,
     Button,
     useTheme,
-    TextField,
 } from "@mui/material";
 import banner from "../../assets/banner.jpg";
 import finn from "../../assets/finn.png";
-import ViewTextField from "../../components/ViewTextField";
 import { useUser } from "../../components/UserContext";
 
 

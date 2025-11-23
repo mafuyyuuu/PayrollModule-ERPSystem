@@ -449,7 +449,7 @@ export default function PayrollEmployeeRecords() {
                         variant="outlined"
                         size="small"
                         multiline
-                        rows={2}
+                        rows={3}
                         fullWidth
                         sx={{
                             "& .MuiOutlinedInput-root": {
@@ -461,7 +461,7 @@ export default function PayrollEmployeeRecords() {
                                 "&:hover fieldset": { border: "none" },
                                 "&.Mui-focused fieldset": { border: "none" },
                             },
-                            "& .MuiInputBase-input": { fontSize: "14px" },
+                            "& .MuiInputBase-input": { fontSize: "18px" },
                         }}
                     />
                 </Box>

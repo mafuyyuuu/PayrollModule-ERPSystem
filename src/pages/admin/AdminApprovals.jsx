@@ -720,7 +720,6 @@ export default function AdminApproval() {
                                     Period
                                 </Typography>
                                 <TextField
-                                    placeholder="Period"
                                     value={selectedException?.period || ""}
                                     fullWidth
                                     variant="outlined"
@@ -854,7 +853,7 @@ export default function AdminApproval() {
                                 <Typography
                                     sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}
                                 >
-                                    Reason
+                                    Reason for Rejection
                                 </Typography>
                                 <TextField
                                     variant="outlined"
