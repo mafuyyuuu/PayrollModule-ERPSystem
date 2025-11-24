@@ -8,6 +8,7 @@ import {
 import banner from "../../assets/banner.jpg";
 import finn from "../../assets/finn.png";
 import { useUser } from "../../components/UserContext";
+import ViewTextField from "../../components/ViewTextField.jsx";
 
 
 export default function EmployeeProfileLayout() {
