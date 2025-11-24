@@ -743,6 +743,7 @@ export default function PayoutProcessing() {
                                     alignItems: "center",
                                     textAlign: "center",
                                     bgcolor: "#fff",
+                                    color: "#1b2223",
                                     borderRadius: "8px",
                                     width: "100%",
                                     minHeight: "80px",
