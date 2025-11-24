@@ -2,15 +2,30 @@ import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
 import {Line, LineChart, ResponsiveContainer} from "recharts";
 import React, {useState, useEffect} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
+import {exportToCSV} from "../../utils/pdfGenerator.js";
 
 export default function PayrollTaxContribution() {
     const theme = useTheme();
 
+    const [modalType, setModalType] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDept, setSelectedDept] = useState("");
     const [selectedPeriod, setSelectedPeriod] = useState("");
     const [earningsData, setEarningsData] = useState([]);
     const [deadlines, setDeadlines] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filteredReports, setFilteredReports] = useState([]);
+
+    const handleExportCSV = () => {
+        if (filteredReports.length === 0) {
+            console.warn('No reports to export');
+            // Using alert for user feedback as no notification system exists
+            alert('No reports to export');
+            return;
+        }
+        exportToCSV(filteredReports, 'payroll_reports.csv');
+    };
 
     const periodHistory = [
         {ref: "001", period: "Jan 1 - Jan 15, 2025"},
@@ -100,10 +115,82 @@ export default function PayrollTaxContribution() {
         fetchTaxData();
     }, []);
 
+    const renderModalCards = () => {
+        switch (modalType) {
+            case "exportPDF":
+                return (
+                    <>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                mb: 2,
+                            }}
+                        >
+                            Tax Contribution for this period
+                        </Typography>
+                    </>
+                );
+
+            case "exportCSV":
+                return (
+                    <>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                textAlign: "center"
+                            }}
+                        >
+                            Are you sure you want to download CSV?
+                            {/*kung for two or more employees or maramihan or per dept.*/}
+                        </Typography>
+                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
+                            <Box
+                                onClick={() => {
+                                    handleExportCSV();
+                                    setIsModalOpen(false);
+                                }}
+                                component="button"
+                                sx={{
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Download CSV
+                            </Box>
+                        </Box>
+                    </>
+                );
+
+            default:
+                return <Typography sx={{color: "#fff"}}>No data available</Typography>;
+
+        }
+    };
+
     return (
         <Box width="100%" height="100%" display="flex" flexDirection="column">
-            <Box sx={{ alignItems: "center", display: "flex", mb: 2, flexShrink: 0 }}>
-            <Typography
+            <Box sx={{alignItems: "center", display: "flex", mb: 2, flexShrink: 0}}>
+                <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
@@ -117,7 +204,7 @@ export default function PayrollTaxContribution() {
 
             <Box
                 display="grid"
-                gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
+                gridTemplateColumns={{xs: "1fr", md: "2fr 1fr"}}
                 gap="20px"
                 flex="1 1 auto"   // allow it to shrink
             >
@@ -497,9 +584,31 @@ export default function PayrollTaxContribution() {
             </Box>
 
             <Box display="flex" justifyContent="flex-end" gap="15px">
-                <ActionButton text="Export PDF" width="200px"/>
-                <ActionButton text="Export CSV" width="200px"/>
+                <ActionButton
+                    text="Export PDF"
+                    width="200px"
+                    onClick={() => {
+                        setModalType("exportPDF");
+                        setIsModalOpen(true);
+                    }}
+                />
+
+                <ActionButton
+                    text="Export CSV"
+                    width="200px"
+                    onClick={() => {
+                        setModalType("exportCSV");
+                        setIsModalOpen(true);
+                    }}
+                />
             </Box>
+
+            <BoxModal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            >
+                {renderModalCards()}
+            </BoxModal>
         </Box>
     );
 }
