@@ -101,18 +101,9 @@ export default function PayrollTaxContribution() {
     }, []);
 
     return (
-        <Box
-            width="100%"
-            height="80%"
-        >
-            <Box
-                sx={{
-                    alignItems: "center",
-                    display: "flex",
-                    mb: 2,
-                }}
-            >
-                <Typography
+        <Box width="100%" height="100%" display="flex" flexDirection="column">
+            <Box sx={{ alignItems: "center", display: "flex", mb: 2, flexShrink: 0 }}>
+            <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
@@ -126,13 +117,9 @@ export default function PayrollTaxContribution() {
 
             <Box
                 display="grid"
-                gridTemplateColumns={{
-                    xs: "1fr",
-                    md: "2fr 1fr",
-                }}
+                gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
                 gap="20px"
-                mt="25px"
-                alignItems="stretch"
+                flex="1 1 auto"   // allow it to shrink
             >
                 <Box
                     borderRadius="12px"
@@ -150,7 +137,7 @@ export default function PayrollTaxContribution() {
                             transform: "scale(1.02)",
                             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                         },
-                        height: {xs: "350px", sm: "380px", md: "100%"}
+                        height: "96%",
                     }}
                 >
                     <Box
@@ -326,7 +313,7 @@ export default function PayrollTaxContribution() {
                                         transform: "scale(1.02)",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
-                                    height: 458,
+                                    height: "100%",
                                 }}
                             >
                                 <ResponsiveContainer width="100%" height="100%">
@@ -374,7 +361,6 @@ export default function PayrollTaxContribution() {
                                         transform: "scale(1.02)",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
-                                    height: 458,
                                 }}
                             >
                                 <ResponsiveContainer width="100%" height="100%">
@@ -410,6 +396,7 @@ export default function PayrollTaxContribution() {
                             transform: "scale(1.02)",
                             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                         },
+                        height: "96%",
                     }}
                 >
                     <Typography
@@ -509,7 +496,7 @@ export default function PayrollTaxContribution() {
                 </Box>
             </Box>
 
-            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+            <Box display="flex" justifyContent="flex-end" gap="15px">
                 <ActionButton text="Export PDF" width="200px"/>
                 <ActionButton text="Export CSV" width="200px"/>
             </Box>

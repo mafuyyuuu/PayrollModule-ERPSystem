@@ -12,7 +12,7 @@ import {
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
-import {RiDownload2Line, RiEyeFill} from "react-icons/ri";
+import {RiCheckFill, RiCloseFill, RiDownload2Line, RiEyeFill} from "react-icons/ri";
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
 import {PDFViewer} from "@react-pdf/renderer";
@@ -26,6 +26,10 @@ export default function PayoutProcessing() {
     const [selectedPayroll, setSelectedPayroll] = useState("");
     const [modalType, setModalType] = useState("");
     const [selectedEmployees, setSelectedEmployees] = useState([]);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [rowActions, setRowActions] = useState({});
+    const [rejectionReasons, setRejectionReasons] = useState({});
+    const [selectedRows, setSelectedRows] = useState([]);
 
     // const [payrollHistory, setPayrollHistory] = useState([]);
     // const [employeesProcess, setEmployeesProcess] = useState([]);
@@ -64,6 +68,7 @@ export default function PayoutProcessing() {
             netpay: "₱21,500.00",
             status: "Processed",
             period: "Oct 1–15, 2025",
+            department: "Finance",
         },
         {
             id: "EMP-002",
@@ -73,6 +78,7 @@ export default function PayoutProcessing() {
             netpay: "₱19,200.00",
             status: "Processed",
             period: "Oct 1–15, 2025",
+            department: "Finance",
         },
         {
             id: "EMP-003",
@@ -82,6 +88,7 @@ export default function PayoutProcessing() {
             netpay: "₱25,800.00",
             status: "Pending",
             period: "Oct 1–15, 2025",
+            department: "HR",
         },
         {
             id: "EMP-004",
@@ -91,6 +98,7 @@ export default function PayoutProcessing() {
             netpay: "₱16,600.00",
             status: "Processed",
             period: "Oct 1–15, 2025",
+            department: "HR",
         },
         {
             id: "EMP-005",
@@ -100,6 +108,7 @@ export default function PayoutProcessing() {
             netpay: "₱24,300.00",
             status: "Processing",
             period: "Oct 1–15, 2025",
+            department: "IT",
         },
     ]);
 
@@ -183,40 +192,11 @@ export default function PayoutProcessing() {
         }
     };
 
-    const payslip = (employee) => {
-        setSelectedEmployee(employee);
-        setModalType("payslip");
-        setOpen(true);
-    };
-
-    const downloadPayslip = (employee) => {
-        setSelectedEmployee(employee);
-        setModalType("downloadPayslip");
-        setOpen(true);
-    };
-
-    const generatePayslip = (employee) => {
-        setSelectedEmployee(employee);
-        setModalType("generatePayslip");
-        setOpen(true);
-    };
-
-    const bulkPayout = (employee) => {
-        setSelectedEmployee(employee);
-        setModalType("leave");
-        setOpen(true);
-    };
-
-    const releasePayout = (employee) => {
-        setSelectedEmployee(employee);
-        setModalType("releasePayout");
-        setOpen(true);
-    };
-
     const renderModalCards = () => {
         switch (modalType) {
-            case "payslip":
-                return selectedEmployee ? (
+            case "sendToEmails":
+                // switch case sa pangkalahatan at isahan na employee
+                return selectedEmployee && Array.isArray(selectedEmployee) ? (
                     <>
                         <Typography
                             variant="h5"
@@ -224,160 +204,65 @@ export default function PayoutProcessing() {
                                 fontFamily: "'TTHoves-Bold', sans-serif",
                                 fontSize: "24px",
                                 color: "#FFFFFF",
-                                mb: 2
+                                mb: 2,
+                                textAlign: "center"
                             }}
                         >
-                            Employee Payslip Details
+                            {selectedEmployee[0].department
+                                ? `Are you sure you want to send emails to the employees in the ${selectedEmployee[0].department} department?`
+                                : `Are you sure you want to send payslip to selected employees?`}
                         </Typography>
 
-                        {/* Name */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px"
-                                }}
-                            >
-                                Name
-                            </Typography>
-                            <TextField
-                                value={selectedEmployee.name}
-                                InputProps={{readOnly: true}}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {border: "none"},
-                                        "&:hover fieldset": {border: "none"},
-                                        "&.Mui-focused fieldset": {border: "none"},
-                                    },
-                                    "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                                size="small"
-                            />
-                        </Box>
+                        <Box
+                            sx={{
+                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
+                            }}
+                        >
+                            <Box
+                                onClick={async () => {
+                                    if (!selectedEmployee || selectedEmployee.length === 0) return alert("No employees selected");
 
-                        {/* Period */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px"
-                                }}
-                            >
-                                Period
-                            </Typography>
-                            <TextField
-                                value={selectedEmployee.period || selectedPayroll || "N/A"}
-                                InputProps={{readOnly: true}}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {border: "none"},
-                                        "&:hover fieldset": {border: "none"},
-                                        "&.Mui-focused fieldset": {border: "none"},
-                                    },
-                                    "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                                size="small"
-                            />
-                        </Box>
+                                    try {
+                                        for (let emp of selectedEmployee) {
+                                            const blob = await pdf(<PayslipDocument employee={emp}/>).toBlob();
+                                            const formData = new FormData();
+                                            formData.append("file", blob, `${emp.name}.pdf`);
+                                            formData.append("email", emp.email || "test@example.com");
 
-                        {/* Earnings */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px"
-                                }}
-                            >
-                                Earnings
-                            </Typography>
-                            <TextField
-                                value={selectedEmployee.earning}
-                                InputProps={{readOnly: true}}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {border: "none"},
-                                        "&:hover fieldset": {border: "none"},
-                                        "&.Mui-focused fieldset": {border: "none"},
-                                    },
-                                    "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                                size="small"
-                            />
-                        </Box>
+                                            await fetch("http://localhost:8080/api/send-payslip", {
+                                                method: "POST",
+                                                body: formData
+                                            });
+                                        }
 
-                        {/* Deduction */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
+                                        alert(`Payslips sent to ${selectedEmployee.length} employee(s)!`);
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert("Failed to send payslips.");
+                                    }
+                                }}
+                                component="button"
                                 sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px"
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
                                 }}
                             >
-                                Deduction
-                            </Typography>
-                            <TextField
-                                value={selectedEmployee.deduction}
-                                InputProps={{readOnly: true}}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {border: "none"},
-                                        "&:hover fieldset": {border: "none"},
-                                        "&.Mui-focused fieldset": {border: "none"},
-                                    },
-                                    "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                                size="small"
-                            />
-                        </Box>
-
-                        {/* Net Pay */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
-                            <Typography
-                                sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px"
-                                }}
-                            >
-                                Net Pay
-                            </Typography>
-                            <TextField
-                                value={selectedEmployee.netpay}
-                                InputProps={{readOnly: true}}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {border: "none"},
-                                        "&:hover fieldset": {border: "none"},
-                                        "&.Mui-focused fieldset": {border: "none"},
-                                    },
-                                    "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
-                                size="small"
-                            />
+                                Send
+                            </Box>
                         </Box>
                     </>
                 ) : null;
@@ -398,153 +283,247 @@ export default function PayoutProcessing() {
                         </Typography>
 
                         <PDFViewer width="100%" height={600} showToolbar={false}>
-                            <PayslipDocument employee={selectedEmployee} />
+                            <PayslipDocument employee={selectedEmployee}/>
                         </PDFViewer>
 
-                        <Box sx={{ mt: 2 }}>
-                            <PayslipActions employee={selectedEmployee} />
+                        <Box sx={{mt: 2}}>
+                            <PayslipActions employee={selectedEmployee}/>
                         </Box>
                     </>
                 ) : null;
 
-            case "generatePayslip":
+            case "releasePayouts":
+                // for release payouts na button sa baba
                 return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <>
                         <Typography
                             variant="h5"
-                            sx={{ color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif" }}
+                            sx={{color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif"}}
                         >
-                            Generate Payslip
+                            You are about to release a payout for
+                            {/*employee employees department or lahat */}
                         </Typography>
 
-                        <Typography sx={{ color: "#ddd", lineHeight: 1.6 }}>
-                            You're about to generate a payslip for:
-                            <br />
-                            <strong>{selectedEmployee?.name}</strong>
-                        </Typography>
-
-                        <Box sx={{ ml: 1, mt: 1, color: "#ccc", lineHeight: 1.6 }}>
-                            <div>• Earnings: {selectedEmployee?.earning}</div>
-                            <div>• Deductions: {selectedEmployee?.deduction}</div>
-                            <div>• Net Pay: {selectedEmployee?.netpay}</div>
-                            <div>• Period: {selectedEmployee?.period}</div>
-                        </Box>
-
-                        <Typography sx={{ color: "#ffaa00", mt: 1 }}>
-                            Note: This will generate a preview inside the modal.
-                        </Typography>
-
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
-                            <Button
-                                sx={{
-                                    backgroundColor: "#2e2e2e",
-                                    color: "#fff",
-                                    borderRadius: "12px",
-                                    padding: "8px 20px",
-                                    "&:hover": { backgroundColor: "#444" },
-                                }}
-                            >
-                                Cancel
-                            </Button>
-
-                            <Button
-                                onClick={() => setModalType("modalPayslip")}
-                                sx={{
-                                    backgroundColor: "#0066cc",
-                                    color: "#fff",
-                                    borderRadius: "12px",
-                                    padding: "8px 20px",
-                                    "&:hover": { backgroundColor: "#1576e0" },
-                                }}
-                            >
-                                Generate
-                            </Button>
-                        </Box>
-                    </Box>
-                );
-
-            case "bulkPayout":
-                return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                        <Typography
-                            variant="h5"
-                            sx={{ color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif" }}
+                        <Box
+                            sx={{
+                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
+                            }}
                         >
-                            Confirm Bulk Payout
-                        </Typography>
-
-                        <Typography sx={{ color: "#ddd", lineHeight: 1.6 }}>
-                            You are about to release **bulk payouts** for the selected employees.
-                            <br />
-                            This action cannot be undone.
-                        </Typography>
-
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
-                            <Button
+                            <Box
+                                component="button"
                                 sx={{
-                                    backgroundColor: "#2e2e2e",
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
                                     color: "#fff",
-                                    borderRadius: "12px",
-                                    padding: "8px 20px",
-                                    "&:hover": { backgroundColor: "#444" },
-                                }}
-                            >
-                                Cancel
-                            </Button>
-
-                            <Button
-                                sx={{
-                                    backgroundColor: "#00a86b",
-                                    color: "#fff",
-                                    borderRadius: "12px",
-                                    padding: "8px 20px",
-                                    "&:hover": { backgroundColor: "#0cc982" },
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
                                 }}
                             >
                                 Confirm
-                            </Button>
+                            </Box>
                         </Box>
-                    </Box>
+                    </>
                 );
 
-            case "releasePayout":
-                return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            case "acceptPayslip":
+                // switch case ito para sa approve payslip na pangkalahatan at isahan na employee
+                return selectedEmployee ? (
+                    <>
                         <Typography
                             variant="h5"
-                            sx={{ color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif" }}
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                textAlign: "center"
+                            }}
                         >
-                            Confirm Release
+                            Are you sure you want to approve the payslip for {selectedEmployee.name}?
                         </Typography>
 
-                        <Typography sx={{ color: "#ddd", lineHeight: 1.6 }}>
-                            You are about to release a payout for:
-                            <br />
-                            <strong>{selectedEmployee?.name}</strong>
-                        </Typography>
+                        <Box
+                            sx={{
+                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
+                            }}
+                        >
+                            <Box
+                                onClick={() => {
+                                    if (selectedEmployee) {
+                                        // Mark the employee row as accepted
+                                        setRowActions(prev => ({
+                                            ...prev,
+                                            [selectedEmployee.id]: "accepted"
+                                        }));
 
-                        <Box sx={{ ml: 1, mt: 1, color: "#ccc", lineHeight: 1.6 }}>
-                            <div>• Type: {selectedEmployee?.leaveType}</div>
-                            <div>• Dates: {selectedEmployee?.startDate} to {selectedEmployee?.endDate}</div>
-                            <div>• Status: {selectedEmployee?.status}</div>
-                        </Box>
+                                        // Close the modal
+                                        setOpen(false);
 
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
-                            <Button
+                                        // Optionally: trigger any API call for approval here
+                                        // approvePayslip(selectedEmployee.id);
+                                    }
+                                }}
+                                component="button"
                                 sx={{
-                                    backgroundColor: "#00a86b",
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
                                     color: "#fff",
-                                    borderRadius: "12px",
-                                    padding: "8px 20px",
-                                    "&:hover": { backgroundColor: "#0cc982" },
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
                                 }}
                             >
-                                Confirm
-                            </Button>
+                                Approve
+                            </Box>
                         </Box>
-                    </Box>
-                );
+                    </>
+                ) : null;
 
+            case "rejectPayslip":
+                return selectedEmployee ? (
+                    <>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                            }}
+                        >
+                            Are you sure you want to reject the payslip for {selectedEmployee.name}?
+                        </Typography>
+
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: "#FFFFFF",
+                                    fontSize: "18px",
+                                }}
+                            >
+                                Reason for Rejection
+                            </Typography>
+                            <TextField
+                                value={rejectionReason} // <-- bind state here
+                                onChange={(e) => setRejectionReason(e.target.value)} // <-- update state on typing
+                                multiline
+                                rows={3}
+                                placeholder="Type reason here..."
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "12px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "16px"},
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
+                            <Box
+                                onClick={() => {
+                                    if (!rejectionReason || rejectionReason.trim() === "") {
+                                        alert("Please enter a reason for rejection.");
+                                        return;
+                                    }
+
+                                    // Store the reason for this employee
+                                    setRejectionReasons(prev => ({
+                                        ...prev,
+                                        [selectedEmployee.id]: rejectionReason
+                                    }));
+
+                                    // Mark as rejected in the row actions
+                                    setRowActions(prev => ({
+                                        ...prev,
+                                        [selectedEmployee.id]: "rejected"
+                                    }));
+
+                                    // Close the modal
+                                    setOpen(false);
+                                }}
+                                component="button"
+                                sx={{
+                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#8b1a1a",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#a32020",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Reject
+                            </Box>
+                        </Box>
+                    </>
+                ) : null;
+
+            case "viewRejection":
+                return selectedEmployee ? (
+                    <>
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                fontSize: "24px",
+                                color: "#FFFFFF",
+                                mb: 2
+                            }}
+                        >
+                            Rejection Reason for {selectedEmployee.name}
+                        </Typography>
+
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                            <TextField
+                                value={rejectionReasons[selectedEmployee.id] || "No reason provided"}
+                                InputProps={{readOnly: true}}
+                                multiline
+                                rows={4}
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "12px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": {border: "none"},
+                                    },
+                                    "& .MuiInputBase-input": {fontSize: "16px"},
+                                }}
+                            />
+                        </Box>
+                    </>
+                ) : null;
 
             default:
                 return <Typography sx={{color: "#fff"}}>No data available</Typography>;
@@ -681,14 +660,14 @@ export default function PayoutProcessing() {
                             "&.Mui-checked": {
                                 color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                             },
-                            "& .MuiSvgIcon-root": { fontSize: 25 },
+                            "& .MuiSvgIcon-root": {fontSize: 25},
                         }}
                     />
 
                     <Box
                         sx={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(7, 1fr)",
+                            gridTemplateColumns: "repeat(8, 1fr)",
                             color: theme.palette.text.primary,
                             fontWeight: 700,
                             p: "8px 0",
@@ -699,6 +678,7 @@ export default function PayoutProcessing() {
                     >
                         <span style={{paddingLeft: "15px", textAlign: "left"}}>Employee ID</span>
                         <span>Employee Name</span>
+                        <span>Department</span>
                         <span>Earning</span>
                         <span>Deduction</span>
                         <span>Netpay</span>
@@ -752,14 +732,14 @@ export default function PayoutProcessing() {
                                     "&.Mui-checked": {
                                         color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
                                     },
-                                    "& .MuiSvgIcon-root": { fontSize: 25 },
+                                    "& .MuiSvgIcon-root": {fontSize: 25},
                                 }}
                             />
 
                             <Box
                                 sx={{
                                     display: "grid",
-                                    gridTemplateColumns: "repeat(7, 1fr)",
+                                    gridTemplateColumns: "repeat(8, 1fr)",
                                     alignItems: "center",
                                     textAlign: "center",
                                     bgcolor: "#fff",
@@ -774,50 +754,138 @@ export default function PayoutProcessing() {
                             >
                                 <span style={{paddingLeft: "15px", textAlign: "left"}}>{item.id}</span>
                                 <span>{item.name}</span>
+                                <span>{item.department}</span>
                                 <span>{item.earning}</span>
                                 <span>{item.deduction}</span>
                                 <span>{item.netpay}</span>
-                                <span>{item.status}</span>
+                                <span
+                                    style={{
+                                        fontFamily: "'TTHoves-Bold', sans-serif",
+                                        color:
+                                            item.status === "Processed"
+                                                ? "#4CAF50"
+                                                : item.status === "Rejected"
+                                                    ? "#F44336"
+                                                    : "#FFC107",
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {item.status}
+                                </span>
 
                                 <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
-                                    <IconButton
-                                        onClick={() => payslip(item)}
-                                        sx={{
-                                            backgroundColor: "#172224",
-                                            color: "#fff",
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: "50%",
-                                            transition: "all 0.2s ease",
-                                            "&:hover": {
-                                                backgroundColor: "#2E3B3D",
+                                    {!rowActions[item.id] && (
+                                        <>
+                                            {/* Accept Button */}
+                                            <IconButton
+                                                disableRipple
+                                                onClick={() => {
+                                                    setSelectedEmployee(item); // set the clicked employee
+                                                    setModalType("acceptPayslip"); // open the acceptPayslip modal
+                                                    setOpen(true);
+                                                }}
+                                                sx={{
+                                                    backgroundColor: "#172224",
+                                                    color: "green",
+                                                    width: 40,
+                                                    height: 36,
+                                                    borderRadius: "50%",
+                                                    transition: "all 0.2s ease",
+                                                    "&:hover": {
+                                                        backgroundColor: "#388E3C",
+                                                        color: "#fff",
+                                                        transform: "translateY(-3px)",
+                                                    },
+                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                                }}
+                                            >
+                                                <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                            </IconButton>
+
+                                            {/* Reject Button */}
+                                            <IconButton
+                                                disableRipple
+                                                onClick={() => {
+                                                    if (!item) return alert("No employee selected"); // optional safety check
+
+                                                    setSelectedEmployee(item);          // set the employee for the modal
+                                                    setRejectionReason("");             // reset any previous reason
+                                                    setModalType("rejectPayslip");      // open the rejectPayslip modal
+                                                    setOpen(true);                      // show the modal
+                                                }}
+                                                sx={{
+                                                    backgroundColor: "#172224",
+                                                    color: "red",
+                                                    width: 40,
+                                                    height: 36,
+                                                    borderRadius: "50%",
+                                                    transition: "all 0.2s ease",
+                                                    "&:hover": {
+                                                        backgroundColor: "#D32F2F",
+                                                        color: "#fff",
+                                                        transform: "translateY(-3px)",
+                                                    },
+                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                                }}
+                                            >
+                                                <RiCloseFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
+                                            </IconButton>
+                                        </>
+                                    )}
+
+                                    {rowActions[item.id] === "rejected" && (
+                                        <IconButton
+                                            onClick={() => {
+                                                setSelectedEmployee(item);
+                                                setModalType("viewRejection");
+                                                setOpen(true);
+                                            }}
+                                            sx={{
+                                                backgroundColor: "#172224",
                                                 color: "#fff",
-                                                transform: "translateY(-3px)",
-                                            },
-                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                        }}
-                                    >
-                                        <RiEyeFill style={{fontSize: 19}}/>
-                                    </IconButton>
-                                    <IconButton
-                                        onClick={() => downloadPayslip(item)} // updated function name
-                                        sx={{
-                                            backgroundColor: "#172224",
-                                            color: "#fff",
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: "50%",
-                                            transition: "all 0.2s ease",
-                                            "&:hover": {
-                                                backgroundColor: "#2E3B3D",
-                                                color: "#fff",
-                                                transform: "translateY(-3px)",
-                                            },
-                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                        }}
-                                    >
-                                        <RiDownload2Line style={{fontSize: 19}}/>
-                                    </IconButton>
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: "50%",
+                                                transition: "all 0.2s ease",
+                                                "&:hover": {
+                                                    backgroundColor: "#2E3B3D",
+                                                    color: "#fff",
+                                                    transform: "translateY(-3px)",
+                                                },
+                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                            }}
+                                        >
+                                            <RiEyeFill style={{fontSize: 19}}/>
+                                        </IconButton>
+                                    )}
+
+                                    {rowActions[item.id] === "accepted" && (
+                                        <>
+                                            <IconButton
+                                                onClick={() => {
+                                                    setSelectedEmployee(item); // set the clicked employee
+                                                    setModalType("downloadPayslip"); // open the downloadPayslip modal
+                                                    setOpen(true); // open the modal
+                                                }}
+                                                sx={{
+                                                    backgroundColor: "#172224",
+                                                    color: "#fff",
+                                                    width: 40,
+                                                    height: 40,
+                                                    borderRadius: "50%",
+                                                    transition: "all 0.2s ease",
+                                                    "&:hover": {
+                                                        backgroundColor: "#2E3B3D",
+                                                        color: "#fff",
+                                                        transform: "translateY(-3px)",
+                                                    },
+                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                                }}
+                                            >
+                                                <RiDownload2Line style={{fontSize: 19}}/>
+                                            </IconButton>
+                                        </>
+                                    )}
                                 </Box>
                             </Box>
                         </Box>
@@ -828,18 +896,26 @@ export default function PayoutProcessing() {
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
                 <ActionButton
-                    onClick={() => selectedEmployee && generatePayslip(selectedEmployee)}
-                    text="Generate Payslip"
+                    text="Approve Payslips"
                     width="200px"
                 />
                 <ActionButton
-                    onClick={() => selectedEmployee && bulkPayout(selectedEmployee)}
-                    text="Bulk Payout"
+                    text="Release Payouts"
                     width="200px"
                 />
                 <ActionButton
-                    onClick={() => selectedEmployee && releasePayout(selectedEmployee)}
-                    text="Release Payout"
+                    onClick={() => {
+                        if (!selectedRows || selectedRows.length === 0) {
+                            alert("No employees selected. Please select at least one employee.");
+                            return;
+                        }
+
+                        // Set the selected employees in state
+                        setSelectedEmployee(selectedRows);
+                        setModalType("sendToEmails"); // open the modal
+                        setOpen(true);
+                    }}
+                    text="Send to Emails"
                     width="200px"
                 />
             </Box>
