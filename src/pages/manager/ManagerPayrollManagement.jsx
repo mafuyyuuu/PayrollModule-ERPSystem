@@ -1,11 +1,10 @@
-import {Box, Typography, IconButton} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import {Box, Typography, IconButton, TextField} from "@mui/material";
+import {useTheme} from "@mui/material/styles";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
-import ViewTextField from "../../components/ViewTextField.jsx";
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {RiPencilFill} from "react-icons/ri";
 
 const employeePayrollData = [
@@ -196,19 +195,19 @@ const ManagerPayrollSummary = () => {
                                 <IconButton
                                     onClick={() => handleView(row)}
                                     sx={{
-                                    backgroundColor: "#172224",
-                                    color: "#fff",
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: "50%",
-                                    transition: "all 0.2s ease",
-                                    "&:hover": {
-                                        backgroundColor: "#2E3B3D",
+                                        backgroundColor: "#172224",
                                         color: "#fff",
-                                        transform: "translateY(-3px)",
-                                    },
-                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                }}
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
+                                        },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                    }}
                                 >
                                     <RiPencilFill style={{fontSize: 19}}/>
                                 </IconButton>
@@ -220,74 +219,201 @@ const ManagerPayrollSummary = () => {
             <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
                 {selectedRow && (
                     <>
-                        <Typography variant="h3" mb={3} sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                        }}>
-                            Employee Payroll Details
-                        </Typography>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 2
+                            }}
+                        >
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                                }}
+                            >
+                                Employee Payroll Details
+                            </Typography>
+                        </Box>
 
                         {/* Employee Field */}
-                        <Box mb="10px">
-                            <Typography sx={{
-                                fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                mb: "5px"
-                            }}>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                 Employee Name
                             </Typography>
-                            <ViewTextField value={selectedRow.name} />
+                            <TextField
+                                value={selectedRow.name}
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "13px",
+                                        backgroundColor: "#cacace",
+                                        color: "#1F2829",
+                                        fontSize: "18px",
+                                        "& fieldset": {
+                                            border: "none",
+                                        },
+                                        "&:hover fieldset": {
+                                            border: "none",
+                                        },
+                                        "&.Mui-focused fieldset": {
+                                            border: "none",
+                                        },
+                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                }}
+                            />
                         </Box>
 
                         {/* Grid for other fields */}
                         <Box
                             display="grid"
-                            gridTemplateColumns={{ md: "1fr 1fr" }}
-                            gap="20px"
-                            mb="18px"
+                            gridTemplateColumns={{md: "1fr 1fr"}}
+                            gap={1}
+                            mt={2}
                         >
                             {/* Gross */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                     Gross
                                 </Typography>
-                                <ViewTextField value={selectedRow.gross} label="Gross" />
+                                <TextField
+                                    value={selectedRow.gross}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
 
                             {/* Deductions */}
-                            <Box>
-                                <Typography sx={{
-                                    color: "#fff",
-                                    fontWeight: 500,
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                     Deductions
                                 </Typography>
-                                <ViewTextField value={selectedRow.deductions} label="Deductions" />
+                                <TextField
+                                    value={selectedRow.deductions}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
+                        </Box>
 
+                        <Box
+                            display="grid"
+                            gridTemplateColumns={{md: "1fr 1fr"}}
+                            gap={1}
+                            mt={2}
+                        >
                             {/* Benefits */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                     Benefits
                                 </Typography>
-                                <ViewTextField value={selectedRow.benefits} label="Benefits" />
+                                <TextField
+                                    value={selectedRow.benefits}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
 
                             {/* Net */}
-                            <Box>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    mb: "5px"
-                                }}>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
                                     Net
                                 </Typography>
-                                <ViewTextField value={selectedRow.net} label="Net" />
+                                <TextField
+                                    value={selectedRow.net}
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "13px",
+                                            backgroundColor: "#cacace",
+                                            color: "#1F2829",
+                                            fontSize: "18px",
+                                            "& fieldset": {
+                                                border: "none",
+                                            },
+                                            "&:hover fieldset": {
+                                                border: "none",
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                border: "none",
+                                            },
+                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    }}
+                                />
                             </Box>
 
                         </Box>
