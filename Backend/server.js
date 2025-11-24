@@ -6,11 +6,17 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import adminDashboardRoutes from './admin/routes/adminDashboardRoutes.js';
+
+
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/dashboard', adminDashboardRoutes);
+
 
 // ✅ MySQL connection for Payroll System
 const payrollPool = mysql.createPool({
