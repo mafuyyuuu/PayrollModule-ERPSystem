@@ -1,4 +1,4 @@
-
+-- comment
 
 CREATE DATABASE IF NOT EXISTS PayrollManagementSystem;
 USE PayrollManagementSystem;
