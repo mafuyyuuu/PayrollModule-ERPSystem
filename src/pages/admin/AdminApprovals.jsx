@@ -405,8 +405,6 @@ export default function AdminApproval() {
                 return (
                     <Box
                         sx={{
-                            display: "flex",
-                            flexDirection: "column",
                             color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
                         }}
                     >
