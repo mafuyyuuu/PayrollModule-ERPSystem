@@ -7,7 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import adminDashboardRoutes from './admin/routes/adminDashboardRoutes.js';
-
+import adminAuditLogsRoutes from './admin/routes/adminAuditLogsRoutes.js';
 
 dotenv.config();
 
@@ -15,15 +15,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/dashboard', adminDashboardRoutes);
-
 
 // ✅ MySQL connection for Payroll System
 const payrollPool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'payrollsystem',
-    password: process.env.DB_PASSWORD || 'payroll',
-    database: process.env.DB_NAME || 'payrollmanagementsystem',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'root',
+    database: process.env.DB_NAME || 'PayrollManagementSystem',
     port: process.env.DB_PORT || 3306
 });
 
@@ -55,6 +53,8 @@ try {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+
 
 // ==================== API ROUTES (MUST BE BEFORE STATIC FILES) ====================
 
@@ -156,6 +156,8 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+
+
 // CREATE USER ROUTE
 app.post('/api/create-user', async (req, res) => {
     const { username, email, password, role_id, employee_id } = req.body;
@@ -201,6 +203,9 @@ app.post('/api/create-user', async (req, res) => {
     }
 });
 
+
+
+
 // GET ALL EMPLOYEES
 app.get('/api/employees', async (req, res) => {
     try {
@@ -241,6 +246,8 @@ app.get('/api/employees', async (req, res) => {
         res.status(500).json({ message: 'Error fetching employee data (VPN may be down)', error: err.message });
     }
 });
+
+
 
 // GET SINGLE EMPLOYEE BY ID
 app.get('/api/employees/:id', async (req, res) => {

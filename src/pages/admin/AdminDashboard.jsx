@@ -34,26 +34,12 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
-
     // === UI NOTIFICATIONS (static for now) ===
     const notifications = [
-        {
-            title: "Payroll Updated",
-            message: "The payroll for October 2025 has been successfully processed.",
-        },
-        {
-            title: "System Maintenance",
-            message:
-                "Scheduled maintenance will occur on November 15, 2025, from 12 AM to 2 AM.",
-        },
-        {
-            title: "New Employee Added",
-            message: "A new employee has been successfully added to the HR database.",
-        },
-        {
-            title: "Policy Reminder",
-            message: "Please review the updated attendance policy by November 20, 2025.",
-        },
+        { title: "Payroll Updated", message: "The payroll for October 2025 has been successfully processed." },
+        { title: "System Maintenance", message: "Scheduled maintenance will occur on November 15, 2025, from 12 AM to 2 AM." },
+        { title: "New Employee Added", message: "A new employee has been successfully added to the HR database." },
+        { title: "Policy Reminder", message: "Please review the updated attendance policy by November 20, 2025." },
     ];
 
     return (
@@ -78,21 +64,18 @@ const AdminDashboard = () => {
                     title="Total Employees"
                     value={totalEmployees}
                 />
-
                 <DashboardCard
                     icon="ri-refund-2-line"
                     title="Processed Payouts"
                     value={`₱ ${processedPayouts.toLocaleString()}`}
                     showHideButton
                 />
-
                 <DashboardCard
                     icon="ri-timer-line"
                     title="Pending Payouts"
                     value={`₱ ${pendingPayouts.toLocaleString()}`}
                     showHideButton
                 />
-
                 <DashboardCard
                     icon="ri-calendar-schedule-line"
                     title="Upcoming Schedules"
