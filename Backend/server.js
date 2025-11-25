@@ -429,7 +429,7 @@ app.get('/api/pending-requests', async (req, res) => {
 
         try {
             const [requests] = await payrollPool.execute(
-                `SELECT * FROM PendingRequests WHERE status = 'Pending' ORDER BY request_date DESC`
+                `SELECT * FROM Requests WHERE status = 'Pending' ORDER BY date_filed DESC`
             );
 
             const enrichedRequests = await Promise.all(requests.map(async (request) => {
@@ -454,7 +454,7 @@ app.get('/api/pending-requests', async (req, res) => {
 
             res.json(enrichedRequests);
         } catch (tableErr) {
-            console.log('⚠️ PendingRequests table may not exist, returning empty array');
+            console.log('⚠️ Requests table may not exist, returning empty array');
             res.json([]);
         }
     } catch (error) {
@@ -468,7 +468,7 @@ app.put('/api/pending-requests/:id/approve', async (req, res) => {
     const { id } = req.params;
     try {
         await payrollPool.execute(
-            `UPDATE PendingRequests SET status = 'Approved' WHERE request_id = ?`,
+            `UPDATE Requests SET status = 'Approved' WHERE request_id = ?`,
             [id]
         );
         res.json({ success: true, message: 'Request approved' });
@@ -483,7 +483,7 @@ app.put('/api/pending-requests/:id/reject', async (req, res) => {
     const { id } = req.params;
     try {
         await payrollPool.execute(
-            `UPDATE PendingRequests SET status = 'Rejected' WHERE request_id = ?`,
+            `UPDATE Requests SET status = 'Rejected' WHERE request_id = ?`,
             [id]
         );
         res.json({ success: true, message: 'Request rejected' });
@@ -520,30 +520,57 @@ app.get('/api/tax-contributions', async (req, res) => {
 
         let monthlyData = [];
         let upcomingDeadlines = [];
+        let summaryData = {};
 
+        // Get monthly contribution totals from TaxContributions table
         try {
             const [monthly] = await payrollPool.execute(
-                `SELECT DATE_FORMAT(pay_date, '%b') as month, SUM(total_deductions) as total_contributions
-                 FROM Payroll 
-                 WHERE YEAR(pay_date) = YEAR(NOW())
-                 GROUP BY MONTH(pay_date)
-                 ORDER BY MONTH(pay_date)`
+                `SELECT 
+                    DATE_FORMAT(p.pay_date, '%b') as month,
+                    MONTH(p.pay_date) as month_num,
+                    SUM(tc.sss_contribution) as sss,
+                    SUM(tc.philhealth_contribution) as philhealth,
+                    SUM(tc.pagibig_contribution) as pagibig,
+                    SUM(tc.withholding_tax) as tax,
+                    SUM(tc.total_contributions) as total_contributions
+                 FROM TaxContributions tc
+                 JOIN Payroll p ON tc.payroll_id = p.payroll_id
+                 WHERE YEAR(p.pay_date) = YEAR(NOW())
+                 GROUP BY MONTH(p.pay_date), DATE_FORMAT(p.pay_date, '%b')
+                 ORDER BY month_num`
             );
             monthlyData = monthly;
         } catch (err) {
-            console.log('⚠️ Could not fetch monthly data');
+            console.log('⚠️ Could not fetch monthly data:', err.message);
         }
 
+        // Get upcoming deadlines
         try {
             const [deadlines] = await payrollPool.execute(
-                `SELECT * FROM ContributionDeadlines WHERE deadline_date >= NOW() ORDER BY deadline_date ASC LIMIT 10`
+                `SELECT * FROM ContributionDeadlines ORDER BY deadline_date ASC LIMIT 10`
             );
             upcomingDeadlines = deadlines;
         } catch (err) {
-            console.log('⚠️ Could not fetch deadlines');
+            console.log('⚠️ Could not fetch deadlines:', err.message);
         }
 
-        res.json({ monthlyData, upcomingDeadlines });
+        // Get contribution summary
+        try {
+            const [summary] = await payrollPool.execute(
+                `SELECT 
+                    SUM(sss_contribution) as total_sss,
+                    SUM(philhealth_contribution) as total_philhealth,
+                    SUM(pagibig_contribution) as total_pagibig,
+                    SUM(withholding_tax) as total_tax,
+                    SUM(total_contributions) as grand_total
+                 FROM TaxContributions`
+            );
+            summaryData = summary[0] || {};
+        } catch (err) {
+            console.log('⚠️ Could not fetch summary');
+        }
+
+        res.json({ monthlyData, upcomingDeadlines, summaryData });
     } catch (error) {
         console.error('❌ Error fetching tax data:', error);
         res.status(500).json({ error: 'Failed to fetch tax data', details: error.message });
