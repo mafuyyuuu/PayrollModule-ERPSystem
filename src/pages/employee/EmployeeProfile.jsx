@@ -209,17 +209,19 @@ function PersonalInformationForm() {
     const theme = useTheme();
     const { user } = useUser();
 
+    // This now comes from the database via login API
     const personalInfoData = {
-        address: user.address,
-        birthdate: user.birthday,
-        age: user.age,
-        sex: user.sex,
-        maritalStatus: user.maritalStatus,
-        nationality: user.nationality,
-        contactNumber: user.contactNumber,
-        emergencyContactName: user.emergencyContactName,
-        emergencyContactNumber: user.emergencyContactNumber,
+        address: user?. address || "—",
+        birthdate: user?.birthday || "—",
+        age: user?.age || "—",
+        sex: user?.sex || "—",
+        maritalStatus: user?.maritalStatus || "—",
+        nationality: user?.nationality || "—",
+        contactNumber: user?.contactNumber || "—",
+        emergencyContactName: user?.emergencyContactName || "—",
+        emergencyContactNumber: user?.emergencyContactNumber || "—",
     };
+
     return (
         <Box>
             <Box sx={{
@@ -339,14 +341,15 @@ function PersonalInformationForm() {
 
 function EmploymentDetailsForm() {
     const theme = useTheme();
-    const { user } = useUser(); // ⬅ GET USER DATA HERE
+    const { user } = useUser();
 
+    // This now comes from the database via login API
     const employmentDetails = {
-        employmentId: user.employeeId,
-        department: user.department ?? "—",
-        position: user.position ?? "—",
-        employmentType: user.employmentType ?? "—",
-        dateHired: user.dateHired ?? "—",
+        employmentId: user?.employeeId || "—",
+        department: user?.department || "—",
+        position: user?.position || "—",
+        employmentType: user?.employmentType || "—",
+        dateHired: user?.dateHired || "—",
     };
 
     return (

@@ -54,7 +54,7 @@ const __dirname = path.dirname(__filename);
 
 // LOGIN ROUTE
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     const roleMap = {
         1: 'admin',
@@ -67,8 +67,8 @@ app.post('/api/login', async (req, res) => {
         const [userRows] = await payrollPool.execute(
             `SELECT user_id, employee_id, username, email_address, role_id, status
              FROM UserAccounts
-             WHERE email_address = ? AND password = ?`,
-            [email, password]
+             WHERE username = ? AND password = ?`,
+            [username, password]
         );
 
         if (userRows.length === 0) {
@@ -89,6 +89,7 @@ app.post('/api/login', async (req, res) => {
                          e.date_of_birth,
                          e.sex,
                          e.civil_status,
+                         e.nationality,
                          e.street_address,
                          e.city,
                          e.province,
@@ -137,6 +138,7 @@ app.post('/api/login', async (req, res) => {
             response.birthday = employeeData.date_of_birth;
             response.sex = employeeData.sex;
             response.maritalStatus = employeeData.civil_status;
+            response.nationality = employeeData.nationality;
             response.address = `${employeeData.street_address}, ${employeeData.city}, ${employeeData.province}`;
             response.contactNumber = employeeData.mobile_number;
             response.emergencyContactName = employeeData.emergency_contact_name;
@@ -195,6 +197,7 @@ app.post('/api/create-user', async (req, res) => {
     }
 });
 
+
 // GET ALL EMPLOYEES
 app.get('/api/employees', async (req, res) => {
     try {
@@ -211,6 +214,7 @@ app.get('/api/employees', async (req, res) => {
                 e.civil_status,
                 e.email_address,
                 e.mobile_number,
+                e.nationality,
                 CONCAT(e.street_address, ', ', e.city, ', ', e.province) as full_address,
                 e.employment_type,
                 e.employment_status,
@@ -270,6 +274,195 @@ app.get('/api/employees/:id', async (req, res) => {
     } catch (err) {
         console.error('Error fetching employee:', err);
         res.status(500).json({ message: 'Error fetching employee data', error: err.message });
+    }
+});
+
+// =====================================================
+// LEAVE MANAGEMENT ROUTES
+// =====================================================
+
+// GET LEAVE TYPES
+app.get('/api/leave-types', async (req, res) => {
+    try {
+        const [leaveTypes] = await employeePool.execute(
+            `SELECT * FROM LeaveTypes ORDER BY leave_type_id`
+        );
+        res.json(leaveTypes);
+    } catch (err) {
+        console.error('Error fetching leave types:', err);
+        res. status(500).json({ message: 'Error fetching leave types', error: err.message });
+    }
+});
+
+// GET EMPLOYEE LEAVE BALANCES
+app.get('/api/employees/:id/leave-balances', async (req, res) => {
+    const { id } = req.params;
+    const year = req.query. year || new Date().getFullYear();
+
+    try {
+        const [balances] = await employeePool.execute(
+            `SELECT 
+                lb.balance_id,
+                lb.employee_id,
+                lt.leave_type_id,
+                lt.leave_type_name,
+                lb.year,
+                lb. total_days,
+                lb.used_days,
+                lb.remaining_days
+             FROM LeaveBalances lb
+             JOIN LeaveTypes lt ON lb.leave_type_id = lt.leave_type_id
+             WHERE lb.employee_id = ?  AND lb.year = ? 
+             ORDER BY lt.leave_type_id`,
+            [id, year]
+        );
+        res.json(balances);
+    } catch (err) {
+        console.error('Error fetching leave balances:', err);
+        res.status(500). json({ message: 'Error fetching leave balances', error: err.message });
+    }
+});
+
+// GET EMPLOYEE DASHBOARD DATA
+app.get('/api/employees/:id/dashboard', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        let lastPayroll = null;
+        let pendingPayroll = null;
+        let upcomingDisbursement = null;
+
+        // Get last released payroll for this employee
+        // Table: Payroll (in payrollmanagementsystem)
+        // Status: 'Released' means already paid
+        const [lastPay] = await payrollPool.execute(
+            `SELECT 
+                payroll_id,
+                pay_date,
+                net_pay,
+                basic_pay,
+                overtime_pay,
+                bonuses,
+                deductions,
+                status,
+                payslip_reference_number
+             FROM Payroll 
+             WHERE employee_id = ?  AND status = 'Released'
+             ORDER BY pay_date DESC
+             LIMIT 1`,
+            [id]
+        );
+        if (lastPay. length > 0) {
+            lastPayroll = lastPay[0];
+        }
+
+        // Get pending/processing payroll for this employee
+        // Table: Payroll
+        // Status: 'Pending' or 'Processing' means not yet paid
+        const [pending] = await payrollPool.execute(
+            `SELECT 
+                payroll_id,
+                pay_date,
+                net_pay,
+                basic_pay,
+                status
+             FROM Payroll 
+             WHERE employee_id = ? AND status IN ('Pending', 'Processing', 'Processed')
+             ORDER BY pay_date DESC
+             LIMIT 1`,
+            [id]
+        );
+        if (pending.length > 0) {
+            pendingPayroll = pending[0];
+        }
+
+        // Get upcoming disbursement date
+        // Table: PayrollCutoffs
+        // Get next pay_date that is in the future
+        const [upcoming] = await payrollPool.execute(
+            `SELECT 
+                cutoff_id,
+                period_name,
+                cutoff_start_date,
+                cutoff_end_date,
+                pay_date,
+                status
+             FROM PayrollCutoffs 
+             WHERE pay_date >= CURDATE()
+             ORDER BY pay_date ASC
+             LIMIT 1`
+        );
+        if (upcoming.length > 0) {
+            upcomingDisbursement = upcoming[0]. pay_date;
+        }
+
+        // If no pending payroll, get salary from SalaryDetails table
+        let baseSalary = null;
+        if (! pendingPayroll) {
+            const [salaryDetails] = await payrollPool.execute(
+                `SELECT basic_rate FROM SalaryDetails WHERE employee_id = ?  LIMIT 1`,
+                [id]
+            );
+            if (salaryDetails.length > 0) {
+                baseSalary = salaryDetails[0].basic_rate;
+            }
+        }
+
+        res.json({
+            upcomingDisbursement: upcomingDisbursement,
+            pendingSalary: pendingPayroll ?  pendingPayroll.net_pay : baseSalary,
+            pendingStatus: pendingPayroll ? pendingPayroll.status : null,
+            SalaryRelease: lastPayroll ? lastPayroll.net_pay : null,
+            lastPayDate: lastPayroll ? lastPayroll.pay_date : null,
+            lastPayslipRef: lastPayroll ? lastPayroll.payslip_reference_number : null
+        });
+
+    } catch (err) {
+        console.error('Error fetching employee dashboard:', err);
+        res.status(500).json({ message: 'Error fetching dashboard data', error: err.message });
+    }
+});
+
+// SUBMIT LEAVE REQUEST
+app.post('/api/leave-requests', async (req, res) => {
+    const { employee_id, leave_type_id, start_date, end_date, reason } = req.body;
+
+    // Calculate total days
+    const start = new Date(start_date);
+    const end = new Date(end_date);
+    const total_days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    try {
+        // Check if employee has enough leave balance
+        const [balances] = await employeePool.execute(
+            `SELECT remaining_days FROM LeaveBalances 
+             WHERE employee_id = ? AND leave_type_id = ? AND year = YEAR(?)`,
+            [employee_id, leave_type_id, start_date]
+        );
+
+        if (balances.length === 0 || balances[0].remaining_days < total_days) {
+            return res. status(400).json({ message: 'Insufficient leave balance' });
+        }
+
+        // Insert leave request
+        await employeePool.execute(
+            `INSERT INTO LeaveRequests (employee_id, leave_type_id, start_date, end_date, total_days, reason)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [employee_id, leave_type_id, start_date, end_date, total_days, reason]
+        );
+
+        // Update the used_days in LeaveBalances
+        await employeePool. execute(
+            `UPDATE LeaveBalances 
+             SET used_days = used_days + ?
+             WHERE employee_id = ? AND leave_type_id = ? AND year = YEAR(?)`,
+            [total_days, employee_id, leave_type_id, start_date]
+        );
+
+        res.json({ message: 'Leave request submitted successfully' });
+    } catch (err) {
+        console.error('Error submitting leave request:', err);
+        res. status(500).json({ message: 'Error submitting leave request', error: err. message });
     }
 });
 

@@ -68,7 +68,7 @@ from deepface import DeepFace
 
 **Face Verification** - [`Demo`](https://youtu.be/KRCvkNCOphE)
 
-This function determines whether two facial images belong to the same person or to different individuals. It accepts exact image file paths as input, but also supports NumPy arrays, base64-encoded images, and URLs. The function returns a dictionary, where the key of interest is `verified`: True indicates the images are of the same person, while False means they are of different people. In addition to this binary classification, the function also provides a confidence score that reflects the likelihood that the two images represent the same person.
+This function determines whether two facial images belong to the same person or to different individuals. It accepts exact image file paths as input, but also supports NumPy arrays, base64-encoded images, and URLs. The function returns a dictionary, where the key of interest is `verified`: True indicates the images are of the same person, while False means they are of different people. In addition to this binary classification, the function also provides a [`confidence`](https://youtu.be/QQ4vO6UOsFo) score that reflects the likelihood that the two images represent the same person.
 
 ```python
 result = DeepFace.verify(img1_path = "img1.jpg", img2_path = "img2.jpg")
@@ -126,7 +126,7 @@ If you intend to perform face verification or analysis tasks directly from your 
 
 Here, you can also find some real time demos for various facial recognition models:
 
-<p align="center"><img src="https://sefiks.com/wp-content/uploads/2020/02/deepface-cover.jpg" width="90%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/serengil/deepface/refs/heads/master/icon/deepface-realtime.jpg" width="90%"></p>
 
 | Task                 | Model    | Demo                                    |
 | ---                  | ---      | ---                                     |
@@ -210,8 +210,10 @@ All deepface functions accept optional detector backend and align input argument
 ```python
 backends = [
     'opencv', 'ssd', 'dlib', 'mtcnn', 'fastmtcnn',
-    'retinaface', 'mediapipe', 'yolov8', 'yolov11s',
-    'yolov11n', 'yolov11m', 'yunet', 'centerface',
+    'retinaface', 'mediapipe', 'yolov8n', 'yolov8m', 
+    'yolov8l', 'yolov11n', 'yolov11s', 'yolov11m',
+    'yolov11l', 'yolov12n', 'yolov12s', 'yolov12m',
+    'yolov12l', 'yunet', 'centerface',
 ]
 detector = backends[3]
 align = True
@@ -322,12 +324,9 @@ from lightphe import LightPHE
 # build an additively homomorphic cryptosystem (e.g. Paillier) on-prem
 cs = LightPHE(algorithm_name = "Paillier", precision = 19)
 
-# define plain vectors for source and target
-alpha = DeepFace.represent("img1.jpg")[0]["embedding"]
+# define encrypted and plain vectors
+encrypted_alpha = DeepFace.represent("source.jpg", cryptosystem=cs)[0]["encrypted_embedding"]
 beta = DeepFace.represent("target.jpg")[0]["embedding"]
-
-# encrypt source embedding on-prem - private key not required
-encrypted_alpha = cs.encrypt(alpha)
 
 # dot product of encrypted & plain embedding in cloud - private key not required
 encrypted_cosine_similarity = encrypted_alpha @ beta
@@ -463,6 +462,6 @@ Also, if you use deepface in your GitHub projects, please add `deepface` in the 
 DeepFace is licensed under the MIT License - see [`LICENSE`](https://github.com/serengil/deepface/blob/master/LICENSE) for more details.
 
 DeepFace wraps some external face recognition models: [VGG-Face](http://www.robots.ox.ac.uk/~vgg/software/vgg_face/), [Facenet](https://github.com/davidsandberg/facenet/blob/master/LICENSE.md) (both 128d and 512d), [OpenFace](https://github.com/iwantooxxoox/Keras-OpenFace/blob/master/LICENSE), [DeepFace](https://github.com/swghosh/DeepFace), [DeepID](https://github.com/Ruoyiran/DeepID/blob/master/LICENSE.md), [ArcFace](https://github.com/leondgarse/Keras_insightface/blob/master/LICENSE), [Dlib](https://github.com/davisking/dlib/blob/master/dlib/LICENSE.txt), [SFace](https://github.com/opencv/opencv_zoo/blob/master/models/face_recognition_sface/LICENSE), [GhostFaceNet](https://github.com/HamadYA/GhostFaceNets/blob/main/LICENSE) and
-[Buffalo_L](https://github.com/deepinsight/insightface/blob/master/README.md). Besides, age, gender and race / ethnicity models were trained on the backbone of VGG-Face with transfer learning. Similarly, DeepFace wraps many face detectors: [OpenCv](https://github.com/opencv/opencv/blob/4.x/LICENSE), [Ssd](https://github.com/opencv/opencv/blob/master/LICENSE), [Dlib](https://github.com/davisking/dlib/blob/master/LICENSE.txt), [MtCnn](https://github.com/ipazc/mtcnn/blob/master/LICENSE), [Fast MtCnn](https://github.com/timesler/facenet-pytorch/blob/master/LICENSE.md), [RetinaFace](https://github.com/serengil/retinaface/blob/master/LICENSE), [MediaPipe](https://github.com/google/mediapipe/blob/master/LICENSE), [YuNet](https://github.com/ShiqiYu/libfacedetection/blob/master/LICENSE), [Yolo](https://github.com/derronqi/yolov8-face/blob/main/LICENSE) and [CenterFace](https://github.com/Star-Clouds/CenterFace/blob/master/LICENSE). Finally, DeepFace is optionally using [face anti spoofing](https://github.com/minivision-ai/Silent-Face-Anti-Spoofing/blob/master/LICENSE) to determine the given images are real or fake. License types will be inherited when you intend to utilize those models. Please check the license types of those models for production purposes.
+[Buffalo_L](https://github.com/deepinsight/insightface/blob/master/README.md). Besides, age, gender and race / ethnicity models were trained on the backbone of VGG-Face with transfer learning. Similarly, DeepFace wraps many face detectors: [OpenCv](https://github.com/opencv/opencv/blob/4.x/LICENSE), [Ssd](https://github.com/opencv/opencv/blob/master/LICENSE), [Dlib](https://github.com/davisking/dlib/blob/master/LICENSE.txt), [MtCnn](https://github.com/ipazc/mtcnn/blob/master/LICENSE), [Fast MtCnn](https://github.com/timesler/facenet-pytorch/blob/master/LICENSE.md), [RetinaFace](https://github.com/serengil/retinaface/blob/master/LICENSE), [MediaPipe](https://github.com/google/mediapipe/blob/master/LICENSE), [YuNet](https://github.com/ShiqiYu/libfacedetection/blob/master/LICENSE), [Yolo](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [CenterFace](https://github.com/Star-Clouds/CenterFace/blob/master/LICENSE). Finally, DeepFace is optionally using [face anti spoofing](https://github.com/minivision-ai/Silent-Face-Anti-Spoofing/blob/master/LICENSE) to determine the given images are real or fake. License types will be inherited when you intend to utilize those models. Please check the license types of those models for production purposes.
 
 DeepFace [logo](https://thenounproject.com/term/face-recognition/2965879/) is created by [Adrien Coquet](https://thenounproject.com/coquet_adrien/) and it is licensed under [Creative Commons: By Attribution 3.0 License](https://creativecommons.org/licenses/by/3.0/).
