@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import adminDashboardRoutes from './admin/routes/adminDashboardRoutes.js';
+import dashboardRoutes from './admin/routes/adminDashboardRoutes.js';
 import adminAuditLogsRoutes from './admin/routes/adminAuditLogsRoutes.js';
 
 dotenv.config();
@@ -15,6 +15,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminAuditLogsRoutes);
 
 // ✅ MySQL connection for Payroll System
 const payrollPool = mysql.createPool({
@@ -53,8 +55,6 @@ try {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-
 
 // ==================== API ROUTES (MUST BE BEFORE STATIC FILES) ====================
 
@@ -637,3 +637,5 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
+
+export { payrollPool, employeePool };

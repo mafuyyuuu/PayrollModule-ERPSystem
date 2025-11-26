@@ -61,7 +61,8 @@ export default function AdminAuditLogs() {
                     display: "flex",
                     flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        transform: "scale(1.02)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
@@ -112,13 +113,15 @@ export default function AdminAuditLogs() {
                                 minHeight: "83px",
                                 transition: "all 0.3s ease",
                                 "&:hover": {
-                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                 },
                                 textAlign: "center",
+                                padding: "8px",
                             }}
                         >
                             <span>{log.date}</span>
-                            <span>{log.user}</span>
+                            <span>{log.user_name}</span>
                             <span>{log.action}</span>
                             <span>{log.description}</span>
                         </Box>

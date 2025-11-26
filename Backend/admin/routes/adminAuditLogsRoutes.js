@@ -1,10 +1,28 @@
-// backend/admin/routes/adminAuditLogsRoutes.js
 import express from 'express';
-import { payrollDB } from '../../db.js'; // <-- Correct import from db.js
+import { payrollDB } from '../../db.js'; // use db.js instead
 
 const router = express.Router();
 
-// ==================== GET ALL AUDIT LOGS ====================
+/* ---------------------------------------------
+   INTERNAL AUDIT LOG FUNCTION (NO NEW FILE)
+------------------------------------------------ */
+export async function recordAuditLog(user_name, action, description = "") {
+    try {
+        await payrollDB.execute(
+            `INSERT INTO AuditLogs (user_name, action, description, date)
+             VALUES (?, ?, ?, NOW())`,
+            [user_name, action, description]
+        );
+        return true;
+    } catch (err) {
+        console.error("❌ Error writing audit log:", err);
+        return false;
+    }
+}
+
+/* ---------------------------------------------
+   GET ALL AUDIT LOGS
+------------------------------------------------ */
 router.get('/audit-logs', async (req, res) => {
     const search = req.query.search || '';
 
@@ -13,24 +31,28 @@ router.get('/audit-logs', async (req, res) => {
             `SELECT
                  id,
                  DATE_FORMAT(date, '%Y-%m-%d %H:%i:%s') AS date,
-                 user_name AS user,
+                 user_name,
                  action,
                  COALESCE(description, '') AS description
              FROM AuditLogs
-             WHERE user_name LIKE ? OR action LIKE ? OR COALESCE(description,'') LIKE ?
+             WHERE user_name LIKE ?
+                OR action LIKE ?
+                OR COALESCE(description,'') LIKE ?
              ORDER BY date DESC
-                 LIMIT 100`,
+             LIMIT 100`,
             [`%${search}%`, `%${search}%`, `%${search}%`]
         );
 
         res.json({ logs });
     } catch (err) {
-        console.error('Error fetching audit logs:', err);
+        console.error('❌ Error fetching audit logs:', err);
         res.status(500).json({ logs: [] });
     }
 });
 
-// ==================== ADD A NEW AUDIT LOG ====================
+/* ---------------------------------------------
+   ADD A NEW AUDIT LOG (normal POST)
+------------------------------------------------ */
 router.post('/audit-logs', async (req, res) => {
     const { user_name, action, description } = req.body;
 
@@ -47,7 +69,7 @@ router.post('/audit-logs', async (req, res) => {
 
         res.json({ message: 'Audit log recorded successfully' });
     } catch (err) {
-        console.error('Error adding audit log:', err);
+        console.error('❌ Error adding audit log:', err);
         res.status(500).json({ message: 'Failed to record audit log' });
     }
 });

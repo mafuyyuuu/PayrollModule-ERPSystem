@@ -120,6 +120,30 @@ CREATE TABLE AuditLogs (
                            description TEXT
 );
 
+-- Payroll setup part (admin)
+CREATE TABLE TaxSettings (
+                             tax_id INT AUTO_INCREMENT PRIMARY KEY,
+                             tax_type VARCHAR(100) NOT NULL,    -- Example: Percentage, Fixed, Withholding Tax, SSS, etc.
+                             tax_rate DECIMAL(10,2) NOT NULL,   -- Example: 10.00 (%)
+                             effective_date DATE NOT NULL,      -- When the tax becomes effective
+                             status VARCHAR(50) DEFAULT 'Active',
+                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Pay components
+CREATE TABLE PayComponents (
+                               component_id INT AUTO_INCREMENT PRIMARY KEY,
+                               component_name VARCHAR(255) NOT NULL,     -- Example: Basic Pay, Overtime, Night Diff, SSS Deduction
+                               component_type VARCHAR(100) NOT NULL,     -- Earning or Deduction
+                               calculation_type VARCHAR(50) NOT NULL,    -- Formula or Fixed
+                               formula_expression VARCHAR(255) NULL,      -- If formula-based
+                               fixed_amount DECIMAL(10,2) NULL,           -- If fixed amount
+                               status VARCHAR(50) DEFAULT 'Active',       -- Active / Inactive
+                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                               updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- =====================================================
 -- INSERT DUMMY DATA
 -- =====================================================
@@ -154,7 +178,7 @@ INSERT INTO SalaryDetails (employee_id, basic_rate, overtime_rate, holiday_rate,
                                                                                                                         (9, 55000, 350, 450, 0, 500),
                                                                                                                         (10, 42000, 250, 350, 0, 200);
 
--- Payroll
+-- Payroll (Processed)
 INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, payroll_frequency, prepared_by, basic_pay, overtime_pay, bonuses, status, comments, deductions, net_pay, payslip_reference_number) VALUES
                                                                                                                                                                                                                        (1, '2025-11-01','2025-11-15','2025-11-20','Semi-Monthly',6,35000,1000,2000,'Processed','On time',700,37300,'PSL-202511001'),
                                                                                                                                                                                                                        (2, '2025-11-01','2025-11-15','2025-11-20','Semi-Monthly',6,28000,500,1000,'Processed','On time',150,28950,'PSL-202511002'),
@@ -180,8 +204,8 @@ INSERT INTO Requests (employee_id, request_type, request_description, date_filed
 
 -- Manager Actions
 INSERT INTO ManagerActions (request_id, handled_by, date_period_covered, total_hours_worked, overtime_hours, leave_absence_notes, remarks, action, approved_by, type_of_exception, requested_amount_hours, reason, date_filed) VALUES
-                                                                                                                                                                                                                                   (1,4,'2025-11-01 to 2025-11-15',80,2,'Sick leave','Approved','Approve',4,'Medical',0,'Medical leave', '2025-11-10'),
-                                                                                                                                                                                                                                   (3,8,'2025-11-01 to 2025-11-15',80,0,'Vacation','Approved','Approve',8,'Personal',0,'Vacation leave', '2025-11-09');
+                                                                                                                                                                                                                                   (1,4,'2025-11-01 to 2025-11-15',80,2,'Sick leave','Approved','Approve',4,'Medical',0,'Medical leave','2025-11-10'),
+                                                                                                                                                                                                                                   (3,8,'2025-11-01 to 2025-11-15',80,0,'Vacation','Approved','Approve',8,'Personal',0,'Vacation leave','2025-11-09');
 
 -- Tax Contributions
 INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhealth_contribution, pagibig_contribution, withholding_tax, total_contributions) VALUES
@@ -191,10 +215,81 @@ INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhea
                                                                                                                                                                   (4,4,450,200,100,600,1350),
                                                                                                                                                                   (5,5,500,200,100,800,1600);
 
--- Audit Logs
-INSERT INTO AuditLogs (user_name, action, description) VALUES
-                                                           ('jessa.balnig','Created Payroll','Created payroll for Juan Dela Cruz'),
-                                                           ('juan.delacruz','Submitted Timesheet','Timesheet submitted for 2025-11-01'),
-                                                           ('ana.torres','Approved Request','Leave request approved for Maria Reyes'),
-                                                           ('symon.banaag','Adjusted Payroll','Corrected overtime for Carlos Ramos');
+-- audit logs
+INSERT INTO AuditLogs (user_name, action, description)
+VALUES
+    ('jessa.balnig','Created Payroll','Created payroll for Juan Dela Cruz'),
+    ('juan.delacruz','Submitted Timesheet','Timesheet submitted for 2025-11-01'),
+    ('ana.torres','Approved Request','Leave request approved for Maria Reyes'),
+    ('symon.banaag','Adjusted Payroll','Corrected overtime for Carlos Ramos'),
+    ('jessa.balnig', 'Created Payroll', 'Created payroll for Maria Reyes'),
+    ('jessa.balnig', 'Created Payroll', 'Created payroll for Pedro Santos'),
+    ('jessa.balnig', 'Created Payroll', 'Created payroll for Ana Torres'),
+    ('jessa.balnig', 'Created Payroll', 'Created payroll for Carlos Ramos'),
+    ('juan.delacruz', 'Submitted Timesheet', 'Timesheet submitted for 2025-11-01'),
+    ('maria.reyes', 'Submitted Timesheet', 'Timesheet submitted for 2025-11-01'),
+    ('pedro.santos', 'Submitted Timesheet', 'Timesheet submitted for 2025-11-01'),
+    ('ana.torres', 'Approved Request', 'Leave request approved for Maria Reyes'),
+    ('carlos.ramos', 'Submitted Request', 'Salary loan request submitted'),
+    ('symon.banaag', 'Adjusted Payroll', 'Corrected overtime for Carlos Ramos'),
+    ('jumiah.zamora', 'Approved Request', 'Leave request approved for Pedro Santos'),
+    ('jhervin.jimenez', 'Approved Request', 'Leave request approved for Juan Dela Cruz'),
+    ('edrianne.lumabas', 'Submitted Request', 'Salary loan request submitted by Carlos Ramos'),
+    ('jessa.balnig', 'Processed Payroll', 'Pending payouts processed for all employees'),
+    ('symon.banaag', 'Scheduled Payroll', 'Upcoming payroll scheduled for all employees');
+
+
+
+
+-- =====================================================
+-- PENDING PAYOUTS FOR EMS EMPLOYEES 6–10
+-- =====================================================
+INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, payroll_frequency, prepared_by, basic_pay, overtime_pay, bonuses, status, comments, deductions, net_pay, payslip_reference_number) VALUES
+                                                                                                                                                                                                                       (6, '2025-11-16', '2025-11-30', '2025-12-05', 'Semi-Monthly', 6, 40000, 0, 0, 'Pending', 'Waiting for approval', 300, 39700, 'PSL-202511011'),
+                                                                                                                                                                                                                       (7, '2025-11-16', '2025-11-30', '2025-12-05', 'Semi-Monthly', 6, 38000, 0, 0, 'Pending', 'Waiting for approval', 200, 37800, 'PSL-202511012'),
+                                                                                                                                                                                                                       (8, '2025-11-16', '2025-11-30', '2025-12-05', 'Semi-Monthly', 6, 50000, 0, 0, 'Pending', 'Waiting for approval', 400, 49600, 'PSL-202511013'),
+                                                                                                                                                                                                                       (9, '2025-11-16', '2025-11-30', '2025-12-05', 'Semi-Monthly', 6, 55000, 0, 0, 'Pending', 'Waiting for approval', 500, 54500, 'PSL-202511014'),
+                                                                                                                                                                                                                       (10,'2025-11-16','2025-11-30','2025-12-05','Semi-Monthly',6,42000,0,0,'Pending','Waiting for approval',200,41800,'PSL-202511015');
+
+-- =====================================================
+-- UPCOMING SEMI-MONTHLY SALARY SCHEDULE FOR ALL EMS EMPLOYEES
+-- =====================================================
+INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, payroll_frequency, prepared_by, basic_pay, overtime_pay, bonuses, status, comments, deductions, net_pay, payslip_reference_number) VALUES
+                                                                                                                                                                                                                       (1, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 35000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 35000, 'PSL-202512001'),
+                                                                                                                                                                                                                       (2, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 28000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 28000, 'PSL-202512002'),
+                                                                                                                                                                                                                       (3, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 32000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 32000, 'PSL-202512003'),
+                                                                                                                                                                                                                       (4, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 26000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 26000, 'PSL-202512004'),
+                                                                                                                                                                                                                       (5, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 30000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 30000, 'PSL-202512005'),
+                                                                                                                                                                                                                       (6, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 40000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 40000, 'PSL-202512006'),
+                                                                                                                                                                                                                       (7, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 38000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 38000, 'PSL-202512007'),
+                                                                                                                                                                                                                       (8, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 50000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 50000, 'PSL-202512008'),
+                                                                                                                                                                                                                       (9, '2025-12-01', '2025-12-15', '2025-12-20', 'Semi-Monthly', 6, 55000, 0, 0, 'Scheduled', 'Upcoming payroll run', 0, 55000, 'PSL-202512009'),
+                                                                                                                                                                                                                       (10,'2025-12-01','2025-12-15','2025-12-20','Semi-Monthly',6,42000,0,0,'Scheduled','Upcoming payroll run',0,42000,'PSL-202512010');
+
+
+
+-- Tax Settings (sample withholding rates, contribution settings, etc.)
+INSERT INTO TaxSettings (tax_type, tax_rate, effective_date, status) VALUES
+                                                                         ('Withholding Tax', 10.00, '2025-01-01', 'Active'),
+                                                                         ('SSS Employee Share', 4.50, '2025-01-01', 'Active'),
+                                                                         ('PhilHealth Employee Share', 2.50, '2025-01-01', 'Active'),
+                                                                         ('Pag-IBIG Contribution', 2.00, '2025-01-01', 'Active'),
+                                                                         ('Holiday Premium', 30.00, '2025-01-01', 'Active'),
+                                                                         ('Overtime Premium', 25.00, '2025-01-01', 'Active'),
+                                                                         ('Night Differential', 10.00, '2025-01-01', 'Inactive');
+
+-- Pay Components (earnings and deductions using fixed or formula basis)
+INSERT INTO PayComponents (component_name, component_type, calculation_type, formula_expression, fixed_amount, status) VALUES
+                                                                                                                           ('Basic Pay', 'Earning', 'Formula', 'basic_rate', NULL, 'Active'),
+                                                                                                                           ('Overtime Pay', 'Earning', 'Formula', 'overtime_hours * overtime_rate', NULL, 'Active'),
+                                                                                                                           ('Night Differential', 'Earning', 'Formula', 'basic_rate * 0.10', NULL, 'Active'),
+                                                                                                                           ('Holiday Pay', 'Earning', 'Formula', 'holiday_rate', NULL, 'Active'),
+
+                                                                                                                           ('SSS Contribution', 'Deduction', 'Formula', 'basic_rate * 0.045', NULL, 'Active'),
+                                                                                                                           ('PhilHealth Contribution', 'Deduction', 'Formula', 'basic_rate * 0.025', NULL, 'Active'),
+                                                                                                                           ('Pag-IBIG Contribution', 'Deduction', 'Fixed', NULL, 100.00, 'Active'),
+
+                                                                                                                           ('Withholding Tax', 'Deduction', 'Formula', '(basic_rate * 0.10)', NULL, 'Active'),
+                                                                                                                           ('Late Deduction', 'Deduction', 'Formula', 'late_minutes * 5', NULL, 'Active'),
+                                                                                                                           ('Loan Deduction', 'Deduction', 'Fixed', NULL, 500.00, 'Active');
 
