@@ -18,80 +18,42 @@ export default function PayrollReports() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [error, setError] = useState(null);
 
-    // ⛔ STOP using backend — USE HARDCODED DATA
+    // Fetch payroll reports from database
     useEffect(() => {
-        const loadHardcodedReports = () => {
-            const hardcoded = [
-                {
-                    date: "Jan 31, 2025",
-                    period: "Jan 1 - Jan 15, 2025",
-                    amount: "₱12,500.00",
-                    status: "Released"
-                },
-                {
-                    date: "Feb 15, 2025",
-                    period: "Jan 16 - Jan 31, 2025",
-                    amount: "₱11,200.00",
-                    status: "Released"
-                },
-                {
-                    date: "Feb 28, 2025",
-                    period: "Feb 1 - Feb 15, 2025",
-                    amount: "₱13,450.00",
-                    status: "Released"
-                },
-                {
-                    date: "Mar 15, 2025",
-                    period: "Feb 16 - Feb 28, 2025",
-                    amount: "₱14,100.00",
-                    status: "Pending"
-                },
-            ];
+        const fetchReports = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/payroll-reports');
 
-            setReports(hardcoded);
-            setFilteredReports(hardcoded);
-            setLoading(false);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch reports');
+                }
+
+                const data = await response.json();
+                console.log('✅ Reports data:', data);
+
+                const transformedData = data.map(report => ({
+                    date: new Date(report.pay_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }),
+                    period: `${new Date(report.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(report.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+                    amount: `₱${parseFloat(report.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    status: report.status || "Released"
+                }));
+
+                setReports(transformedData);
+                setFilteredReports(transformedData);
+                setLoading(false);
+            } catch (_err) {
+                console.error('❌ Error fetching reports:', _err);
+                setError(_err.message);
+                setLoading(false);
+            }
         };
 
-        loadHardcodedReports();
+        fetchReports();
     }, []);
-
-    // Fetch payroll reports
-    // useEffect(() => {
-    //     const fetchReports = async () => {
-    //         try {
-    //             const response = await fetch('http://localhost:8080/api/payroll-reports');
-    //
-    //             if (!response.ok) {
-    //                 throw new Error('Failed to fetch reports');
-    //             }
-    //
-    //             const data = await response.json();
-    //             console.log('✅ Reports data:', data);
-    //
-    //             const transformedData = data.map(report => ({
-    //                 date: new Date(report.report_date || report.pay_date).toLocaleDateString('en-US', {
-    //                     month: 'short',
-    //                     day: 'numeric',
-    //                     year: 'numeric'
-    //                 }),
-    //                 period: report.pay_period || "N/A",
-    //                 amount: `₱${parseFloat(report.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-    //                 status: report.status || "Released"
-    //             }));
-    //
-    //             setReports(transformedData);
-    //             setFilteredReports(transformedData);
-    //             setLoading(false);
-    //         } catch (_err) {
-    //             console.error('❌ Error fetching reports:', _err);
-    //             setError(_err.message);
-    //             setLoading(false);
-    //         }
-    //     };
-    //
-    //     fetchReports();
-    // }, []);
 
     // Filter reports based on search term and filter
     useEffect(() => {
@@ -123,7 +85,6 @@ export default function PayrollReports() {
     const handleExportPDF = () => {
         if (filteredReports.length === 0) {
             console.warn('No reports to export');
-            // Using alert for user feedback as no notification system exists
             alert('No reports to export');
             return;
         }
@@ -133,7 +94,6 @@ export default function PayrollReports() {
     const handleExportCSV = () => {
         if (filteredReports.length === 0) {
             console.warn('No reports to export');
-            // Using alert for user feedback as no notification system exists
             alert('No reports to export');
             return;
         }
@@ -152,10 +112,42 @@ export default function PayrollReports() {
                                 fontSize: "24px",
                                 color: "#FFFFFF",
                                 mb: 2,
+                                textAlign: "center"
                             }}
                         >
-                            Payslip for this period
+                            Export Payroll Reports
                         </Typography>
+                        <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                            This will export {filteredReports.length} report(s) to PDF
+                        </Typography>
+                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
+                            <Box
+                                onClick={() => {
+                                    handleExportPDF();
+                                    setIsModalOpen(false);
+                                }}
+                                component="button"
+                                sx={{
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Download PDF
+                            </Box>
+                        </Box>
                     </>
                 );
 
@@ -171,8 +163,10 @@ export default function PayrollReports() {
                                 textAlign: "center"
                             }}
                         >
-                            Are you sure you want to download CSV?
-                            {/*kung for two or more employees or maramihan or per dept.*/}
+                            Export Reports to CSV
+                        </Typography>
+                        <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                            This will export {filteredReports.length} report(s) to CSV
                         </Typography>
                         <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
@@ -182,7 +176,6 @@ export default function PayrollReports() {
                                 }}
                                 component="button"
                                 sx={{
-                                    display: "flex-end",
                                     fontSize: "16px",
                                     backgroundColor: "#172224",
                                     color: "#fff",

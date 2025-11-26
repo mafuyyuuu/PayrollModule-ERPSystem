@@ -8,11 +8,10 @@ import {
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import React, {useState, useEffect} from "react";
-import {RiCheckFill, RiCloseFill, RiDownload2Line, RiEyeFill, RiPencilFill} from "react-icons/ri";
+import {RiCheckFill, RiCloseFill, RiDownload2Line, RiEyeFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 import {exportToCSV} from "../../utils/pdfGenerator.js";
 import BoxModal from "../../components/BoxModal.jsx";
-import {PayslipDocument} from "../../components/PayslipPDF.jsx";
 
 export default function PayrollPendingRequest() {
     const theme = useTheme();
@@ -34,7 +33,6 @@ export default function PayrollPendingRequest() {
     useEffect(() => {
         const fetchPendingRequests = async () => {
             try {
-                // You'll need to create this endpoint in your backend
                 const response = await fetch('http://localhost:8080/api/pending-requests');
 
                 if (!response.ok) {
@@ -47,12 +45,12 @@ export default function PayrollPendingRequest() {
                 const transformedData = data.map(request => ({
                     type: request.request_type || "Overtime",
                     employee: request.employee_name || `Employee ${request.employee_id}`,
-                    date: new Date(request.request_date).toLocaleDateString('en-US', {
+                    date: new Date(request.date_filed).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
                     }),
-                    amount: `₱${parseFloat(request.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}`,
+                    amount: request.request_description || "N/A",
                     status: request.status || "Pending",
                     requestId: request.request_id
                 }));

@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from "react";
 import {
     Box,
-    Button,
     TextField,
     Typography,
     useTheme,
@@ -15,7 +14,7 @@ import ActionButton from "../../components/ActionButton.jsx";
 import {RiCheckFill, RiCloseFill, RiDownload2Line, RiEyeFill} from "react-icons/ri";
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
-import {PDFViewer} from "@react-pdf/renderer";
+import {PDFViewer, pdf} from "@react-pdf/renderer";
 
 export default function PayoutProcessing() {
     const theme = useTheme();
@@ -31,154 +30,78 @@ export default function PayoutProcessing() {
     const [rejectionReasons, setRejectionReasons] = useState({});
     const [selectedRows, setSelectedRows] = useState([]);
 
-    // const [payrollHistory, setPayrollHistory] = useState([]);
-    // const [employeesProcess, setEmployeesProcess] = useState([]);
-    // const [loading, setLoading] = useState(true);
-    // const [error, setError] = useState(null);
-
-    const [payrollHistory, setPayrollHistory] = useState([
-        {
-            duration: "Oct 1–15, 2025",
-            amount: "₱20,500.00",
-            ref: "REF20251001",
-        },
-        {
-            duration: "Sep 16–30, 2025",
-            amount: "₱20,200.00",
-            ref: "REF20250930",
-        },
-        {
-            duration: "Sep 1–15, 2025",
-            amount: "₱19,850.00",
-            ref: "REF20250915",
-        },
-        {
-            duration: "Aug 16–31, 2025",
-            amount: "₱20,100.00",
-            ref: "REF20250831",
-        },
-    ]);
-
-    const [employeesProcess, setEmployeesProcess] = useState([
-        {
-            id: "EMP-001",
-            name: "John Dela Cruz",
-            earning: "₱25,000.00",
-            deduction: "₱3,500.00",
-            netpay: "₱21,500.00",
-            status: "Processed",
-            period: "Oct 1–15, 2025",
-            department: "Finance",
-        },
-        {
-            id: "EMP-002",
-            name: "Maria Santos",
-            earning: "₱22,000.00",
-            deduction: "₱2,800.00",
-            netpay: "₱19,200.00",
-            status: "Processed",
-            period: "Oct 1–15, 2025",
-            department: "Finance",
-        },
-        {
-            id: "EMP-003",
-            name: "Carlos Ramirez",
-            earning: "₱30,000.00",
-            deduction: "₱4,200.00",
-            netpay: "₱25,800.00",
-            status: "Pending",
-            period: "Oct 1–15, 2025",
-            department: "HR",
-        },
-        {
-            id: "EMP-004",
-            name: "Ana Villanueva",
-            earning: "₱18,500.00",
-            deduction: "₱1,900.00",
-            netpay: "₱16,600.00",
-            status: "Processed",
-            period: "Oct 1–15, 2025",
-            department: "HR",
-        },
-        {
-            id: "EMP-005",
-            name: "Samuel Reyes",
-            earning: "₱27,500.00",
-            deduction: "₱3,200.00",
-            netpay: "₱24,300.00",
-            status: "Processing",
-            period: "Oct 1–15, 2025",
-            department: "IT",
-        },
-    ]);
+    const [payrollHistory, setPayrollHistory] = useState([]);
+    const [employeesProcess, setEmployeesProcess] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     // Fetch payroll history (cutoff periods)
-    // useEffect(() => {
-    //     const fetchPayrollHistory = async () => {
-    //         try {
-    //             const response = await fetch('http://localhost:8080/api/cutoffs');
-    //
-    //             if (!response.ok) {
-    //                 throw new Error('Failed to fetch payroll history');
-    //             }
-    //
-    //             const data = await response.json();
-    //             console.log('✅ Payroll history:', data);
-    //
-    //             const transformedData = data.map(cutoff => ({
-    //                 duration: `${new Date(cutoff.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(cutoff.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-    //                 amount: `₱${parseFloat(cutoff.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-    //                 ref: `REF${cutoff.cutoff_id}`
-    //             }));
-    //
-    //             setPayrollHistory(transformedData);
-    //         } catch (err) {
-    //             console.error('❌ Error fetching payroll history:', err);
-    //             // Set default data if fetch fails
-    //             setPayrollHistory([
-    //                 {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
-    //                 {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
-    //             ]);
-    //         }
-    //     };
-    //
-    //     fetchPayrollHistory();
-    // }, []);
+    useEffect(() => {
+        const fetchPayrollHistory = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/cutoffs');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch payroll history');
+                }
+
+                const data = await response.json();
+                console.log('✅ Payroll history:', data);
+
+                const transformedData = data.map(cutoff => ({
+                    duration: `${new Date(cutoff.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(cutoff.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+                    amount: `₱${parseFloat(cutoff.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    ref: `REF${cutoff.cutoff_id}`
+                }));
+
+                setPayrollHistory(transformedData);
+            } catch (err) {
+                console.error('❌ Error fetching payroll history:', err);
+                setPayrollHistory([
+                    {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
+                    {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
+                ]);
+            }
+        };
+
+        fetchPayrollHistory();
+    }, []);
 
     // Fetch payroll processing data
-    // useEffect(() => {
-    //     const fetchPayrollProcess = async () => {
-    //         try {
-    //             const response = await fetch('http://localhost:8080/api/payroll');
-    //
-    //             if (!response.ok) {
-    //                 throw new Error('Failed to fetch payroll data');
-    //             }
-    //
-    //             const data = await response.json();
-    //             console.log('✅ Payroll process data:', data);
-    //
-    //             const transformedData = data.map(payroll => ({
-    //                 id: payroll.employee_id,
-    //                 name: payroll.employee_name || `Employee ${payroll.employee_id}`,
-    //                 earning: `₱${parseFloat(payroll.gross_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-    //                 deduction: `₱${parseFloat(payroll.total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-    //                 netpay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-    //                 status: payroll.status || "Pending",
-    //                 period: payroll.pay_period || "N/A"
-    //             }));
-    //
-    //             setEmployeesProcess(transformedData);
-    //             setLoading(false);
-    //         } catch (err) {
-    //             console.error('❌ Error fetching payroll process:', err);
-    //             setError(err.message);
-    //             setLoading(false);
-    //         }
-    //     };
-    //
-    //     fetchPayrollProcess();
-    // }, []);
+    useEffect(() => {
+        const fetchPayrollProcess = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/payroll');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch payroll data');
+                }
+
+                const data = await response.json();
+                console.log('✅ Payroll process data:', data);
+
+                const transformedData = data.map(payroll => ({
+                    id: `EMP-${String(payroll.employee_id).padStart(3, '0')}`,
+                    name: payroll.employee_name || `Employee ${payroll.employee_id}`,
+                    earning: `₱${parseFloat(payroll.basic_pay + payroll.overtime_pay + payroll.bonuses || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    deduction: `₱${parseFloat(payroll.deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    netpay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    status: payroll.status || "Pending",
+                    period: `${new Date(payroll.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(payroll.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+                    department: payroll.department || "N/A"
+                }));
+
+                setEmployeesProcess(transformedData);
+                setLoading(false);
+            } catch (err) {
+                console.error('❌ Error fetching payroll process:', err);
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+
+        fetchPayrollProcess();
+    }, []);
 
     const handleClose = () => setOpen(false);
 
@@ -687,17 +610,17 @@ export default function PayoutProcessing() {
                     </Box>
                 </Box>
 
-                {/*{error && (*/}
-                {/*    <Box sx={{ color: 'error.main', p: 2, textAlign: 'center' }}>*/}
-                {/*        Error: {error}*/}
-                {/*    </Box>*/}
-                {/*)}*/}
+                {error && (
+                    <Box sx={{ color: 'error.main', p: 2, textAlign: 'center' }}>
+                        Error: {error}
+                    </Box>
+                )}
 
-                {/*{loading ? (*/}
-                {/*    <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>*/}
-                {/*        Loading payroll data...*/}
-                {/*    </Box>*/}
-                {/*) : (*/}
+                {loading ? (
+                    <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>
+                        Loading payroll data...
+                    </Box>
+                ) : (
                 <Box
                     sx={{
                         overflowY: "auto",
@@ -892,7 +815,7 @@ export default function PayoutProcessing() {
                         </Box>
                     ))}
                 </Box>
-                {/*)}*/}
+                )}
             </Box>
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">

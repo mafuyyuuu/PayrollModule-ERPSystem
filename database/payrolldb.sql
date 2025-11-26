@@ -1,142 +1,142 @@
 -- comment
-
+DROP DATABASE PayrollManagementSystem;
 CREATE DATABASE IF NOT EXISTS PayrollManagementSystem;
 USE PayrollManagementSystem;
 
 -- Roles Table
 CREATE TABLE Roles (
-    role_id INT AUTO_INCREMENT PRIMARY KEY,
-    role_name VARCHAR(100)
+                       role_id INT AUTO_INCREMENT PRIMARY KEY,
+                       role_name VARCHAR(100)
 );
 
 -- User Accounts Table (No employee_id foreign key since Employees table is external)
 CREATE TABLE UserAccounts (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT, -- References external Employee Management System
-    username VARCHAR(255),
-    email_address VARCHAR(255),
-    password VARCHAR(255),
-    role_id INT,
-    status VARCHAR(50),
-    FOREIGN KEY (role_id) REFERENCES Roles(role_id)
+                              user_id INT AUTO_INCREMENT PRIMARY KEY,
+                              employee_id INT, -- References external Employee Management System
+                              username VARCHAR(255),
+                              email_address VARCHAR(255),
+                              password VARCHAR(255),
+                              role_id INT,
+                              status VARCHAR(50),
+                              FOREIGN KEY (role_id) REFERENCES Roles(role_id)
 );
 
 -- Timesheets Table (employee_id references external system)
 CREATE TABLE Timesheets (
-    timesheet_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT, -- References external Employee Management System
-    date DATE,
-    time_in TIME,
-    time_out TIME,
-    break_duration DECIMAL(5,2),
-    overtime_hours DECIMAL(5,2),
-    remarks VARCHAR(255),
-    approved_by INT, -- References external Employee Management System
-    INDEX idx_employee_date (employee_id, date)
+                            timesheet_id INT AUTO_INCREMENT PRIMARY KEY,
+                            employee_id INT, -- References external Employee Management System
+                            date DATE,
+                            time_in TIME,
+                            time_out TIME,
+                            break_duration DECIMAL(5,2),
+                            overtime_hours DECIMAL(5,2),
+                            remarks VARCHAR(255),
+                            approved_by INT, -- References external Employee Management System
+                            INDEX idx_employee_date (employee_id, date)
 );
 
 -- Salary Details Table
 CREATE TABLE SalaryDetails (
-    salary_detail_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT, -- References external Employee Management System
-    basic_rate DECIMAL(10,2),
-    overtime_rate DECIMAL(10,2),
-    holiday_rate DECIMAL(10,2),
-    loan_deductions DECIMAL(10,2),
-    other_deductions DECIMAL(10,2),
-    INDEX idx_employee (employee_id)
+                               salary_detail_id INT AUTO_INCREMENT PRIMARY KEY,
+                               employee_id INT, -- References external Employee Management System
+                               basic_rate DECIMAL(10,2),
+                               overtime_rate DECIMAL(10,2),
+                               holiday_rate DECIMAL(10,2),
+                               loan_deductions DECIMAL(10,2),
+                               other_deductions DECIMAL(10,2),
+                               INDEX idx_employee (employee_id)
 );
 
 -- Payroll Table
 CREATE TABLE Payroll (
-    payroll_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT, -- References external Employee Management System
-    cutoff_start_date DATE,
-    cutoff_end_date DATE,
-    pay_date DATE,
-    payroll_frequency VARCHAR(100),
-    prepared_by INT, -- User ID from UserAccounts
-    basic_pay DECIMAL(10,2),
-    overtime_pay DECIMAL(10,2),
-    bonuses DECIMAL(10,2),
-    status VARCHAR(50),
-    comments VARCHAR(255),
-    deductions DECIMAL(10,2),
-    net_pay DECIMAL(10,2),
-    payslip_reference_number VARCHAR(100),
-    FOREIGN KEY (prepared_by) REFERENCES UserAccounts(user_id),
-    INDEX idx_employee (employee_id),
-    INDEX idx_pay_date (pay_date)
+                         payroll_id INT AUTO_INCREMENT PRIMARY KEY,
+                         employee_id INT, -- References external Employee Management System
+                         cutoff_start_date DATE,
+                         cutoff_end_date DATE,
+                         pay_date DATE,
+                         payroll_frequency VARCHAR(100),
+                         prepared_by INT, -- User ID from UserAccounts
+                         basic_pay DECIMAL(10,2),
+                         overtime_pay DECIMAL(10,2),
+                         bonuses DECIMAL(10,2),
+                         status VARCHAR(50),
+                         comments VARCHAR(255),
+                         deductions DECIMAL(10,2),
+                         net_pay DECIMAL(10,2),
+                         payslip_reference_number VARCHAR(100),
+                         FOREIGN KEY (prepared_by) REFERENCES UserAccounts(user_id),
+                         INDEX idx_employee (employee_id),
+                         INDEX idx_pay_date (pay_date)
 );
 
 -- Requests Table
 CREATE TABLE Requests (
-    request_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT, -- References external Employee Management System
-    request_type VARCHAR(255),
-    request_description VARCHAR(255),
-    date_filed DATE,
-    status VARCHAR(100),
-    approved_by INT, -- References external Employee Management System
-    remarks VARCHAR(255),
-    INDEX idx_employee (employee_id)
+                          request_id INT AUTO_INCREMENT PRIMARY KEY,
+                          employee_id INT, -- References external Employee Management System
+                          request_type VARCHAR(255),
+                          request_description VARCHAR(255),
+                          date_filed DATE,
+                          status VARCHAR(100),
+                          approved_by INT, -- References external Employee Management System
+                          remarks VARCHAR(255),
+                          INDEX idx_employee (employee_id)
 );
 
 -- Manager Actions Table
 CREATE TABLE ManagerActions (
-    manager_action_id INT AUTO_INCREMENT PRIMARY KEY,
-    request_id INT,
-    handled_by INT, -- References external Employee Management System
-    date_period_covered VARCHAR(255),
-    total_hours_worked DECIMAL(10,2),
-    overtime_hours DECIMAL(10,2),
-    leave_absence_notes VARCHAR(255),
-    remarks VARCHAR(255),
-    action VARCHAR(100),
-    approved_by INT, -- References external Employee Management System
-    type_of_exception VARCHAR(255),
-    requested_amount_hours DECIMAL(10,2),
-    reason VARCHAR(255),
-    date_filed DATE,
-    FOREIGN KEY (request_id) REFERENCES Requests(request_id)
+                                manager_action_id INT AUTO_INCREMENT PRIMARY KEY,
+                                request_id INT,
+                                handled_by INT, -- References external Employee Management System
+                                date_period_covered VARCHAR(255),
+                                total_hours_worked DECIMAL(10,2),
+                                overtime_hours DECIMAL(10,2),
+                                leave_absence_notes VARCHAR(255),
+                                remarks VARCHAR(255),
+                                action VARCHAR(100),
+                                approved_by INT, -- References external Employee Management System
+                                type_of_exception VARCHAR(255),
+                                requested_amount_hours DECIMAL(10,2),
+                                reason VARCHAR(255),
+                                date_filed DATE,
+                                FOREIGN KEY (request_id) REFERENCES Requests(request_id)
 );
 
 -- Admin Config Table
 CREATE TABLE AdminConfig (
-    config_id INT AUTO_INCREMENT PRIMARY KEY,
-    default_payroll_frequency VARCHAR(100),
-    default_cutoff_dates VARCHAR(100),
-    default_tax_rates DECIMAL(5,2),
-    default_contribution_rates DECIMAL(5,2),
-    salary_computation_formula VARCHAR(255),
-    effective_date_of_changes DATE,
-    updated_by INT,
-    FOREIGN KEY (updated_by) REFERENCES UserAccounts(user_id)
+                             config_id INT AUTO_INCREMENT PRIMARY KEY,
+                             default_payroll_frequency VARCHAR(100),
+                             default_cutoff_dates VARCHAR(100),
+                             default_tax_rates DECIMAL(5,2),
+                             default_contribution_rates DECIMAL(5,2),
+                             salary_computation_formula VARCHAR(255),
+                             effective_date_of_changes DATE,
+                             updated_by INT,
+                             FOREIGN KEY (updated_by) REFERENCES UserAccounts(user_id)
 );
 
 -- Payroll Cutoff Periods Table
 CREATE TABLE PayrollCutoffs (
-    cutoff_id INT AUTO_INCREMENT PRIMARY KEY,
-    period_name VARCHAR(100),
-    cutoff_start_date DATE,
-    cutoff_end_date DATE,
-    pay_date DATE,
-    frequency VARCHAR(50),
-    status VARCHAR(50)
+                                cutoff_id INT AUTO_INCREMENT PRIMARY KEY,
+                                period_name VARCHAR(100),
+                                cutoff_start_date DATE,
+                                cutoff_end_date DATE,
+                                pay_date DATE,
+                                frequency VARCHAR(50),
+                                status VARCHAR(50)
 );
 
 -- Tax and Contributions Table
 CREATE TABLE TaxContributions (
-    contribution_id INT AUTO_INCREMENT PRIMARY KEY,
-    payroll_id INT,
-    employee_id INT,
-    sss_contribution DECIMAL(10,2),
-    philhealth_contribution DECIMAL(10,2),
-    pagibig_contribution DECIMAL(10,2),
-    withholding_tax DECIMAL(10,2),
-    total_contributions DECIMAL(10,2),
-    FOREIGN KEY (payroll_id) REFERENCES Payroll(payroll_id),
-    INDEX idx_employee (employee_id)
+                                  contribution_id INT AUTO_INCREMENT PRIMARY KEY,
+                                  payroll_id INT,
+                                  employee_id INT,
+                                  sss_contribution DECIMAL(10,2),
+                                  philhealth_contribution DECIMAL(10,2),
+                                  pagibig_contribution DECIMAL(10,2),
+                                  withholding_tax DECIMAL(10,2),
+                                  total_contributions DECIMAL(10,2),
+                                  FOREIGN KEY (payroll_id) REFERENCES Payroll(payroll_id),
+                                  INDEX idx_employee (employee_id)
 );
 
 -- =====================================================
@@ -145,49 +145,49 @@ CREATE TABLE TaxContributions (
 
 -- Insert Roles
 INSERT INTO Roles (role_id, role_name) VALUES
-(1, 'Admin'),
-(2, 'Manager'),
-(3, 'Payroll'),
-(4, 'Employee');
+                                           (1, 'Admin'),
+                                           (2, 'Manager'),
+                                           (3, 'Payroll'),
+                                           (4, 'Employee');
 
 -- Insert User Accounts (employee_id references external system)
 -- Admin (not linked to employee)
 INSERT INTO UserAccounts (user_id, employee_id, username, email_address, password, role_id, status) VALUES
-(1, NULL, 'admin', 'admin@company.com', 'admin123', 1, 'Active'),
+                                                                                                        (1, NULL, 'admin', 'admin@company.com', 'admin123', 1, 'Active'),
 
 -- Managers (employee_id from external system)
-(2, 8, 'jumiah.zamora', 'jumiah.zamora@company.com', 'manager123', 2, 'Active'),
-(3, 9, 'jhervin.jimenez', 'jhervin.jimenez@company.com', 'manager123', 2, 'Active'),
+                                                                                                        (2, 8, 'jumiah.zamora', 'jumiah.zamora@company.com', 'manager123', 2, 'Active'),
+                                                                                                        (3, 9, 'jhervin.jimenez', 'jhervin.jimenez@company.com', 'manager123', 2, 'Active'),
 
 -- Payroll Team (not linked to employee)
-(4, NULL, 'jessa.balnig', 'jessa.balnig@company.com', 'payroll123', 3, 'Active'),
-(5, NULL, 'symon.banaag', 'symon.banaag@company.com', 'payroll123', 3, 'Active'),
+                                                                                                        (4, NULL, 'jessa.balnig', 'jessa.balnig@company.com', 'payroll123', 3, 'Active'),
+                                                                                                        (5, NULL, 'symon.banaag', 'symon.banaag@company.com', 'payroll123', 3, 'Active'),
 
 -- Regular Employees (employee_id from external system)
-(6, 1, 'juan.delacruz', 'juan.delacruz@company.com', 'employee123', 4, 'Active'),
-(7, 2, 'maria.reyes', 'maria.reyes@company.com', 'employee123', 4, 'Active'),
-(8, 3, 'pedro.santos', 'pedro.santos@company.com', 'employee123', 4, 'Active'),
-(9, 4, 'ana.torres', 'ana.torres@company.com', 'employee123', 4, 'Active'),
-(10, 5, 'carlos.ramos', 'carlos.ramos@company.com', 'employee123', 4, 'Active');
+                                                                                                        (6, 1, 'juan.delacruz', 'juan.delacruz@company.com', 'employee123', 4, 'Active'),
+                                                                                                        (7, 2, 'maria.reyes', 'maria.reyes@company.com', 'employee123', 4, 'Active'),
+                                                                                                        (8, 3, 'pedro.santos', 'pedro.santos@company.com', 'employee123', 4, 'Active'),
+                                                                                                        (9, 4, 'ana.torres', 'ana.torres@company.com', 'employee123', 4, 'Active'),
+                                                                                                        (10, 5, 'carlos.ramos', 'carlos.ramos@company.com', 'employee123', 4, 'Active');
 
 -- Insert Salary Details (employee_id from external system)
 INSERT INTO SalaryDetails (employee_id, basic_rate, overtime_rate, holiday_rate, loan_deductions, other_deductions) VALUES
-(1, 35000.00, 150.00, 200.00, 2000.00, 500.00),
-(2, 32000.00, 140.00, 190.00, 1500.00, 300.00),
-(3, 38000.00, 160.00, 210.00, 2500.00, 400.00),
-(4, 30000.00, 130.00, 180.00, 1000.00, 200.00),
-(5, 33000.00, 145.00, 195.00, 1800.00, 350.00),
-(6, 36000.00, 155.00, 205.00, 2200.00, 450.00),
-(7, 40000.00, 170.00, 220.00, 2800.00, 600.00),
-(8, 55000.00, 250.00, 300.00, 3000.00, 800.00),
-(9, 60000.00, 270.00, 320.00, 3500.00, 900.00),
-(10, 50000.00, 220.00, 280.00, 2500.00, 700.00);
+                                                                                                                        (1, 35000.00, 150.00, 200.00, 2000.00, 500.00),
+                                                                                                                        (2, 32000.00, 140.00, 190.00, 1500.00, 300.00),
+                                                                                                                        (3, 38000.00, 160.00, 210.00, 2500.00, 400.00),
+                                                                                                                        (4, 30000.00, 130.00, 180.00, 1000.00, 200.00),
+                                                                                                                        (5, 33000.00, 145.00, 195.00, 1800.00, 350.00),
+                                                                                                                        (6, 36000.00, 155.00, 205.00, 2200.00, 450.00),
+                                                                                                                        (7, 40000.00, 170.00, 220.00, 2800.00, 600.00),
+                                                                                                                        (8, 55000.00, 250.00, 300.00, 3000.00, 800.00),
+                                                                                                                        (9, 60000.00, 270.00, 320.00, 3500.00, 900.00),
+                                                                                                                        (10, 50000.00, 220.00, 280.00, 2500.00, 700.00);
 
 -- Insert Payroll Cutoffs
 INSERT INTO PayrollCutoffs (cutoff_id, period_name, cutoff_start_date, cutoff_end_date, pay_date, frequency, status) VALUES
-(1, 'November 2025 - 1st Half', '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 'Processed'),
-(2, 'November 2025 - 2nd Half', '2025-11-16', '2025-11-30', '2025-12-05', 'Bi-Monthly', 'Pending'),
-(3, 'December 2025 - 1st Half', '2025-12-01', '2025-12-15', '2025-12-20', 'Bi-Monthly', 'Pending');
+                                                                                                                         (1, 'November 2025 - 1st Half', '2025-11-01', '2025-11-15', '2025-11-20', 'Bi-Monthly', 'Processed'),
+                                                                                                                         (2, 'November 2025 - 2nd Half', '2025-11-16', '2025-11-30', '2025-12-05', 'Bi-Monthly', 'Pending'),
+                                                                                                                         (3, 'December 2025 - 1st Half', '2025-12-01', '2025-12-15', '2025-12-20', 'Bi-Monthly', 'Pending');
 
 -- Insert Timesheets (employee_id from external system)
 INSERT INTO Timesheets (employee_id, date, time_in, time_out, break_duration, overtime_hours, remarks, approved_by) VALUES
@@ -245,11 +245,69 @@ INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, 
 
 -- Insert Tax and Contributions for the 5 payrolls
 INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhealth_contribution, pagibig_contribution, withholding_tax, total_contributions) VALUES
-(1, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
-(2, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
-(3, 3, 850.00, 500.00, 200.00, 1350.00, 2900.00),
-(4, 4, 700.00, 350.00, 150.00, 0.00, 1200.00),
-(5, 5, 800.00, 400.00, 200.00, 750.00, 2150.00);
+                                                                                                                                                                  (1, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+                                                                                                                                                                  (2, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
+                                                                                                                                                                  (3, 3, 850.00, 500.00, 200.00, 1350.00, 2900.00),
+                                                                                                                                                                  (4, 4, 700.00, 350.00, 150.00, 0.00, 1200.00),
+                                                                                                                                                                  (5, 5, 800.00, 400.00, 200.00, 750.00, 2150.00);
+
+-- Insert Sample Requests
+INSERT INTO Requests (employee_id, request_type, request_description, date_filed, status, approved_by, remarks) VALUES
+                                                                                                                    (1, 'Overtime', 'Overtime request for project deadline - 4 hours', '2025-11-10', 'Pending', NULL, NULL),
+                                                                                                                    (2, 'Leave', 'Sick leave request - 1 day', '2025-11-08', 'Pending', NULL, NULL),
+                                                                                                                    (3, 'Reimbursement', 'Transportation reimbursement - ₱1,500.00', '2025-11-05', 'Approved', 8, 'Approved by manager'),
+                                                                                                                    (4, 'Overtime', 'Weekend overtime - 8 hours', '2025-11-12', 'Pending', NULL, NULL),
+                                                                                                                    (5, 'Bonus', 'Performance bonus request', '2025-11-01', 'Rejected', 9, 'Not eligible this quarter'),
+                                                                                                                    (1, 'Leave', 'Vacation leave - 3 days', '2025-11-15', 'Pending', NULL, NULL),
+                                                                                                                    (2, 'Reimbursement', 'Office supplies reimbursement - ₱800.00', '2025-11-14', 'Pending', NULL, NULL),
+                                                                                                                    (3, 'Overtime', 'Emergency overtime - 2 hours', '2025-11-13', 'Approved', 8, 'Approved');
+
+-- Insert Contribution Deadlines
+CREATE TABLE IF NOT EXISTS ContributionDeadlines (
+                                                     deadline_id INT AUTO_INCREMENT PRIMARY KEY,
+                                                     contribution_type VARCHAR(100),
+                                                     deadline_date DATE,
+                                                     status VARCHAR(50),
+                                                     amount DECIMAL(10,2),
+                                                     remarks VARCHAR(255)
+);
+
+INSERT INTO ContributionDeadlines (contribution_type, deadline_date, status, amount, remarks) VALUES
+                                                                                                  ('SSS Remittance', '2025-12-10', 'Pending', 4700.00, 'Monthly SSS contribution'),
+                                                                                                  ('PhilHealth', '2025-12-10', 'Pending', 2100.00, 'Monthly PhilHealth contribution'),
+                                                                                                  ('Pag-IBIG', '2025-12-10', 'Pending', 950.00, 'Monthly Pag-IBIG contribution'),
+                                                                                                  ('Withholding Tax', '2025-12-15', 'Pending', 3600.00, 'Monthly BIR withholding tax'),
+                                                                                                  ('SSS Remittance', '2025-11-10', 'Completed', 4500.00, 'November SSS - Paid'),
+                                                                                                  ('PhilHealth', '2025-11-10', 'Completed', 2000.00, 'November PhilHealth - Paid'),
+                                                                                                  ('Pag-IBIG', '2025-11-10', 'Completed', 900.00, 'November Pag-IBIG - Paid'),
+                                                                                                  ('Withholding Tax', '2025-11-15', 'Completed', 3400.00, 'November BIR - Paid');
+
+-- Add more payroll records for reports (different periods and statuses)
+INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, payroll_frequency, prepared_by, basic_pay, overtime_pay, bonuses, status, comments, deductions, net_pay, payslip_reference_number) VALUES
+-- October 2025 - 2nd Half
+(1, '2025-10-16', '2025-10-31', '2025-11-05', 'Bi-Monthly', 4, 17500.00, 450.00, 500.00, 'Released', 'October payout', 2500.00, 15950.00, 'PAY-2025-10-001'),
+(2, '2025-10-16', '2025-10-31', '2025-11-05', 'Bi-Monthly', 4, 16000.00, 280.00, 400.00, 'Released', 'October payout', 1800.00, 14880.00, 'PAY-2025-10-002'),
+(3, '2025-10-16', '2025-10-31', '2025-11-05', 'Bi-Monthly', 5, 19000.00, 320.00, 600.00, 'Released', 'October payout', 2900.00, 17020.00, 'PAY-2025-10-003'),
+-- October 2025 - 1st Half
+(1, '2025-10-01', '2025-10-15', '2025-10-20', 'Bi-Monthly', 4, 17500.00, 150.00, 0.00, 'Released', 'October payout', 2500.00, 15150.00, 'PAY-2025-10-004'),
+(2, '2025-10-01', '2025-10-15', '2025-10-20', 'Bi-Monthly', 4, 16000.00, 0.00, 0.00, 'Released', 'October payout', 1800.00, 14200.00, 'PAY-2025-10-005'),
+-- September 2025
+(1, '2025-09-16', '2025-09-30', '2025-10-05', 'Bi-Monthly', 4, 17500.00, 600.00, 1500.00, 'Released', 'September payout', 2500.00, 17100.00, 'PAY-2025-09-001'),
+(2, '2025-09-16', '2025-09-30', '2025-10-05', 'Bi-Monthly', 4, 16000.00, 420.00, 1000.00, 'Released', 'September payout', 1800.00, 15620.00, 'PAY-2025-09-002'),
+-- Pending payrolls for November 2nd half
+(1, '2025-11-16', '2025-11-30', '2025-12-05', 'Bi-Monthly', 4, 17500.00, 0.00, 0.00, 'Pending', 'Pending approval', 2500.00, 15000.00, 'PAY-2025-11-006'),
+(2, '2025-11-16', '2025-11-30', '2025-12-05', 'Bi-Monthly', 4, 16000.00, 0.00, 0.00, 'Pending', 'Pending approval', 1800.00, 14200.00, 'PAY-2025-11-007'),
+(3, '2025-11-16', '2025-11-30', '2025-12-05', 'Bi-Monthly', 5, 19000.00, 0.00, 0.00, 'Processing', 'Under review', 2900.00, 16100.00, 'PAY-2025-11-008');
+
+-- Insert more Tax Contributions for the additional payrolls
+INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhealth_contribution, pagibig_contribution, withholding_tax, total_contributions) VALUES
+                                                                                                                                                                  (6, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+                                                                                                                                                                  (7, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
+                                                                                                                                                                  (8, 3, 850.00, 500.00, 200.00, 1350.00, 2900.00),
+                                                                                                                                                                  (9, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+                                                                                                                                                                  (10, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
+                                                                                                                                                                  (11, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+                                                                                                                                                                  (12, 2, 750.00, 400.00, 200.00, 450.00, 1800.00);
 
 -- Create user and grant privileges
 CREATE USER IF NOT EXISTS 'payrollsystem'@'%' IDENTIFIED BY 'payroll';

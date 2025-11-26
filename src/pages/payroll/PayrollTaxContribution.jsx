@@ -1,9 +1,9 @@
 import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
-import {Line, LineChart, ResponsiveContainer} from "recharts";
+import {Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Bar, BarChart, Legend} from "recharts";
 import React, {useState, useEffect} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
-import {exportToCSV} from "../../utils/pdfGenerator.js";
+import {exportToCSV, generateReportPDF} from "../../utils/pdfGenerator.js";
 
 export default function PayrollTaxContribution() {
     const theme = useTheme();
@@ -13,41 +13,83 @@ export default function PayrollTaxContribution() {
     const [selectedDept, setSelectedDept] = useState("");
     const [selectedPeriod, setSelectedPeriod] = useState("");
     const [earningsData, setEarningsData] = useState([]);
+    const [departmentData, setDepartmentData] = useState([]);
     const [deadlines, setDeadlines] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filteredReports, setFilteredReports] = useState([]);
+    const [summaryData, setSummaryData] = useState({});
+    const [departments, setDepartments] = useState([]);
+    const [periodHistory, setPeriodHistory] = useState([]);
 
     const handleExportCSV = () => {
-        if (filteredReports.length === 0) {
-            console.warn('No reports to export');
-            // Using alert for user feedback as no notification system exists
-            alert('No reports to export');
+        const exportData = deadlines.map(d => ({
+            Contribution: d.contribution,
+            Deadline: d.deadline,
+            Status: d.status,
+            Amount: d.amount || 'N/A'
+        }));
+        if (exportData.length === 0) {
+            alert('No data to export');
             return;
         }
-        exportToCSV(filteredReports, 'payroll_reports.csv');
+        exportToCSV(exportData, 'tax_contributions.csv');
     };
 
-    const periodHistory = [
-        {ref: "001", period: "Jan 1 - Jan 15, 2025"},
-        {ref: "002", period: "Jan 16 - Jan 31, 2025"},
-        {ref: "003", period: "Feb 1 - Feb 15, 2025"},
-        {ref: "004", period: "Feb 16 - Feb 28, 2025"},
-        {ref: "005", period: "Mar 1 - Mar 15, 2025"},
-        {ref: "006", period: "Mar 16 - Mar 31, 2025"},
-        {ref: "007", period: "Apr 1 - Apr 15, 2025"},
-        {ref: "008", period: "Apr 16 - Apr 30, 2025"},
-    ];
+    const handleExportPDF = () => {
+        const exportData = deadlines.map(d => ({
+            contribution: d.contribution,
+            deadline: d.deadline,
+            status: d.status
+        }));
+        if (exportData.length === 0) {
+            alert('No data to export');
+            return;
+        }
+        generateReportPDF(exportData, 'Tax and Contributions Report');
+    };
 
-    const departments = [
-        {id: "dept001", name: "Human Resources"},
-        {id: "dept002", name: "Finance"},
-        {id: "dept003", name: "Payroll"},
-        {id: "dept004", name: "IT Department"},
-        {id: "dept005", name: "Operations"},
-        {id: "dept006", name: "Marketing"},
-        {id: "dept007", name: "Sales"},
-        {id: "dept008", name: "Customer Support"},
-    ];
+    // Fetch departments from API
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/departments');
+                if (response.ok) {
+                    const data = await response.json();
+                    setDepartments(data.map(d => ({ id: d.department_id, name: d.department_name })));
+                }
+            } catch (err) {
+                console.log('Using default departments');
+                setDepartments([
+                    {id: "dept001", name: "Human Resources"},
+                    {id: "dept002", name: "Finance"},
+                    {id: "dept003", name: "IT Department"},
+                ]);
+            }
+        };
+        fetchDepartments();
+    }, []);
+
+    // Fetch cutoff periods from API
+    useEffect(() => {
+        const fetchPeriods = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/cutoffs');
+                if (response.ok) {
+                    const data = await response.json();
+                    setPeriodHistory(data.map(c => ({
+                        ref: c.cutoff_id,
+                        period: `${new Date(c.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(c.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    })));
+                }
+            } catch (err) {
+                console.log('Using default periods');
+                setPeriodHistory([
+                    {ref: "001", period: "Nov 1 - Nov 15, 2025"},
+                    {ref: "002", period: "Nov 16 - Nov 30, 2025"},
+                ]);
+            }
+        };
+        fetchPeriods();
+    }, []);
 
     // Fetch tax and contribution data
     useEffect(() => {
@@ -62,19 +104,31 @@ export default function PayrollTaxContribution() {
                 const data = await response.json();
                 console.log('✅ Tax data:', data);
 
-                // Transform chart data
+                // Transform chart data for line chart
                 const chartData = data.monthlyData?.map(item => ({
                     month: item.month,
-                    earnings: item.total_contributions
+                    total: parseFloat(item.total_contributions) || 0,
+                    sss: parseFloat(item.sss) || 0,
+                    philhealth: parseFloat(item.philhealth) || 0,
+                    pagibig: parseFloat(item.pagibig) || 0,
+                    tax: parseFloat(item.tax) || 0
                 })) || [
-                    {month: "Jan", earnings: 20000},
-                    {month: "Feb", earnings: 23000},
-                    {month: "Mar", earnings: 21000},
-                    {month: "Apr", earnings: 26000},
-                    {month: "May", earnings: 24000},
+                    {month: "Sep", total: 8500, sss: 3200, philhealth: 1800, pagibig: 800, tax: 2700},
+                    {month: "Oct", total: 9200, sss: 3400, philhealth: 1900, pagibig: 850, tax: 3050},
+                    {month: "Nov", total: 10350, sss: 3900, philhealth: 2100, pagibig: 950, tax: 3400},
                 ];
 
                 setEarningsData(chartData);
+
+                // Department breakdown data for bar chart
+                setDepartmentData([
+                    {name: "Finance", sss: 1600, philhealth: 850, pagibig: 400, tax: 1500},
+                    {name: "HR", sss: 1500, philhealth: 850, pagibig: 350, tax: 1050},
+                    {name: "IT", sss: 800, philhealth: 400, pagibig: 200, tax: 750},
+                ]);
+
+                // Set summary data
+                setSummaryData(data.summaryData || {});
 
                 // Transform deadlines
                 const deadlinesData = data.upcomingDeadlines?.map(item => ({
@@ -84,11 +138,12 @@ export default function PayrollTaxContribution() {
                         day: 'numeric',
                         year: 'numeric'
                     }),
-                    status: item.status
+                    status: item.status,
+                    amount: item.amount ? `₱${parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : null
                 })) || [
-                    {contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed"},
-                    {contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status: "Completed"},
-                    {contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed"},
+                    {contribution: "SSS Remittance", deadline: "Dec. 10, 2025", status: "Pending"},
+                    {contribution: "PhilHealth", deadline: "Dec. 10, 2025", status: "Pending"},
+                    {contribution: "Pag-IBIG", deadline: "Dec. 10, 2025", status: "Pending"},
                 ];
 
                 setDeadlines(deadlinesData);
@@ -97,16 +152,19 @@ export default function PayrollTaxContribution() {
                 console.error('❌ Error fetching tax data:', err);
                 // Set default data
                 setEarningsData([
-                    {month: "Jan", earnings: 20000},
-                    {month: "Feb", earnings: 23000},
-                    {month: "Mar", earnings: 21000},
-                    {month: "Apr", earnings: 26000},
-                    {month: "May", earnings: 24000},
+                    {month: "Sep", total: 8500, sss: 3200, philhealth: 1800, pagibig: 800, tax: 2700},
+                    {month: "Oct", total: 9200, sss: 3400, philhealth: 1900, pagibig: 850, tax: 3050},
+                    {month: "Nov", total: 10350, sss: 3900, philhealth: 2100, pagibig: 950, tax: 3400},
+                ]);
+                setDepartmentData([
+                    {name: "Finance", sss: 1600, philhealth: 850, pagibig: 400, tax: 1500},
+                    {name: "HR", sss: 1500, philhealth: 850, pagibig: 350, tax: 1050},
+                    {name: "IT", sss: 800, philhealth: 400, pagibig: 200, tax: 750},
                 ]);
                 setDeadlines([
-                    {contribution: "SSS Remittance", deadline: "Sept. 11, 2025", status: "Completed"},
-                    {contribution: "Pag-Ibig", deadline: "Sept. 11, 2025", status: "Completed"},
-                    {contribution: "PhilHealth", deadline: "Sept. 11, 2025", status: "Completed"},
+                    {contribution: "SSS Remittance", deadline: "Dec. 10, 2025", status: "Pending"},
+                    {contribution: "PhilHealth", deadline: "Dec. 10, 2025", status: "Pending"},
+                    {contribution: "Pag-IBIG", deadline: "Dec. 10, 2025", status: "Pending"},
                 ]);
                 setLoading(false);
             }
@@ -127,10 +185,43 @@ export default function PayrollTaxContribution() {
                                 fontSize: "24px",
                                 color: "#FFFFFF",
                                 mb: 2,
+                                textAlign: "center"
                             }}
                         >
-                            Tax Contribution for this period
+                            Export Tax Contributions Report
                         </Typography>
+                        <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                            {selectedPeriod ? `Period: ${selectedPeriod}` : 'All periods'}
+                            {selectedDept ? ` | Department: ${selectedDept}` : ''}
+                        </Typography>
+                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
+                            <Box
+                                onClick={() => {
+                                    handleExportPDF();
+                                    setIsModalOpen(false);
+                                }}
+                                component="button"
+                                sx={{
+                                    fontSize: "16px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#1f2f31",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Download PDF
+                            </Box>
+                        </Box>
                     </>
                 );
 
@@ -146,8 +237,10 @@ export default function PayrollTaxContribution() {
                                 textAlign: "center"
                             }}
                         >
-                            Are you sure you want to download CSV?
-                            {/*kung for two or more employees or maramihan or per dept.*/}
+                            Export Tax Contributions to CSV
+                        </Typography>
+                        <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                            This will export {deadlines.length} contribution records
                         </Typography>
                         <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
@@ -157,7 +250,6 @@ export default function PayrollTaxContribution() {
                                 }}
                                 component="button"
                                 sx={{
-                                    display: "flex-end",
                                     fontSize: "16px",
                                     backgroundColor: "#172224",
                                     color: "#fff",
@@ -400,24 +492,29 @@ export default function PayrollTaxContribution() {
                                         transform: "scale(1.02)",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
-                                    height: "100%",
+                                    height: "250px",
                                 }}
                             >
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={earningsData}>
-                                        <Line
-                                            type="monotone"
-                                            dataKey="earnings"
-                                            stroke="#3A4F50"
-                                            strokeWidth={3}
-                                            dot={{r: 4, strokeWidth: 1}}
+                                    <LineChart data={earningsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                                        <XAxis dataKey="month" stroke={theme.palette.text.primary} fontSize={12} />
+                                        <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
+                                        <Tooltip 
+                                            formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
+                                            contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
                                         />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="total" name="Total" stroke="#3A4F50" strokeWidth={3} dot={{r: 4}} />
+                                        <Line type="monotone" dataKey="sss" name="SSS" stroke="#4CAF50" strokeWidth={2} dot={{r: 3}} />
+                                        <Line type="monotone" dataKey="philhealth" name="PhilHealth" stroke="#2196F3" strokeWidth={2} dot={{r: 3}} />
+                                        <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke="#FF9800" strokeWidth={2} dot={{r: 3}} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </Box>
                         </Box>
 
-                        {/* Department Level Breakdown Line Bar */}
+                        {/* Department Level Breakdown Bar Chart */}
                         <Box sx={{flex: 1, minWidth: 300}}>
                             <Typography
                                 variant="h5"
@@ -428,7 +525,7 @@ export default function PayrollTaxContribution() {
                                     fontFamily: "'TTHoves-medium', sans-serif",
                                 }}
                             >
-                                Department Level Breakdown Line Bar
+                                Department Level Breakdown
                             </Typography>
                             <Box
                                 borderRadius="12px"
@@ -439,27 +536,31 @@ export default function PayrollTaxContribution() {
                                             ? "rgba(255, 255, 255, 0.05)"
                                             : "rgba(255, 255, 255, 0.2)",
                                     fontFamily: theme.typography.fontFamily,
-                                    color: theme.palette.mode === "dark"
-                                        ? "rgba(255, 255, 255, 0.05)"
-                                        : "rgba(255, 255, 255, 0.2)",
+                                    color: theme.palette.text.primary,
                                     border: `1px solid ${theme.palette.divider}`,
                                     transition: "all 0.3s ease",
                                     "&:hover": {
                                         transform: "scale(1.02)",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
+                                    height: "250px",
                                 }}
                             >
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={earningsData}>
-                                        <Line
-                                            type="monotone"
-                                            dataKey="earnings"
-                                            stroke="#3A4F50"
-                                            strokeWidth={3}
-                                            dot={{r: 4, strokeWidth: 1}}
+                                    <BarChart data={departmentData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                                        <XAxis dataKey="name" stroke={theme.palette.text.primary} fontSize={12} />
+                                        <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
+                                        <Tooltip 
+                                            formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
+                                            contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
                                         />
-                                    </LineChart>
+                                        <Legend />
+                                        <Bar dataKey="sss" name="SSS" fill="#4CAF50" />
+                                        <Bar dataKey="philhealth" name="PhilHealth" fill="#2196F3" />
+                                        <Bar dataKey="pagibig" name="Pag-IBIG" fill="#FF9800" />
+                                        <Bar dataKey="tax" name="Tax" fill="#F44336" />
+                                    </BarChart>
                                 </ResponsiveContainer>
                             </Box>
                         </Box>
