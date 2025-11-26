@@ -1,4 +1,5 @@
-import {Box, MenuItem, Select, Typography, useTheme} from "@mui/material";
+/* eslint-disable no-unused-vars */
+import {Box, Typography, useTheme, Chip} from "@mui/material";
 import {Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Bar, BarChart, Legend} from "recharts";
 import React, {useState, useEffect} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
@@ -10,15 +11,49 @@ export default function PayrollTaxContribution() {
 
     const [modalType, setModalType] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedDept, setSelectedDept] = useState("");
-    const [selectedPeriod, setSelectedPeriod] = useState("");
     const [earningsData, setEarningsData] = useState([]);
     const [departmentData, setDepartmentData] = useState([]);
     const [deadlines, setDeadlines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [summaryData, setSummaryData] = useState({});
-    const [departments, setDepartments] = useState([]);
-    const [periodHistory, setPeriodHistory] = useState([]);
+
+    // Get deadline status based on current date
+    const getDeadlineStatus = (deadlineDate, currentStatus) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const deadline = new Date(deadlineDate);
+        deadline.setHours(0, 0, 0, 0);
+        
+        if (currentStatus === 'Completed' || currentStatus === 'Paid') {
+            return 'Completed';
+        }
+        
+        if (deadline < today) {
+            return 'Overdue';
+        }
+        
+        const daysUntil = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+        if (daysUntil <= 7) {
+            return 'Due Soon';
+        }
+        
+        return 'Upcoming';
+    };
+
+    // Get status color using theme
+    const getStatusColor = (status) => {
+        switch(status) {
+            case 'Completed':
+            case 'Paid':
+                return theme.palette.success.main;
+            case 'Overdue':
+                return theme.palette.error.main;
+            case 'Due Soon':
+                return theme.palette.warning.main;
+            default:
+                return theme.palette.primary.main;
+        }
+    };
 
     const handleExportCSV = () => {
         const exportData = deadlines.map(d => ({
@@ -47,55 +82,11 @@ export default function PayrollTaxContribution() {
         generateReportPDF(exportData, 'Tax and Contributions Report');
     };
 
-    // Fetch departments from API
-    useEffect(() => {
-        const fetchDepartments = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/departments');
-                if (response.ok) {
-                    const data = await response.json();
-                    setDepartments(data.map(d => ({ id: d.department_id, name: d.department_name })));
-                }
-            } catch (err) {
-                console.log('Using default departments');
-                setDepartments([
-                    {id: "dept001", name: "Human Resources"},
-                    {id: "dept002", name: "Finance"},
-                    {id: "dept003", name: "IT Department"},
-                ]);
-            }
-        };
-        fetchDepartments();
-    }, []);
-
-    // Fetch cutoff periods from API
-    useEffect(() => {
-        const fetchPeriods = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/cutoffs');
-                if (response.ok) {
-                    const data = await response.json();
-                    setPeriodHistory(data.map(c => ({
-                        ref: c.cutoff_id,
-                        period: `${new Date(c.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(c.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                    })));
-                }
-            } catch (err) {
-                console.log('Using default periods');
-                setPeriodHistory([
-                    {ref: "001", period: "Nov 1 - Nov 15, 2025"},
-                    {ref: "002", period: "Nov 16 - Nov 30, 2025"},
-                ]);
-            }
-        };
-        fetchPeriods();
-    }, []);
-
     // Fetch tax and contribution data
     useEffect(() => {
         const fetchTaxData = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/tax-contributions');
+                const response = await fetch('http://localhost:8080/api/payroll/tax-contributions');
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch tax data');
@@ -104,68 +95,64 @@ export default function PayrollTaxContribution() {
                 const data = await response.json();
                 console.log('✅ Tax data:', data);
 
-                // Transform chart data for line chart
-                const chartData = data.monthlyData?.map(item => ({
-                    month: item.month,
-                    total: parseFloat(item.total_contributions) || 0,
-                    sss: parseFloat(item.sss) || 0,
-                    philhealth: parseFloat(item.philhealth) || 0,
-                    pagibig: parseFloat(item.pagibig) || 0,
-                    tax: parseFloat(item.tax) || 0
-                })) || [
-                    {month: "Sep", total: 8500, sss: 3200, philhealth: 1800, pagibig: 800, tax: 2700},
-                    {month: "Oct", total: 9200, sss: 3400, philhealth: 1900, pagibig: 850, tax: 3050},
-                    {month: "Nov", total: 10350, sss: 3900, philhealth: 2100, pagibig: 950, tax: 3400},
-                ];
+                // Transform chart data for line chart - use empty array if no data
+                const chartData = data.monthlyData?.length > 0 
+                    ? data.monthlyData.map(item => ({
+                        month: item.month,
+                        total: parseFloat(item.total_contributions) || 0,
+                        sss: parseFloat(item.sss) || 0,
+                        philhealth: parseFloat(item.philhealth) || 0,
+                        pagibig: parseFloat(item.pagibig) || 0,
+                        tax: parseFloat(item.tax) || 0
+                    }))
+                    : [];
 
                 setEarningsData(chartData);
 
-                // Department breakdown data for bar chart
-                setDepartmentData([
-                    {name: "Finance", sss: 1600, philhealth: 850, pagibig: 400, tax: 1500},
-                    {name: "HR", sss: 1500, philhealth: 850, pagibig: 350, tax: 1050},
-                    {name: "IT", sss: 800, philhealth: 400, pagibig: 200, tax: 750},
-                ]);
+                // Department breakdown data from API - use empty array if no data
+                const deptData = data.departmentData?.length > 0
+                    ? data.departmentData.map(d => ({
+                        name: d.name,
+                        sss: parseFloat(d.sss) || 0,
+                        philhealth: parseFloat(d.philhealth) || 0,
+                        pagibig: parseFloat(d.pagibig) || 0,
+                        tax: parseFloat(d.tax) || 0
+                    }))
+                    : [];
+                setDepartmentData(deptData);
 
                 // Set summary data
                 setSummaryData(data.summaryData || {});
 
-                // Transform deadlines
-                const deadlinesData = data.upcomingDeadlines?.map(item => ({
-                    contribution: item.contribution_type,
-                    deadline: new Date(item.deadline_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    }),
-                    status: item.status,
-                    amount: item.amount ? `₱${parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : null
-                })) || [
-                    {contribution: "SSS Remittance", deadline: "Dec. 10, 2025", status: "Pending"},
-                    {contribution: "PhilHealth", deadline: "Dec. 10, 2025", status: "Pending"},
-                    {contribution: "Pag-IBIG", deadline: "Dec. 10, 2025", status: "Pending"},
-                ];
+                // Transform deadlines with proper status logic - use empty array if no data
+                const deadlinesData = data.upcomingDeadlines?.length > 0
+                    ? data.upcomingDeadlines.map(item => {
+                        const status = getDeadlineStatus(item.deadline_date, item.status);
+                        return {
+                            contribution: item.contribution_type,
+                            deadline: new Date(item.deadline_date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            }),
+                            deadlineDate: item.deadline_date,
+                            status: status,
+                            amount: item.amount ? `₱${parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : null
+                        };
+                    })
+                    : [];
+
+                // Sort by deadline date (closest first)
+                deadlinesData.sort((a, b) => new Date(a.deadlineDate || a.deadline) - new Date(b.deadlineDate || b.deadline));
 
                 setDeadlines(deadlinesData);
                 setLoading(false);
             } catch (err) {
                 console.error('❌ Error fetching tax data:', err);
-                // Set default data
-                setEarningsData([
-                    {month: "Sep", total: 8500, sss: 3200, philhealth: 1800, pagibig: 800, tax: 2700},
-                    {month: "Oct", total: 9200, sss: 3400, philhealth: 1900, pagibig: 850, tax: 3050},
-                    {month: "Nov", total: 10350, sss: 3900, philhealth: 2100, pagibig: 950, tax: 3400},
-                ]);
-                setDepartmentData([
-                    {name: "Finance", sss: 1600, philhealth: 850, pagibig: 400, tax: 1500},
-                    {name: "HR", sss: 1500, philhealth: 850, pagibig: 350, tax: 1050},
-                    {name: "IT", sss: 800, philhealth: 400, pagibig: 200, tax: 750},
-                ]);
-                setDeadlines([
-                    {contribution: "SSS Remittance", deadline: "Dec. 10, 2025", status: "Pending"},
-                    {contribution: "PhilHealth", deadline: "Dec. 10, 2025", status: "Pending"},
-                    {contribution: "Pag-IBIG", deadline: "Dec. 10, 2025", status: "Pending"},
-                ]);
+                // Set empty arrays on error - no hardcoded fallback data
+                setEarningsData([]);
+                setDepartmentData([]);
+                setDeadlines([]);
                 setLoading(false);
             }
         };
@@ -191,8 +178,7 @@ export default function PayrollTaxContribution() {
                             Export Tax Contributions Report
                         </Typography>
                         <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
-                            {selectedPeriod ? `Period: ${selectedPeriod}` : 'All periods'}
-                            {selectedDept ? ` | Department: ${selectedDept}` : ''}
+                            All periods and departments
                         </Typography>
                         <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
@@ -325,12 +311,12 @@ export default function PayrollTaxContribution() {
                             display: "flex",
                             justifyContent: "space-between",
                             width: "100%",
+                            mb: 2,
                         }}
                     >
                         <Typography
                             variant="h5"
                             sx={{
-                                mb: 2,
                                 fontSize: "18px",
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
                             }}
@@ -341,125 +327,6 @@ export default function PayrollTaxContribution() {
                             ></i>
                             Contributions Overview
                         </Typography>
-
-                        <Box
-                            sx={{
-                                display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    display: "inline-block",
-                                    borderRadius: "15px",
-                                    transition: "box-shadow 0.3s ease, transform 0.3s ease",
-                                    "&:hover": {
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
-                                    },
-                                }}
-                            >
-                                <Select
-                                    value={selectedPeriod}
-                                    onChange={(e) => setSelectedPeriod(e.target.value)}
-                                    displayEmpty
-                                    sx={{
-                                        backgroundColor:
-                                            theme.palette.mode === "dark"
-                                                ? "rgba(255, 255, 255, 0.05)"
-                                                : "rgba(255, 255, 255, 0.3)",
-                                        borderRadius: "15px",
-                                        width: "200px",
-                                        fontSize: "16px",
-                                        color: theme.palette.text.primary,
-                                        "& .MuiSelect-select": {
-                                            padding: "8px 12px",
-                                        },
-                                        "& .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: theme.palette.divider,
-                                        },
-                                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: theme.palette.divider,
-                                        },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                            border: "none",
-                                        },
-                                        "& .MuiSvgIcon-root": {
-                                            color: theme.palette.text.primary,
-                                        },
-                                    }}
-                                    renderValue={(selected) => {
-                                        if (!selected)
-                                            return (
-                                                <span style={{fontSize: "16px", color: "#bdbdbd"}}>
-                                                    Select Period
-                                                </span>
-                                            );
-                                        return selected;
-                                    }}
-                                >
-                                    {periodHistory.map((item) => (
-                                        <MenuItem key={item.ref} value={item.period}>
-                                            {item.period}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Box>
-                            <Box
-                                sx={{
-                                    display: "inline-block",
-                                    borderRadius: "15px",
-                                    transition: "box-shadow 0.3s ease, transform 0.3s ease",
-                                    "&:hover": {
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
-                                    },
-                                }}
-                            >
-                                <Select
-                                    value={selectedDept}
-                                    onChange={(e) => setSelectedDept(e.target.value)}
-                                    displayEmpty
-                                    sx={{
-                                        backgroundColor:
-                                            theme.palette.mode === "dark"
-                                                ? "rgba(255, 255, 255, 0.05)"
-                                                : "rgba(255, 255, 255, 0.3)",
-                                        borderRadius: "15px",
-                                        width: "200px",
-                                        fontSize: "16px",
-                                        color: theme.palette.text.primary,
-                                        "& .MuiSelect-select": {
-                                            padding: "8px 12px",
-                                        },
-                                        "& .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: theme.palette.divider,
-                                        },
-                                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                                            borderColor: theme.palette.divider,
-                                        },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                            border: "none",
-                                        },
-                                        "& .MuiSvgIcon-root": {
-                                            color: theme.palette.text.primary,
-                                        },
-                                    }}
-                                    renderValue={(selected) => {
-                                        if (!selected)
-                                            return (
-                                                <span style={{fontSize: "16px", color: "#bdbdbd"}}>
-                                                    Select Department
-                                                </span>
-                                            );
-                                        return selected;
-                                    }}
-                                >
-                                    {departments.map((dept) => (
-                                        <MenuItem key={dept.id} value={dept.name}>
-                                            {dept.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Box>
-                        </Box>
                     </Box>
 
                     <Box sx={{display: "flex", gap: 2, flexWrap: "wrap"}}>
@@ -493,24 +360,33 @@ export default function PayrollTaxContribution() {
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
                                     height: "250px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
                                 }}
                             >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={earningsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                        <XAxis dataKey="month" stroke={theme.palette.text.primary} fontSize={12} />
-                                        <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
-                                        <Tooltip 
-                                            formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
-                                            contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
-                                        />
-                                        <Legend />
-                                        <Line type="monotone" dataKey="total" name="Total" stroke="#3A4F50" strokeWidth={3} dot={{r: 4}} />
-                                        <Line type="monotone" dataKey="sss" name="SSS" stroke="#4CAF50" strokeWidth={2} dot={{r: 3}} />
-                                        <Line type="monotone" dataKey="philhealth" name="PhilHealth" stroke="#2196F3" strokeWidth={2} dot={{r: 3}} />
-                                        <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke="#FF9800" strokeWidth={2} dot={{r: 3}} />
-                                    </LineChart>
-                                </ResponsiveContainer>
+                                {earningsData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={earningsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                                            <XAxis dataKey="month" stroke={theme.palette.text.primary} fontSize={12} />
+                                            <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
+                                            <Tooltip 
+                                                formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
+                                                contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
+                                            />
+                                            <Legend />
+                                            <Line type="monotone" dataKey="total" name="Total" stroke={theme.palette.primary.main} strokeWidth={3} dot={{r: 4}} />
+                                            <Line type="monotone" dataKey="sss" name="SSS" stroke={theme.palette.success.main} strokeWidth={2} dot={{r: 3}} />
+                                            <Line type="monotone" dataKey="philhealth" name="PhilHealth" stroke={theme.palette.info.main} strokeWidth={2} dot={{r: 3}} />
+                                            <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke={theme.palette.warning.main} strokeWidth={2} dot={{r: 3}} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <Typography sx={{ color: theme.palette.text.secondary, textAlign: "center" }}>
+                                        No contribution data available
+                                    </Typography>
+                                )}
                             </Box>
                         </Box>
 
@@ -544,24 +420,33 @@ export default function PayrollTaxContribution() {
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
                                     height: "250px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
                                 }}
                             >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={departmentData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                        <XAxis dataKey="name" stroke={theme.palette.text.primary} fontSize={12} />
-                                        <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
-                                        <Tooltip 
-                                            formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
-                                            contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
-                                        />
-                                        <Legend />
-                                        <Bar dataKey="sss" name="SSS" fill="#4CAF50" />
-                                        <Bar dataKey="philhealth" name="PhilHealth" fill="#2196F3" />
-                                        <Bar dataKey="pagibig" name="Pag-IBIG" fill="#FF9800" />
-                                        <Bar dataKey="tax" name="Tax" fill="#F44336" />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                {departmentData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={departmentData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                                            <XAxis dataKey="name" stroke={theme.palette.text.primary} fontSize={12} />
+                                            <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
+                                            <Tooltip 
+                                                formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
+                                                contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
+                                            />
+                                            <Legend />
+                                            <Bar dataKey="sss" name="SSS" fill={theme.palette.success.main} />
+                                            <Bar dataKey="philhealth" name="PhilHealth" fill={theme.palette.info.main} />
+                                            <Bar dataKey="pagibig" name="Pag-IBIG" fill={theme.palette.warning.main} />
+                                            <Bar dataKey="tax" name="Tax" fill={theme.palette.error.main} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <Typography sx={{ color: theme.palette.text.secondary, textAlign: "center" }}>
+                                        No department data available
+                                    </Typography>
+                                )}
                             </Box>
                         </Box>
                     </Box>
@@ -596,7 +481,7 @@ export default function PayrollTaxContribution() {
                         }}
                     >
                         <i
-                            className="ri-bar-chart-2-line"
+                            className="ri-calendar-check-line"
                             style={{fontSize: 18, marginRight: "10px"}}
                         ></i>
                         Upcoming Deadlines
@@ -612,15 +497,17 @@ export default function PayrollTaxContribution() {
                         {/* Header */}
                         <Box sx={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(3, 1fr)",
+                            gridTemplateColumns: "1.2fr 1fr 1fr 0.8fr",
                             color: theme.palette.text.primary,
                             border: "none",
-                            marginBottom: "-10px",
+                            marginBottom: "10px",
                             fontWeight: 600,
                             textAlign: "center",
+                            fontSize: "13px",
                         }}>
-                            <span>Contributions</span>
+                            <span>Contribution</span>
                             <span>Deadline</span>
+                            <span>Amount</span>
                             <span>Status</span>
                         </Box>
 
@@ -629,13 +516,19 @@ export default function PayrollTaxContribution() {
                             <Box sx={{p: 2, textAlign: "center", flex: 1}}>
                                 Loading deadlines...
                             </Box>
+                        ) : deadlines.length === 0 ? (
+                            <Box sx={{p: 2, textAlign: "center", flex: 1, color: theme.palette.text.secondary}}>
+                                No upcoming deadlines
+                            </Box>
                         ) : (
                             <Box
                                 sx={{
                                     flex: 1,
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
                                     overflowY: "auto",
-                                    gap: "4px",
+                                    gap: "8px",
+                                    display: "flex",
+                                    flexDirection: "column",
                                     scrollbarWidth: "none",
                                     msOverflowStyle: "none",
                                     "&::-webkit-scrollbar": {width: 0, height: 0},
@@ -645,37 +538,41 @@ export default function PayrollTaxContribution() {
                                     <Box
                                         key={index}
                                         sx={{
-                                            marginTop: "10px",
                                             display: "grid",
-                                            gridTemplateColumns: {xs: "1fr", sm: "repeat(3, 1fr)"},
+                                            gridTemplateColumns: {xs: "1fr", sm: "1.2fr 1fr 1fr 0.8fr"},
                                             alignItems: "center",
-                                            bgcolor: "#fff",
-                                            color: "#1b2223",
+                                            bgcolor: theme.palette.mode === "dark" 
+                                                ? "rgba(255, 255, 255, 0.08)" 
+                                                : "#fff",
+                                            color: theme.palette.text.primary,
                                             borderRadius: "8px",
                                             width: "100%",
-                                            minHeight: "83px",
+                                            minHeight: "60px",
                                             transition: "all 0.3s ease",
                                             "&:hover": {
                                                 transform: "translateY(-2px)",
                                                 boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                             },
                                             textAlign: "center",
-                                            p: {xs: 1, sm: 0}, // padding for mobile
-                                            gap: {xs: 1, sm: 0}, // small gap on mobile
+                                            p: 2,
+                                            gap: {xs: 1, sm: 0},
+                                            fontSize: "13px",
                                         }}
                                     >
-                                        <span>{item.contribution}</span>
+                                        <span style={{ fontWeight: 600, textAlign: "left" }}>{item.contribution}</span>
                                         <span>{item.deadline}</span>
-                                        <span
-                                            style={{
-                                                color:
-                                                    item.status === "Completed"
-                                                        ? "limegreen"
-                                                        : "#FFC107",
+                                        <span style={{ fontWeight: 500 }}>{item.amount || '-'}</span>
+                                        <Chip
+                                            label={item.status}
+                                            size="small"
+                                            sx={{
+                                                backgroundColor: getStatusColor(item.status),
+                                                color: '#fff',
+                                                fontWeight: 600,
+                                                fontSize: '11px',
+                                                minWidth: '80px',
                                             }}
-                                        >
-                                            {item.status}
-                                        </span>
+                                        />
                                     </Box>
                                 ))}
                             </Box>

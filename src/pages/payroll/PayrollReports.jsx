@@ -1,15 +1,14 @@
-import {Box, Typography, useTheme} from "@mui/material";
+import {Box, Typography, useTheme, Chip} from "@mui/material";
 import ActionButton from "../../components/ActionButton.jsx";
 import React, {useState, useEffect} from "react";
-import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
-import {generateReportPDF, exportToCSV} from "../../utils/pdfGenerator.js";
+import {generateReportPDF} from "../../utils/pdfGenerator.js";
 import BoxModal from "../../components/BoxModal.jsx";
+import {RiCloseLine} from "react-icons/ri";
 
 export default function PayrollReports() {
     const theme = useTheme();
 
-    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("");
     const [reports, setReports] = useState([]);
     const [filteredReports, setFilteredReports] = useState([]);
@@ -18,11 +17,19 @@ export default function PayrollReports() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [error, setError] = useState(null);
 
+    // Check if filter is active
+    const hasActiveFilters = filter && filter !== 'all';
+
+    // Clear filters
+    const handleClearFilters = () => {
+        setFilter("");
+    };
+
     // Fetch payroll reports from database
     useEffect(() => {
         const fetchReports = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/payroll-reports');
+                const response = await fetch('http://localhost:8080/api/payroll/payroll-reports');
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch reports');
@@ -37,10 +44,26 @@ export default function PayrollReports() {
                         day: 'numeric',
                         year: 'numeric'
                     }),
+                    rawDate: new Date(report.pay_date), // For sorting
+                    updatedAt: report.updated_at ? new Date(report.updated_at) : new Date(report.pay_date),
                     period: `${new Date(report.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(report.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
                     amount: `₱${parseFloat(report.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    status: report.status || "Released"
-                }));
+                    status: report.status || "Released",
+                    employee: report.employee_name || `Employee ${report.employee_id}`,
+                    processedBy: report.prepared_by_name || 'System',
+                    processedDate: report.updated_at ? new Date(report.updated_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : 'N/A',
+                    reference: report.payslip_reference_number || 'N/A'
+                }))
+                // Filter out Pending status - only show processed records
+                .filter(report => report.status !== 'Pending')
+                // Sort by most recent processed time first
+                .sort((a, b) => b.updatedAt - a.updatedAt);
 
                 setReports(transformedData);
                 setFilteredReports(transformedData);
@@ -59,21 +82,13 @@ export default function PayrollReports() {
     useEffect(() => {
         let filtered = reports;
 
-        // Apply search filter (by period)
-        if (searchTerm) {
-            filtered = filtered.filter(report =>
-                report.period.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                report.date.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
         // Apply status filter
         if (filter && filter !== 'all') {
             filtered = filtered.filter(report => report.status === filter);
         }
 
         setFilteredReports(filtered);
-    }, [searchTerm, filter, reports]);
+    }, [filter, reports]);
 
     // Get unique statuses for filter options
     const statuses = [...new Set(reports.map(rep => rep.status))];
@@ -88,21 +103,17 @@ export default function PayrollReports() {
             alert('No reports to export');
             return;
         }
-        generateReportPDF(filteredReports, 'Payroll Reports and History');
-    };
-
-    const handleExportCSV = () => {
-        if (filteredReports.length === 0) {
-            console.warn('No reports to export');
-            alert('No reports to export');
-            return;
-        }
-        exportToCSV(filteredReports, 'payroll_reports.csv');
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        generateReportPDF(filteredReports, `Payroll Reports and History - Generated ${currentDate}`);
     };
 
     const renderModalCards = () => {
         switch (modalType) {
-            case "exportPayslipPDF":
+            case "exportReportsPDF":
                 return (
                     <>
                         <Typography
@@ -151,54 +162,6 @@ export default function PayrollReports() {
                     </>
                 );
 
-            case "exportCSV":
-                return (
-                    <>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                fontSize: "24px",
-                                color: "#FFFFFF",
-                                textAlign: "center"
-                            }}
-                        >
-                            Export Reports to CSV
-                        </Typography>
-                        <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
-                            This will export {filteredReports.length} report(s) to CSV
-                        </Typography>
-                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
-                            <Box
-                                onClick={() => {
-                                    handleExportCSV();
-                                    setIsModalOpen(false);
-                                }}
-                                component="button"
-                                sx={{
-                                    fontSize: "16px",
-                                    backgroundColor: "#172224",
-                                    color: "#fff",
-                                    padding: "10px 0",
-                                    borderRadius: "15px",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    transition: "all 0.3s ease",
-                                    width: "200px",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
-                                    "&:hover": {
-                                        backgroundColor: "#1f2f31",
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                    },
-                                }}
-                            >
-                                Download CSV
-                            </Box>
-                        </Box>
-                    </>
-                );
-
             default:
                 return <Typography sx={{color: "#fff"}}>No data available</Typography>;
 
@@ -235,13 +198,6 @@ export default function PayrollReports() {
                         display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
                     }}
                 >
-                    <SearchBar
-                        placeholder="Search by period or date"
-                        width="350px"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-
                     <FilterSelect
                         width={180}
                         placeholder="Filter by Status"
@@ -249,6 +205,22 @@ export default function PayrollReports() {
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
+
+                    {/* Clear filters button */}
+                    {hasActiveFilters && (
+                        <Chip
+                            label="Clear Filters"
+                            onDelete={handleClearFilters}
+                            deleteIcon={<RiCloseLine />}
+                            sx={{
+                                backgroundColor: theme.palette.primary.main,
+                                color: theme.palette.primary.contrastText,
+                                '& .MuiChip-deleteIcon': {
+                                    color: theme.palette.primary.contrastText,
+                                }
+                            }}
+                        />
+                    )}
                 </Box>
             </Box>
 
@@ -276,7 +248,7 @@ export default function PayrollReports() {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gridTemplateColumns: "repeat(7, 1fr)",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
@@ -289,8 +261,11 @@ export default function PayrollReports() {
                     }}
                 >
                     <span>Date</span>
+                    <span>Employee</span>
                     <span>Payroll Period</span>
                     <span>Total Amount</span>
+                    <span>Processed By</span>
+                    <span>Processed Date</span>
                     <span>Status</span>
                 </Box>
 
@@ -326,7 +301,7 @@ export default function PayrollReports() {
                                     sx={{
                                         marginTop: "10px",
                                         display: "grid",
-                                        gridTemplateColumns: "repeat(4, 1fr)",
+                                        gridTemplateColumns: "repeat(7, 1fr)",
                                         alignItems: "center",
                                         bgcolor: "#fff",
                                         color: "#1b2223",
@@ -338,20 +313,26 @@ export default function PayrollReports() {
                                             transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                         },
                                         textAlign: "center",
+                                        fontSize: "14px",
                                     }}
                                 >
                                     <span>{item.date}</span>
+                                    <span>{item.employee}</span>
                                     <span>{item.period}</span>
                                     <span>{item.amount}</span>
+                                    <span>{item.processedBy}</span>
+                                    <span>{item.processedDate}</span>
                                     <span
                                         style={{
                                             fontFamily: "'TTHoves-Bold', sans-serif",
                                             color:
                                                 item.status === "Released"
-                                                    ? "#4CAF50"   // green for released
-                                                    : item.status === "Pending"
-                                                        ? "#FFC107" // amber for pending
-                                                        : "#F44336", // red for any other status (e.g., rejected)
+                                                    ? "#2196F3"
+                                                    : item.status === "Approved"
+                                                        ? "#4CAF50"
+                                                        : item.status === "Processed"
+                                                            ? "#9C27B0"
+                                                            : "#F44336",
                                             fontWeight: 500,
                                         }}
                                     >
@@ -366,19 +347,10 @@ export default function PayrollReports() {
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
                 <ActionButton
-                    text="Export Payslip PDF"
+                    text="Export Reports PDF"
                     width="200px"
                     onClick={() => {
-                        setModalType("exportPayslipPDF");
-                        setIsModalOpen(true);
-                    }}
-                />
-
-                <ActionButton
-                    text="Export CSV"
-                    width="200px"
-                    onClick={() => {
-                        setModalType("exportCSV");
+                        setModalType("exportReportsPDF");
                         setIsModalOpen(true);
                     }}
                 />

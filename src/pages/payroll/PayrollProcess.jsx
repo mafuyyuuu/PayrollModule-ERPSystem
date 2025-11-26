@@ -6,12 +6,12 @@ import {
     useTheme,
     Select,
     MenuItem,
-    IconButton, Checkbox,
+    IconButton, Checkbox, Snackbar, Alert, Chip,
 } from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
-import {RiCheckFill, RiCloseFill, RiDownload2Line, RiEyeFill} from "react-icons/ri";
+import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill} from "react-icons/ri";
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
 import {PDFViewer, pdf} from "@react-pdf/renderer";
@@ -20,98 +20,263 @@ export default function PayoutProcessing() {
     const theme = useTheme();
 
     const [filter, setFilter] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [open, setOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedPayroll, setSelectedPayroll] = useState("");
     const [modalType, setModalType] = useState("");
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [rejectionReason, setRejectionReason] = useState("");
-    const [rowActions, setRowActions] = useState({});
-    const [rejectionReasons, setRejectionReasons] = useState({});
-    const [selectedRows, setSelectedRows] = useState([]);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     const [payrollHistory, setPayrollHistory] = useState([]);
     const [employeesProcess, setEmployeesProcess] = useState([]);
+    const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch payroll history (cutoff periods)
+    // Filter options for status
+    const statusFilterOptions = [
+        { value: '', label: 'All Status' },
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Approved', label: 'Approved' },
+        { value: 'Released', label: 'Released' },
+        { value: 'Rejected', label: 'Rejected' },
+    ];
+
+    // Check if any filter is active
+    const hasActiveFilters = filter || selectedPayroll || searchTerm;
+
+    // Clear all filters
+    const handleClearFilters = () => {
+        setFilter("");
+        setSelectedPayroll("");
+        setSearchTerm("");
+    };
+
+    // Fetch payroll cutoff periods
     useEffect(() => {
         const fetchPayrollHistory = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/cutoffs');
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch payroll history');
-                }
+                const response = await fetch('http://localhost:8080/api/payroll/cutoffs');
+                if (!response.ok) throw new Error('Failed to fetch payroll history');
 
                 const data = await response.json();
-                console.log('✅ Payroll history:', data);
-
                 const transformedData = data.map(cutoff => ({
+                    id: cutoff.cutoff_id,
                     duration: `${new Date(cutoff.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(cutoff.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
                     amount: `₱${parseFloat(cutoff.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    status: cutoff.status,
                     ref: `REF${cutoff.cutoff_id}`
                 }));
-
                 setPayrollHistory(transformedData);
             } catch (err) {
                 console.error('❌ Error fetching payroll history:', err);
                 setPayrollHistory([
-                    {duration: "Oct 1–15, 2025", amount: "₱20,500.00", ref: "REF20251001"},
-                    {duration: "Sep 16–30, 2025", amount: "₱20,200.00", ref: "REF20250930"},
+                    {id: 1, duration: "Nov 16–30, 2025", amount: "₱150,000.00", status: "Pending", ref: "REF001"},
+                    {id: 2, duration: "Nov 1–15, 2025", amount: "₱145,000.00", status: "Processed", ref: "REF002"},
                 ]);
             }
         };
-
         fetchPayrollHistory();
     }, []);
 
-    // Fetch payroll processing data
+    // Fetch payroll data
+    const fetchPayrollProcess = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:8080/api/payroll/payroll');
+            if (!response.ok) throw new Error('Failed to fetch payroll data');
+
+            const data = await response.json();
+            const transformedData = data.map(payroll => ({
+                payrollId: payroll.payroll_id,
+                id: `EMP-${String(payroll.employee_id).padStart(3, '0')}`,
+                employeeId: payroll.employee_id,
+                name: payroll.employee_name || `Employee ${payroll.employee_id}`,
+                email: payroll.email || `employee${payroll.employee_id}@company.com`,
+                earning: parseFloat(payroll.basic_pay) + parseFloat(payroll.overtime_pay || 0) + parseFloat(payroll.bonuses || 0),
+                earningDisplay: `₱${(parseFloat(payroll.basic_pay) + parseFloat(payroll.overtime_pay || 0) + parseFloat(payroll.bonuses || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                deduction: parseFloat(payroll.deductions || 0),
+                deductionDisplay: `₱${parseFloat(payroll.deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                netpay: parseFloat(payroll.net_pay || 0),
+                netpayDisplay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                status: payroll.status || "Pending",
+                period: `${new Date(payroll.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(payroll.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+                department: payroll.department || "N/A",
+                position: payroll.position || "N/A",
+                basicPay: parseFloat(payroll.basic_pay || 0),
+                overtimePay: parseFloat(payroll.overtime_pay || 0),
+                bonuses: parseFloat(payroll.bonuses || 0),
+                comments: payroll.comments || "",
+                updatedAt: payroll.updated_at ? new Date(payroll.updated_at) : new Date(payroll.created_at || 0),
+                cutoffEndDate: new Date(payroll.cutoff_end_date)
+            }))
+            // Sort by most recent (updated_at or cutoff_end_date)
+            .sort((a, b) => b.updatedAt - a.updatedAt || b.cutoffEndDate - a.cutoffEndDate);
+
+            setEmployeesProcess(transformedData);
+            setFilteredEmployees(transformedData);
+            setLoading(false);
+        } catch (err) {
+            console.error('❌ Error fetching payroll process:', err);
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchPayrollProcess = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/payroll');
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch payroll data');
-                }
-
-                const data = await response.json();
-                console.log('✅ Payroll process data:', data);
-
-                const transformedData = data.map(payroll => ({
-                    id: `EMP-${String(payroll.employee_id).padStart(3, '0')}`,
-                    name: payroll.employee_name || `Employee ${payroll.employee_id}`,
-                    earning: `₱${parseFloat(payroll.basic_pay + payroll.overtime_pay + payroll.bonuses || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    deduction: `₱${parseFloat(payroll.deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    netpay: `₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    status: payroll.status || "Pending",
-                    period: `${new Date(payroll.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date(payroll.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-                    department: payroll.department || "N/A"
-                }));
-
-                setEmployeesProcess(transformedData);
-                setLoading(false);
-            } catch (err) {
-                console.error('❌ Error fetching payroll process:', err);
-                setError(err.message);
-                setLoading(false);
-            }
-        };
-
         fetchPayrollProcess();
     }, []);
 
-    const handleClose = () => setOpen(false);
+    // Filter employees based on search and filter
+    useEffect(() => {
+        let filtered = employeesProcess;
+
+        if (searchTerm) {
+            filtered = filtered.filter(emp =>
+                emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                emp.id.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        if (filter && filter !== 'all') {
+            filtered = filtered.filter(emp => emp.status === filter || emp.department === filter);
+        }
+
+        if (selectedPayroll) {
+            filtered = filtered.filter(emp => emp.period === selectedPayroll);
+        }
+
+        setFilteredEmployees(filtered);
+    }, [searchTerm, filter, selectedPayroll, employeesProcess]);
+
+    const handleClose = () => {
+        setOpen(false);
+        setRejectionReason("");
+    };
 
     const handleSelectAll = (checked) => {
         if (checked) {
-            // Select all employees
-            setSelectedEmployees([...employeesProcess]);
+            setSelectedEmployees([...filteredEmployees]);
         } else {
-            // Deselect all
             setSelectedEmployees([]);
+        }
+    };
+
+    // API call to approve payslip
+    const handleApprovePayslip = async (employee) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/payroll/payroll/${employee.payrollId}/approve`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                // Refetch to ensure data consistency
+                await fetchPayrollProcess();
+                setSnackbar({ open: true, message: `Payslip approved for ${employee.name}`, severity: 'success' });
+            } else {
+                throw new Error('Failed to approve payslip');
+            }
+        } catch (err) {
+            console.error('Error approving payslip:', err);
+            setSnackbar({ open: true, message: `Failed to approve payslip for ${employee.name}`, severity: 'error' });
+        }
+        setOpen(false);
+    };
+
+    // API call to reject payslip
+    const handleRejectPayslip = async (employee, reason) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/payroll/payroll/${employee.payrollId}/reject`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comments: reason })
+            });
+
+            if (response.ok) {
+                // Refetch to ensure data consistency
+                await fetchPayrollProcess();
+                setSnackbar({ open: true, message: `Payslip rejected for ${employee.name}`, severity: 'warning' });
+            } else {
+                throw new Error('Failed to reject payslip');
+            }
+        } catch (err) {
+            console.error('Error rejecting payslip:', err);
+            setSnackbar({ open: true, message: `Failed to reject payslip for ${employee.name}`, severity: 'error' });
+        }
+        setOpen(false);
+        setRejectionReason("");
+    };
+
+    // Bulk approve selected payslips
+    const handleBulkApprove = async () => {
+        const pendingEmployees = selectedEmployees.filter(emp => emp.status === "Pending");
+        if (pendingEmployees.length === 0) {
+            setSnackbar({ open: true, message: 'No pending payslips selected', severity: 'warning' });
+            return;
+        }
+
+        let successCount = 0;
+        for (const emp of pendingEmployees) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/payroll/payroll/${emp.payrollId}/approve`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    successCount++;
+                }
+            } catch (err) {
+                console.error(`Error approving payslip for ${emp.name}:`, err);
+            }
+        }
+        // Refetch to ensure data consistency
+        await fetchPayrollProcess();
+        setSelectedEmployees([]);
+        setSnackbar({ open: true, message: `${successCount} payslips approved`, severity: 'success' });
+    };
+
+    // Release approved payouts
+    const handleReleasePayouts = async () => {
+        const approvedEmployees = selectedEmployees.filter(emp => emp.status === "Approved");
+        if (approvedEmployees.length === 0) {
+            setSnackbar({ open: true, message: 'No approved payslips to release', severity: 'warning' });
+            return;
+        }
+
+        try {
+            const payrollIds = approvedEmployees.map(emp => emp.payrollId);
+            const response = await fetch('http://localhost:8080/api/payroll/payroll-release', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payrollIds })
+            });
+
+            if (response.ok) {
+                // Refetch to ensure data consistency
+                await fetchPayrollProcess();
+                setSnackbar({ open: true, message: `${approvedEmployees.length} payouts released`, severity: 'success' });
+            } else {
+                throw new Error('Failed to release payouts');
+            }
+        } catch (err) {
+            console.error('Error releasing payouts:', err);
+            setSnackbar({ open: true, message: 'Failed to release payouts', severity: 'error' });
+        }
+        setSelectedEmployees([]);
+        setOpen(false);
+    };
+
+    // Get status color
+    const getStatusColor = (status) => {
+        switch (status) {
+            case "Approved": return "#4CAF50";
+            case "Released": return "#2196F3";
+            case "Rejected": return "#F44336";
+            case "Processing": return "#FF9800";
+            default: return "#FFC107"; // Pending
         }
     };
 
@@ -216,26 +381,24 @@ export default function PayoutProcessing() {
                 ) : null;
 
             case "releasePayouts":
-                // for release payouts na button sa baba
+                const approvedCount = selectedEmployees.filter(emp => emp.status === "Approved").length;
                 return (
                     <>
                         <Typography
                             variant="h5"
-                            sx={{color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif"}}
+                            sx={{color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center"}}
                         >
-                            You are about to release a payout for
-                            {/*employee employees department or lahat */}
+                            Release {approvedCount} approved payout(s)?
+                        </Typography>
+                        <Typography variant="body2" sx={{color: "#ccc", textAlign: "center", mt: 1}}>
+                            This will mark them as released and ready for disbursement.
                         </Typography>
 
-                        <Box
-                            sx={{
-                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
-                            }}
-                        >
+                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
+                                onClick={handleReleasePayouts}
                                 component="button"
                                 sx={{
-                                    display: "flex-end",
                                     fontSize: "16px",
                                     backgroundColor: "#172224",
                                     color: "#fff",
@@ -253,14 +416,13 @@ export default function PayoutProcessing() {
                                     },
                                 }}
                             >
-                                Confirm
+                                Confirm Release
                             </Box>
                         </Box>
                     </>
                 );
 
             case "acceptPayslip":
-                // switch case ito para sa approve payslip na pangkalahatan at isahan na employee
                 return selectedEmployee ? (
                     <>
                         <Typography
@@ -272,35 +434,24 @@ export default function PayoutProcessing() {
                                 textAlign: "center"
                             }}
                         >
-                            Are you sure you want to approve the payslip for {selectedEmployee.name}?
+                            Approve payslip for {selectedEmployee.name}?
                         </Typography>
+                        <Box sx={{mt: 2, p: 2, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "8px"}}>
+                            <Typography variant="body2" sx={{color: "#ccc"}}>
+                                Net Pay: {selectedEmployee.netpayDisplay}
+                            </Typography>
+                            <Typography variant="body2" sx={{color: "#ccc"}}>
+                                Period: {selectedEmployee.period}
+                            </Typography>
+                        </Box>
 
-                        <Box
-                            sx={{
-                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
-                            }}
-                        >
+                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
-                                onClick={() => {
-                                    if (selectedEmployee) {
-                                        // Mark the employee row as accepted
-                                        setRowActions(prev => ({
-                                            ...prev,
-                                            [selectedEmployee.id]: "accepted"
-                                        }));
-
-                                        // Close the modal
-                                        setOpen(false);
-
-                                        // Optionally: trigger any API call for approval here
-                                        // approvePayslip(selectedEmployee.id);
-                                    }
-                                }}
+                                onClick={() => handleApprovePayslip(selectedEmployee)}
                                 component="button"
                                 sx={{
-                                    display: "flex-end",
                                     fontSize: "16px",
-                                    backgroundColor: "#172224",
+                                    backgroundColor: "#388E3C",
                                     color: "#fff",
                                     padding: "10px 0",
                                     borderRadius: "15px",
@@ -310,7 +461,7 @@ export default function PayoutProcessing() {
                                     width: "200px",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
-                                        backgroundColor: "#1f2f31",
+                                        backgroundColor: "#2E7D32",
                                         transform: "translateY(-2px)",
                                         boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                                     },
@@ -333,7 +484,7 @@ export default function PayoutProcessing() {
                                 color: "#FFFFFF",
                             }}
                         >
-                            Are you sure you want to reject the payslip for {selectedEmployee.name}?
+                            Reject payslip for {selectedEmployee.name}?
                         </Typography>
 
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
@@ -347,8 +498,8 @@ export default function PayoutProcessing() {
                                 Reason for Rejection
                             </Typography>
                             <TextField
-                                value={rejectionReason} // <-- bind state here
-                                onChange={(e) => setRejectionReason(e.target.value)} // <-- update state on typing
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
                                 multiline
                                 rows={3}
                                 placeholder="Type reason here..."
@@ -368,30 +519,15 @@ export default function PayoutProcessing() {
                             <Box
                                 onClick={() => {
                                     if (!rejectionReason || rejectionReason.trim() === "") {
-                                        alert("Please enter a reason for rejection.");
+                                        setSnackbar({ open: true, message: "Please enter a reason for rejection.", severity: 'error' });
                                         return;
                                     }
-
-                                    // Store the reason for this employee
-                                    setRejectionReasons(prev => ({
-                                        ...prev,
-                                        [selectedEmployee.id]: rejectionReason
-                                    }));
-
-                                    // Mark as rejected in the row actions
-                                    setRowActions(prev => ({
-                                        ...prev,
-                                        [selectedEmployee.id]: "rejected"
-                                    }));
-
-                                    // Close the modal
-                                    setOpen(false);
+                                    handleRejectPayslip(selectedEmployee, rejectionReason);
                                 }}
                                 component="button"
                                 sx={{
-                                    display: "flex-end",
                                     fontSize: "16px",
-                                    backgroundColor: "#8b1a1a",
+                                    backgroundColor: "#D32F2F",
                                     color: "#fff",
                                     padding: "10px 0",
                                     borderRadius: "15px",
@@ -401,7 +537,7 @@ export default function PayoutProcessing() {
                                     width: "200px",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
-                                        backgroundColor: "#a32020",
+                                        backgroundColor: "#B71C1C",
                                         transform: "translateY(-2px)",
                                         boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                                     },
@@ -430,7 +566,7 @@ export default function PayoutProcessing() {
 
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                             <TextField
-                                value={rejectionReasons[selectedEmployee.id] || "No reason provided"}
+                                value={selectedEmployee.comments || "No reason provided"}
                                 InputProps={{readOnly: true}}
                                 multiline
                                 rows={4}
@@ -482,11 +618,19 @@ export default function PayoutProcessing() {
                         display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
                     }}
                 >
-                    <SearchBar placeholder="Enter Username" width="350px"/>
+                    <SearchBar 
+                        placeholder="Search employee..." 
+                        width="300px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
 
                     <FilterSelect
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
+                        options={statusFilterOptions}
+                        placeholder="Filter by Status"
+                        width={180}
                     />
 
                     <Box
@@ -509,7 +653,7 @@ export default function PayoutProcessing() {
                                         ? "rgba(255, 255, 255, 0.05)"
                                         : "rgba(255, 255, 255, 0.3)",
                                 borderRadius: "15px",
-                                width: "250px",
+                                width: "220px",
                                 fontSize: "16px",
                                 color: theme.palette.text.primary,
                                 "& .MuiSelect-select": {
@@ -532,12 +676,15 @@ export default function PayoutProcessing() {
                                 if (!selected)
                                     return (
                                         <span style={{fontSize: "16px", color: "#bdbdbd"}}>
-                                            Select Payroll Duration
+                                            Select Pay Period
                                         </span>
                                     );
                                 return selected;
                             }}
                         >
+                            <MenuItem value="">
+                                <em>All Periods</em>
+                            </MenuItem>
                             {payrollHistory.map((item) => (
                                 <MenuItem key={item.ref} value={item.duration}>
                                     {item.duration}
@@ -545,6 +692,22 @@ export default function PayoutProcessing() {
                             ))}
                         </Select>
                     </Box>
+
+                    {/* Clear filters button */}
+                    {hasActiveFilters && (
+                        <Chip
+                            label="Clear Filters"
+                            onDelete={handleClearFilters}
+                            deleteIcon={<RiCloseLine />}
+                            sx={{
+                                backgroundColor: theme.palette.primary.main,
+                                color: theme.palette.primary.contrastText,
+                                '& .MuiChip-deleteIcon': {
+                                    color: theme.palette.primary.contrastText,
+                                }
+                            }}
+                        />
+                    )}
                 </Box>
             </Box>
 
@@ -631,19 +794,24 @@ export default function PayoutProcessing() {
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
-                    {employeesProcess.map((item, index) => (
+                    {filteredEmployees.length === 0 ? (
+                        <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                            No payroll records found.
+                        </Box>
+                    ) : (
+                    filteredEmployees.map((item, index) => (
                         <Box
-                            key={index}
+                            key={item.payrollId || index}
                             sx={{
                                 marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
                             }}
                         >
                             <Checkbox
-                                checked={selectedEmployees.includes(item)}
+                                checked={selectedEmployees.some(emp => emp.payrollId === item.payrollId)}
                                 onChange={() => {
                                     setSelectedEmployees((prev) =>
-                                        prev.includes(item)
-                                            ? prev.filter((e) => e.id !== item.id)
+                                        prev.some(emp => emp.payrollId === item.payrollId)
+                                            ? prev.filter((e) => e.payrollId !== item.payrollId)
                                             : [...prev, item]
                                     );
                                 }}
@@ -679,18 +847,13 @@ export default function PayoutProcessing() {
                                 <span style={{paddingLeft: "15px", textAlign: "left"}}>{item.id}</span>
                                 <span>{item.name}</span>
                                 <span>{item.department}</span>
-                                <span>{item.earning}</span>
-                                <span>{item.deduction}</span>
-                                <span>{item.netpay}</span>
+                                <span>{item.earningDisplay}</span>
+                                <span>{item.deductionDisplay}</span>
+                                <span>{item.netpayDisplay}</span>
                                 <span
                                     style={{
                                         fontFamily: "'TTHoves-Bold', sans-serif",
-                                        color:
-                                            item.status === "Processed"
-                                                ? "#4CAF50"
-                                                : item.status === "Rejected"
-                                                    ? "#F44336"
-                                                    : "#FFC107",
+                                        color: getStatusColor(item.status),
                                         fontWeight: 500,
                                     }}
                                 >
@@ -698,14 +861,14 @@ export default function PayoutProcessing() {
                                 </span>
 
                                 <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
-                                    {!rowActions[item.id] && (
+                                    {/* Pending status - show approve/reject buttons */}
+                                    {(item.status === "Pending" || item.status === "Processing") && (
                                         <>
-                                            {/* Accept Button */}
                                             <IconButton
                                                 disableRipple
                                                 onClick={() => {
-                                                    setSelectedEmployee(item); // set the clicked employee
-                                                    setModalType("acceptPayslip"); // open the acceptPayslip modal
+                                                    setSelectedEmployee(item);
+                                                    setModalType("acceptPayslip");
                                                     setOpen(true);
                                                 }}
                                                 sx={{
@@ -726,16 +889,13 @@ export default function PayoutProcessing() {
                                                 <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
                                             </IconButton>
 
-                                            {/* Reject Button */}
                                             <IconButton
                                                 disableRipple
                                                 onClick={() => {
-                                                    if (!item) return alert("No employee selected"); // optional safety check
-
-                                                    setSelectedEmployee(item);          // set the employee for the modal
-                                                    setRejectionReason("");             // reset any previous reason
-                                                    setModalType("rejectPayslip");      // open the rejectPayslip modal
-                                                    setOpen(true);                      // show the modal
+                                                    setSelectedEmployee(item);
+                                                    setRejectionReason("");
+                                                    setModalType("rejectPayslip");
+                                                    setOpen(true);
                                                 }}
                                                 sx={{
                                                     backgroundColor: "#172224",
@@ -757,7 +917,8 @@ export default function PayoutProcessing() {
                                         </>
                                     )}
 
-                                    {rowActions[item.id] === "rejected" && (
+                                    {/* Rejected status - show view reason button */}
+                                    {item.status === "Rejected" && (
                                         <IconButton
                                             onClick={() => {
                                                 setSelectedEmployee(item);
@@ -783,60 +944,69 @@ export default function PayoutProcessing() {
                                         </IconButton>
                                     )}
 
-                                    {rowActions[item.id] === "accepted" && (
-                                        <>
-                                            <IconButton
-                                                onClick={() => {
-                                                    setSelectedEmployee(item); // set the clicked employee
-                                                    setModalType("downloadPayslip"); // open the downloadPayslip modal
-                                                    setOpen(true); // open the modal
-                                                }}
-                                                sx={{
-                                                    backgroundColor: "#172224",
+                                    {/* Approved or Released status - show download button */}
+                                    {(item.status === "Approved" || item.status === "Released" || item.status === "Processed") && (
+                                        <IconButton
+                                            onClick={() => {
+                                                setSelectedEmployee(item);
+                                                setModalType("downloadPayslip");
+                                                setOpen(true);
+                                            }}
+                                            sx={{
+                                                backgroundColor: "#172224",
+                                                color: "#fff",
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: "50%",
+                                                transition: "all 0.2s ease",
+                                                "&:hover": {
+                                                    backgroundColor: "#2E3B3D",
                                                     color: "#fff",
-                                                    width: 40,
-                                                    height: 40,
-                                                    borderRadius: "50%",
-                                                    transition: "all 0.2s ease",
-                                                    "&:hover": {
-                                                        backgroundColor: "#2E3B3D",
-                                                        color: "#fff",
-                                                        transform: "translateY(-3px)",
-                                                    },
-                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                                }}
-                                            >
-                                                <RiDownload2Line style={{fontSize: 19}}/>
-                                            </IconButton>
-                                        </>
+                                                    transform: "translateY(-3px)",
+                                                },
+                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                            }}
+                                        >
+                                            <RiDownload2Line style={{fontSize: 19}}/>
+                                        </IconButton>
                                     )}
                                 </Box>
                             </Box>
                         </Box>
-                    ))}
+                    ))
+                    )}
                 </Box>
                 )}
             </Box>
 
             <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
                 <ActionButton
-                    text="Approve Payslips"
+                    text={`Approve Payslips (${selectedEmployees.filter(e => e.status === "Pending").length})`}
                     width="200px"
+                    onClick={handleBulkApprove}
+                    disabled={selectedEmployees.filter(e => e.status === "Pending").length === 0}
                 />
                 <ActionButton
-                    text="Release Payouts"
+                    text={`Release Payouts (${selectedEmployees.filter(e => e.status === "Approved").length})`}
                     width="200px"
+                    onClick={() => {
+                        const approvedCount = selectedEmployees.filter(emp => emp.status === "Approved").length;
+                        if (approvedCount === 0) {
+                            setSnackbar({ open: true, message: 'No approved payslips to release', severity: 'warning' });
+                            return;
+                        }
+                        setModalType("releasePayouts");
+                        setOpen(true);
+                    }}
                 />
                 <ActionButton
                     onClick={() => {
-                        if (!selectedRows || selectedRows.length === 0) {
-                            alert("No employees selected. Please select at least one employee.");
+                        if (selectedEmployees.length === 0) {
+                            setSnackbar({ open: true, message: "No employees selected.", severity: 'warning' });
                             return;
                         }
-
-                        // Set the selected employees in state
-                        setSelectedEmployee(selectedRows);
-                        setModalType("sendToEmails"); // open the modal
+                        setSelectedEmployee(selectedEmployees);
+                        setModalType("sendToEmails");
                         setOpen(true);
                     }}
                     text="Send to Emails"
@@ -850,6 +1020,22 @@ export default function PayoutProcessing() {
             >
                 {renderModalCards()}
             </BoxModal>
+
+            {/* Snackbar for notifications */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert 
+                    onClose={() => setSnackbar({ ...snackbar, open: false })} 
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

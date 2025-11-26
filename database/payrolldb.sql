@@ -64,6 +64,8 @@ CREATE TABLE Payroll (
                          deductions DECIMAL(10,2),
                          net_pay DECIMAL(10,2),
                          payslip_reference_number VARCHAR(100),
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                          FOREIGN KEY (prepared_by) REFERENCES UserAccounts(user_id),
                          INDEX idx_employee (employee_id),
                          INDEX idx_pay_date (pay_date)
@@ -79,6 +81,8 @@ CREATE TABLE Requests (
                           status VARCHAR(100),
                           approved_by INT, -- References external Employee Management System
                           remarks VARCHAR(255),
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                           INDEX idx_employee (employee_id)
 );
 
@@ -310,6 +314,89 @@ INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhea
                                                                                                                                                                   (12, 2, 750.00, 400.00, 200.00, 450.00, 1800.00);
 
 -- Create user and grant privileges
-CREATE USER IF NOT EXISTS 'payrollsystem'@'%' IDENTIFIED BY 'payroll';
-GRANT ALL PRIVILEGES ON payrollmanagementsystem.* TO 'payrollsystem'@'%';
-FLUSH PRIVILEGES;
+# CREATE USER IF NOT EXISTS 'payrollsystem'@'%' IDENTIFIED BY 'payroll';
+# GRANT ALL PRIVILEGES ON payrollmanagementsystem.* TO 'payrollsystem'@'%';
+# FLUSH PRIVILEGES;
+
+-- =====================================================
+-- ADDITIONAL SAMPLE DATA FOR TIMELINE CHART
+-- =====================================================
+
+-- Add more historical payroll data for the last 3 months timeline chart
+INSERT INTO Payroll (employee_id, cutoff_start_date, cutoff_end_date, pay_date, payroll_frequency, prepared_by, basic_pay, overtime_pay, bonuses, status, comments, deductions, net_pay, payslip_reference_number) VALUES
+-- August 2025
+(1, '2025-08-16', '2025-08-31', '2025-09-05', 'Bi-Monthly', 4, 17500.00, 300.00, 500.00, 'Released', 'August payout', 2500.00, 15800.00, 'PAY-2025-08-001'),
+(2, '2025-08-16', '2025-08-31', '2025-09-05', 'Bi-Monthly', 4, 16000.00, 200.00, 300.00, 'Released', 'August payout', 1800.00, 14700.00, 'PAY-2025-08-002'),
+(3, '2025-08-16', '2025-08-31', '2025-09-05', 'Bi-Monthly', 5, 19000.00, 400.00, 800.00, 'Released', 'August payout', 2900.00, 17300.00, 'PAY-2025-08-003'),
+(4, '2025-08-16', '2025-08-31', '2025-09-05', 'Bi-Monthly', 5, 15000.00, 130.00, 200.00, 'Released', 'August payout', 1200.00, 14130.00, 'PAY-2025-08-004'),
+(5, '2025-08-16', '2025-08-31', '2025-09-05', 'Bi-Monthly', 4, 16500.00, 250.00, 400.00, 'Released', 'August payout', 2150.00, 15000.00, 'PAY-2025-08-005'),
+
+(1, '2025-08-01', '2025-08-15', '2025-08-20', 'Bi-Monthly', 4, 17500.00, 450.00, 1000.00, 'Released', 'August payout', 2500.00, 16450.00, 'PAY-2025-08-006'),
+(2, '2025-08-01', '2025-08-15', '2025-08-20', 'Bi-Monthly', 4, 16000.00, 350.00, 500.00, 'Released', 'August payout', 1800.00, 15050.00, 'PAY-2025-08-007'),
+(3, '2025-08-01', '2025-08-15', '2025-08-20', 'Bi-Monthly', 5, 19000.00, 500.00, 1200.00, 'Released', 'August payout', 2900.00, 17800.00, 'PAY-2025-08-008'),
+(4, '2025-08-01', '2025-08-15', '2025-08-20', 'Bi-Monthly', 5, 15000.00, 200.00, 300.00, 'Released', 'August payout', 1200.00, 14300.00, 'PAY-2025-08-009'),
+(5, '2025-08-01', '2025-08-15', '2025-08-20', 'Bi-Monthly', 4, 16500.00, 400.00, 600.00, 'Released', 'August payout', 2150.00, 15350.00, 'PAY-2025-08-010'),
+
+-- September 2025 - 1st Half
+(1, '2025-09-01', '2025-09-15', '2025-09-20', 'Bi-Monthly', 4, 17500.00, 200.00, 0.00, 'Released', 'September payout', 2500.00, 15200.00, 'PAY-2025-09-003'),
+(2, '2025-09-01', '2025-09-15', '2025-09-20', 'Bi-Monthly', 4, 16000.00, 140.00, 0.00, 'Released', 'September payout', 1800.00, 14340.00, 'PAY-2025-09-004'),
+(3, '2025-09-01', '2025-09-15', '2025-09-20', 'Bi-Monthly', 5, 19000.00, 320.00, 500.00, 'Released', 'September payout', 2900.00, 16920.00, 'PAY-2025-09-005'),
+(4, '2025-09-01', '2025-09-15', '2025-09-20', 'Bi-Monthly', 5, 15000.00, 0.00, 0.00, 'Released', 'September payout', 1200.00, 13800.00, 'PAY-2025-09-006'),
+(5, '2025-09-01', '2025-09-15', '2025-09-20', 'Bi-Monthly', 4, 16500.00, 145.00, 200.00, 'Released', 'September payout', 2150.00, 14695.00, 'PAY-2025-09-007');
+
+-- Add more payroll cutoff periods
+INSERT INTO PayrollCutoffs (period_name, cutoff_start_date, cutoff_end_date, pay_date, frequency, status) VALUES
+('August 2025 - 1st Half', '2025-08-01', '2025-08-15', '2025-08-20', 'Bi-Monthly', 'Released'),
+('August 2025 - 2nd Half', '2025-08-16', '2025-08-31', '2025-09-05', 'Bi-Monthly', 'Released'),
+('September 2025 - 1st Half', '2025-09-01', '2025-09-15', '2025-09-20', 'Bi-Monthly', 'Released'),
+('September 2025 - 2nd Half', '2025-09-16', '2025-09-30', '2025-10-05', 'Bi-Monthly', 'Released'),
+('October 2025 - 1st Half', '2025-10-01', '2025-10-15', '2025-10-20', 'Bi-Monthly', 'Released'),
+('October 2025 - 2nd Half', '2025-10-16', '2025-10-31', '2025-11-05', 'Bi-Monthly', 'Released');
+
+-- Add more pending requests for variety
+INSERT INTO Requests (employee_id, request_type, request_description, date_filed, status, approved_by, remarks) VALUES
+(6, 'Overtime', 'Project deadline overtime - 6 hours', '2025-11-18', 'Pending', NULL, NULL),
+(7, 'Leave', 'Medical leave - 2 days', '2025-11-19', 'Pending', NULL, NULL),
+(1, 'Reimbursement', 'Client meeting expenses - ₱3,200.00', '2025-11-20', 'Pending', NULL, NULL),
+(3, 'Bonus', 'Quarterly performance bonus request', '2025-11-15', 'Pending', NULL, NULL),
+(4, 'Leave', 'Emergency leave - 1 day', '2025-11-21', 'Approved', 9, 'Approved for emergency'),
+(5, 'Overtime', 'System maintenance - 10 hours', '2025-11-17', 'Approved', 9, 'Weekend work approved');
+
+-- Add more historical contribution deadlines
+INSERT INTO ContributionDeadlines (contribution_type, deadline_date, status, amount, remarks) VALUES
+('SSS Remittance', '2025-10-10', 'Completed', 4300.00, 'October SSS - Paid'),
+('PhilHealth', '2025-10-10', 'Completed', 1900.00, 'October PhilHealth - Paid'),
+('Pag-IBIG', '2025-10-10', 'Completed', 850.00, 'October Pag-IBIG - Paid'),
+('Withholding Tax', '2025-10-15', 'Completed', 3200.00, 'October BIR - Paid'),
+('SSS Remittance', '2025-09-10', 'Completed', 4100.00, 'September SSS - Paid'),
+('PhilHealth', '2025-09-10', 'Completed', 1850.00, 'September PhilHealth - Paid'),
+('Pag-IBIG', '2025-09-10', 'Completed', 800.00, 'September Pag-IBIG - Paid'),
+('Withholding Tax', '2025-09-15', 'Completed', 3000.00, 'September BIR - Paid');
+
+-- Add tax contributions for the additional payrolls (starting from payroll_id 16)
+INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhealth_contribution, pagibig_contribution, withholding_tax, total_contributions) VALUES
+(16, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+(17, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
+(18, 3, 850.00, 500.00, 200.00, 1350.00, 2900.00),
+(19, 4, 700.00, 350.00, 150.00, 0.00, 1200.00),
+(20, 5, 800.00, 400.00, 200.00, 750.00, 2150.00),
+(21, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+(22, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
+(23, 3, 850.00, 500.00, 200.00, 1350.00, 2900.00),
+(24, 4, 700.00, 350.00, 150.00, 0.00, 1200.00),
+(25, 5, 800.00, 400.00, 200.00, 750.00, 2150.00),
+(26, 1, 800.00, 450.00, 200.00, 1050.00, 2500.00),
+(27, 2, 750.00, 400.00, 200.00, 450.00, 1800.00),
+(28, 3, 850.00, 500.00, 200.00, 1350.00, 2900.00),
+(29, 4, 700.00, 350.00, 150.00, 0.00, 1200.00),
+(30, 5, 800.00, 400.00, 200.00, 750.00, 2150.00);
+
+-- =====================================================
+-- MIGRATION: If you already have data in the database, run these queries to add timestamp columns
+-- =====================================================
+ALTER TABLE Payroll ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE Payroll ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ALTER TABLE Requests ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE Requests ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+UPDATE Payroll SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
+UPDATE Requests SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
