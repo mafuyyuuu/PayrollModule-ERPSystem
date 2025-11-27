@@ -1,5 +1,5 @@
 import express from 'express';
-import { payrollPool } from '../../db.js'; // make sure this points to your Payroll DB
+import { payrollPool } from '../../server.js'; // CORRECTED: Importing payrollPool from server.js
 
 const router = express.Router();
 
@@ -45,7 +45,7 @@ router.put('/tax-settings/:id', async (req, res) => {
 
     try {
         await payrollPool.execute(
-            `UPDATE TaxSettings 
+            `UPDATE TaxSettings
              SET tax_type = ?, tax_rate = ?, effective_date = ?, status = ?
              WHERE tax_id = ?`,
             [tax_type, tax_rate, effective_date, status, id]
@@ -58,6 +58,7 @@ router.put('/tax-settings/:id', async (req, res) => {
 });
 
 // DELETE TAX SETTING (soft delete by setting status to 'Inactive')
+// NOTE: I am keeping your original soft delete logic here.
 router.delete('/tax-settings/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -75,7 +76,7 @@ router.delete('/tax-settings/:id', async (req, res) => {
 
 // ==================== PAY COMPONENTS ====================
 
-// GET ALL PAY COMPONENTS
+// GET ALL PAY COMPONENTS (for the table display)
 router.get('/pay-components', async (req, res) => {
     try {
         const [components] = await payrollPool.execute(
@@ -90,6 +91,7 @@ router.get('/pay-components', async (req, res) => {
 
 // ADD NEW PAY COMPONENT
 router.post('/pay-components', async (req, res) => {
+    // formula_expression and fixed_amount are optional, depending on calculation_type
     const { component_name, component_type, calculation_type, formula_expression, fixed_amount, status } = req.body;
 
     if (!component_name || !component_type || !calculation_type) {
@@ -98,10 +100,17 @@ router.post('/pay-components', async (req, res) => {
 
     try {
         await payrollPool.execute(
-            `INSERT INTO PayComponents 
+            `INSERT INTO PayComponents
              (component_name, component_type, calculation_type, formula_expression, fixed_amount, status)
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [component_name, component_type, calculation_type, formula_expression || null, fixed_amount || null, status || 'Active']
+            [
+                component_name,
+                component_type,
+                calculation_type,
+                formula_expression || null, // Insert null if not provided
+                fixed_amount || null,       // Insert null if not provided
+                status || 'Active'
+            ]
         );
         res.json({ message: 'Pay component added successfully' });
     } catch (err) {
@@ -117,10 +126,18 @@ router.put('/pay-components/:id', async (req, res) => {
 
     try {
         await payrollPool.execute(
-            `UPDATE PayComponents 
+            `UPDATE PayComponents
              SET component_name = ?, component_type = ?, calculation_type = ?, formula_expression = ?, fixed_amount = ?, status = ?
              WHERE component_id = ?`,
-            [component_name, component_type, calculation_type, formula_expression || null, fixed_amount || null, status, id]
+            [
+                component_name,
+                component_type,
+                calculation_type,
+                formula_expression || null,
+                fixed_amount || null,
+                status,
+                id
+            ]
         );
         res.json({ message: 'Pay component updated successfully' });
     } catch (err) {
@@ -129,7 +146,7 @@ router.put('/pay-components/:id', async (req, res) => {
     }
 });
 
-// DELETE PAY COMPONENT (soft delete)
+// DELETE PAY COMPONENT (soft delete by setting status to 'Inactive')
 router.delete('/pay-components/:id', async (req, res) => {
     const { id } = req.params;
 

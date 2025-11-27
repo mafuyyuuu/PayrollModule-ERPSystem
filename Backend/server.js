@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
@@ -8,6 +7,9 @@ import { fileURLToPath } from 'url';
 
 import dashboardRoutes from './admin/routes/adminDashboardRoutes.js';
 import adminAuditLogsRoutes from './admin/routes/adminAuditLogsRoutes.js';
+import { recordAuditLog } from './admin/routes/adminAuditLogsRoutes.js';
+import adminUserManagementRoutes from './admin/routes/adminUserManagementRoutes.js';
+
 
 dotenv.config();
 
@@ -17,9 +19,11 @@ app.use(express.json());
 
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminAuditLogsRoutes);
+app.use('/api/admin/users', adminUserManagementRoutes);
+
 
 // ✅ MySQL connection for Payroll System
-const payrollPool = mysql.createPool({
+export const payrollPool = mysql.createPool({ // <--- ADDED 'export'
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'root',
@@ -28,7 +32,7 @@ const payrollPool = mysql.createPool({
 });
 
 // ✅ MySQL connection for Employee Management System (via VPN)
-const employeePool = mysql.createPool({
+export const employeePool = mysql.createPool({ // <--- ADDED 'export'
     host: process.env.EMP_DB_HOST || 'localhost',
     user: process.env.EMP_DB_USER || 'payroll_vpn',
     password: process.env.EMP_DB_PASSWORD || 'vpn_payroll_2025',
@@ -78,6 +82,8 @@ app.post('/api/login', async (req, res) => {
         );
 
         if (userRows.length === 0) {
+            // ✅ ADDED: Audit log failed login
+            recordAuditLog('SYSTEM/ATTEMPT', 'LOGIN_FAILURE', `Failed login attempt for email: ${email}`);
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
@@ -149,13 +155,19 @@ app.post('/api/login', async (req, res) => {
             response.emergencyContactNumber = employeeData.emergency_contact_number;
         }
 
+        // ✅ ADDED: Audit log successful login
+        recordAuditLog(
+            user.username,
+            'USER_LOGIN',
+            `Successful login as ${response.role}`
+        );
+
         res.json(response);
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ message: 'Server error' });
     }
 });
-
 
 
 // CREATE USER ROUTE
@@ -196,6 +208,16 @@ app.post('/api/create-user', async (req, res) => {
             [employee_id || null, username, email, password, role_id, 'Active']
         );
 
+        // ✅ ADDED: Audit log user creation
+        const roleMap = { 1: 'Admin', 2: 'Manager', 3: 'Payroll', 4: 'Employee' };
+        const roleName = roleMap[role_id] || 'Unknown Role';
+
+        recordAuditLog(
+            'SYSTEM/ADMIN', // Placeholder for the creating user
+            'USER_CREATE',
+            `Created new ${roleName} account: ${username} (Emp ID: ${employee_id || 'N/A'})`
+        );
+
         res.json({ message: 'User created successfully' });
     } catch (err) {
         console.error('Error creating user:', err);
@@ -203,39 +225,38 @@ app.post('/api/create-user', async (req, res) => {
     }
 });
 
+// ==================== EMPLOYEE CRUD (CUD - Read already exists) ====================
 
-
-
-// GET ALL EMPLOYEES
+// GET ALL EMPLOYEES (READ)
 app.get('/api/employees', async (req, res) => {
     try {
         const [employees] = await employeePool.execute(
-            `SELECT 
-                e.employee_id,
-                e.employee_number,
-                CONCAT(e.first_name, ' ', IFNULL(e.middle_name, ''), ' ', e.last_name) as full_name,
-                e.first_name,
-                e.middle_name,
-                e.last_name,
-                e.date_of_birth,
-                e.sex,
-                e.civil_status,
-                e.email_address,
-                e.mobile_number,
-                CONCAT(e.street_address, ', ', e.city, ', ', e.province) as full_address,
-                e.employment_type,
-                e.employment_status,
-                e.date_hired,
-                e.sss_number,
-                e.philhealth_number,
-                e.pagibig_number,
-                e.tin_number,
-                p.position_title as position,
+            `SELECT
+                 e.employee_id,
+                 e.employee_number,
+                 CONCAT(e.first_name, ' ', IFNULL(e.middle_name, ''), ' ', e.last_name) as full_name,
+                 e.first_name,
+                 e.middle_name,
+                 e.last_name,
+                 e.date_of_birth,
+                 e.sex,
+                 e.civil_status,
+                 e.email_address,
+                 e.mobile_number,
+                 CONCAT(e.street_address, ', ', e.city, ', ', e.province) as full_address,
+                 e.employment_type,
+                 e.employment_status,
+                 e.date_hired,
+                 e.sss_number,
+                 e.philhealth_number,
+                 e.pagibig_number,
+                 e.tin_number,
+                 p.position_title as position,
                 d.department_name as department,
                 d.department_code
              FROM Employees e
-             LEFT JOIN Positions p ON e.position_id = p.position_id
-             LEFT JOIN Departments d ON e.department_id = d.department_id
+                 LEFT JOIN Positions p ON e.position_id = p.position_id
+                 LEFT JOIN Departments d ON e.department_id = d.department_id
              WHERE e.employment_status = 'Active'
              ORDER BY e.employee_id`
         );
@@ -248,8 +269,7 @@ app.get('/api/employees', async (req, res) => {
 });
 
 
-
-// GET SINGLE EMPLOYEE BY ID
+// GET SINGLE EMPLOYEE BY ID (READ)
 app.get('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -286,7 +306,143 @@ app.get('/api/employees/:id', async (req, res) => {
     }
 });
 
-// GET DEPARTMENTS
+// ADD NEW EMPLOYEE (CREATE)
+app.post('/api/employees', async (req, res) => {
+    const {
+        employee_number, first_name, middle_name, last_name, suffix, date_of_birth, sex, civil_status,
+        nationality, religion, email_address, mobile_number, street_address, city,
+        province, postal_code, country, position_id, department_id, employment_type,
+        employment_status, date_hired, date_regularized, sss_number, philhealth_number,
+        pagibig_number, tin_number
+    } = req.body;
+
+    if (!employee_number || !first_name || !last_name || !position_id || !department_id || !date_hired) {
+        return res.status(400).json({ message: 'Missing required employee fields.' });
+    }
+
+    try {
+        const sql = `
+            INSERT INTO Employees (
+                employee_number, first_name, middle_name, last_name, suffix, date_of_birth, sex, civil_status,
+                nationality, religion, email_address, mobile_number, street_address, city,
+                province, postal_code, country, position_id, department_id, employment_type,
+                employment_status, date_hired, date_regularized, sss_number, philhealth_number,
+                pagibig_number, tin_number
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const values = [
+            employee_number, first_name, middle_name, last_name, suffix, date_of_birth, sex, civil_status,
+            nationality, religion, email_address, mobile_number, street_address, city,
+            province, postal_code, country, position_id, department_id, employment_type,
+            employment_status || 'Pending', date_hired, date_regularized || null, sss_number, philhealth_number,
+            pagibig_number, tin_number
+        ];
+
+        const [result] = await employeePool.execute(sql, values);
+        const newEmployeeId = result.insertId;
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'EMPLOYEE_CREATE',
+            `Created new Employee ID: ${newEmployeeId} (${first_name} ${last_name})`
+        );
+
+        res.status(201).json({ message: 'Employee added successfully.', id: newEmployeeId });
+    } catch (err) {
+        console.error('Error adding employee:', err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ message: 'Employee number already exists.', error: err.message });
+        }
+        res.status(500).json({ message: 'Failed to add employee.', error: err.message });
+    }
+});
+
+// UPDATE EMPLOYEE DETAILS (UPDATE)
+app.put('/api/employees/:id', async (req, res) => {
+    const { id } = req.params;
+    const {
+        first_name, middle_name, last_name, suffix, date_of_birth, sex, civil_status,
+        nationality, religion, email_address, mobile_number, street_address, city,
+        province, postal_code, country, position_id, department_id, employment_type,
+        employment_status, date_hired, date_regularized, date_separated,
+        sss_number, philhealth_number, pagibig_number, tin_number
+    } = req.body;
+
+    if (!first_name || !last_name || !position_id || !department_id) {
+        return res.status(400).json({ message: 'Missing required employee fields.' });
+    }
+
+    try {
+        const sql = `
+            UPDATE Employees SET
+                first_name = ?, middle_name = ?, last_name = ?, suffix = ?, date_of_birth = ?,
+                sex = ?, civil_status = ?, nationality = ?, religion = ?, email_address = ?,
+                mobile_number = ?, street_address = ?, city = ?, province = ?, postal_code = ?,
+                country = ?, position_id = ?, department_id = ?, employment_type = ?,
+                employment_status = ?, date_hired = ?, date_regularized = ?, date_separated = ?,
+                sss_number = ?, philhealth_number = ?, pagibig_number = ?, tin_number = ?
+            WHERE employee_id = ?
+        `;
+        const values = [
+            first_name, middle_name, last_name, suffix, date_of_birth, sex, civil_status,
+            nationality, religion, email_address, mobile_number, street_address, city,
+            province, postal_code, country, position_id, department_id, employment_type,
+            employment_status, date_hired, date_regularized, date_separated,
+            sss_number, philhealth_number, pagibig_number, tin_number, id
+        ];
+
+        const [result] = await employeePool.execute(sql, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Employee not found.' });
+        }
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'EMPLOYEE_UPDATE',
+            `Updated details for Employee ID: ${id} (${first_name} ${last_name})`
+        );
+
+        res.json({ message: 'Employee updated successfully.' });
+    } catch (err) {
+        console.error('Error updating employee:', err);
+        res.status(500).json({ message: 'Failed to update employee.', error: err.message });
+    }
+});
+
+// DELETE EMPLOYEE (DELETE)
+app.delete('/api/employees/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Delete dependent records first to satisfy Foreign Key constraints
+        await employeePool.execute(`DELETE FROM EmergencyContacts WHERE employee_id = ?`, [id]);
+        await employeePool.execute(`DELETE FROM EducationalBackground WHERE employee_id = ?`, [id]);
+        await employeePool.execute(`DELETE FROM WorkExperience WHERE employee_id = ?`, [id]);
+
+        // Delete the main employee record
+        const [result] = await employeePool.execute(`DELETE FROM Employees WHERE employee_id = ?`, [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Employee not found.' });
+        }
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'EMPLOYEE_DELETE',
+            `Deleted Employee ID: ${id}`
+        );
+
+        res.json({ message: 'Employee and related records deleted successfully.' });
+    } catch (err) {
+        console.error('Error deleting employee:', err);
+        res.status(500).json({ message: 'Failed to delete employee.', error: err.message });
+    }
+});
+
+// ==================== DEPARTMENT CRUD (CUD) ====================
+
+// GET DEPARTMENTS (READ)
 app.get('/api/departments', async (req, res) => {
     try {
         const [departments] = await employeePool.execute(
@@ -299,7 +455,104 @@ app.get('/api/departments', async (req, res) => {
     }
 });
 
-// GET POSITIONS
+// ADD NEW DEPARTMENT (CREATE)
+app.post('/api/departments', async (req, res) => {
+    const { department_name, department_code, description } = req.body;
+
+    if (!department_name || !department_code) {
+        return res.status(400).json({ message: 'Department name and code are required.' });
+    }
+
+    try {
+        await employeePool.execute(
+            `INSERT INTO Departments (department_name, department_code, description) VALUES (?, ?, ?)`,
+            [department_name, department_code, description]
+        );
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'DEPARTMENT_CREATE',
+            `Created department: ${department_name} (${department_code})`
+        );
+
+        res.status(201).json({ message: 'Department added successfully.' });
+    } catch (err) {
+        console.error('Error adding department:', err);
+        res.status(500).json({ message: 'Failed to add department.', error: err.message });
+    }
+});
+
+// UPDATE DEPARTMENT (UPDATE)
+app.put('/api/departments/:id', async (req, res) => {
+    const { id } = req.params;
+    const { department_name, department_code, description } = req.body;
+
+    if (!department_name || !department_code) {
+        return res.status(400).json({ message: 'Department name and code are required.' });
+    }
+
+    try {
+        const [result] = await employeePool.execute(
+            `UPDATE Departments SET department_name = ?, department_code = ?, description = ? WHERE department_id = ?`,
+            [department_name, department_code, description, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Department not found.' });
+        }
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'DEPARTMENT_UPDATE',
+            `Updated Department ID: ${id} to ${department_name}`
+        );
+
+        res.json({ message: 'Department updated successfully.' });
+    } catch (err) {
+        console.error('Error updating department:', err);
+        res.status(500).json({ message: 'Failed to update department.', error: err.message });
+    }
+});
+
+// DELETE DEPARTMENT (DELETE)
+app.delete('/api/departments/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // IMPORTANT: Check for dependent positions/employees before deletion!
+        const [positionCount] = await employeePool.execute(
+            `SELECT COUNT(*) as count FROM Positions WHERE department_id = ?`,
+            [id]
+        );
+        if (positionCount[0].count > 0) {
+            return res.status(400).json({ message: 'Cannot delete department: Positions are currently linked to it.' });
+        }
+
+        const [result] = await employeePool.execute(
+            `DELETE FROM Departments WHERE department_id = ?`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Department not found.' });
+        }
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'DEPARTMENT_DELETE',
+            `Deleted Department ID: ${id}`
+        );
+
+        res.json({ message: 'Department deleted successfully.' });
+    } catch (err) {
+        console.error('Error deleting department:', err);
+        res.status(500).json({ message: 'Failed to delete department.', error: err.message });
+    }
+});
+
+// ==================== POSITION CRUD (CUD) ====================
+
+// GET POSITIONS (READ)
 app.get('/api/positions', async (req, res) => {
     try {
         const [positions] = await employeePool.execute(
@@ -314,6 +567,105 @@ app.get('/api/positions', async (req, res) => {
         res.status(500).json({ message: 'Error fetching positions', error: err.message });
     }
 });
+
+// ADD NEW POSITION (CREATE)
+app.post('/api/positions', async (req, res) => {
+    const { position_title, department_id, salary_grade, min_salary, max_salary } = req.body;
+
+    if (!position_title || !department_id) {
+        return res.status(400).json({ message: 'Position title and department ID are required.' });
+    }
+
+    try {
+        await employeePool.execute(
+            `INSERT INTO Positions (position_title, department_id, salary_grade, min_salary, max_salary) VALUES (?, ?, ?, ?, ?)`,
+            [position_title, department_id, salary_grade, min_salary, max_salary]
+        );
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'POSITION_CREATE',
+            `Created position: ${position_title} (Dept ID: ${department_id})`
+        );
+
+        res.status(201).json({ message: 'Position added successfully.' });
+    } catch (err) {
+        console.error('Error adding position:', err);
+        res.status(500).json({ message: 'Failed to add position.', error: err.message });
+    }
+});
+
+// UPDATE POSITION (UPDATE)
+app.put('/api/positions/:id', async (req, res) => {
+    const { id } = req.params;
+    const { position_title, department_id, salary_grade, min_salary, max_salary } = req.body;
+
+    if (!position_title || !department_id) {
+        return res.status(400).json({ message: 'Position title and department ID are required.' });
+    }
+
+    try {
+        const [result] = await employeePool.execute(
+            `UPDATE Positions SET position_title = ?, department_id = ?, salary_grade = ?, min_salary = ?, max_salary = ? WHERE position_id = ?`,
+            [position_title, department_id, salary_grade, min_salary, max_salary, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Position not found.' });
+        }
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'POSITION_UPDATE',
+            `Updated Position ID: ${id} to ${position_title}`
+        );
+
+        res.json({ message: 'Position updated successfully.' });
+    } catch (err) {
+        console.error('Error updating position:', err);
+        res.status(500).json({ message: 'Failed to update position.', error: err.message });
+    }
+});
+
+// DELETE POSITION (DELETE)
+app.delete('/api/positions/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // IMPORTANT: Check for dependent employees before deletion!
+        const [employeeCount] = await employeePool.execute(
+            `SELECT COUNT(*) as count FROM Employees WHERE position_id = ?`,
+            [id]
+        );
+        if (employeeCount[0].count > 0) {
+            return res.status(400).json({ message: 'Cannot delete position: Employees are currently linked to it.' });
+        }
+
+        const [result] = await employeePool.execute(
+            `DELETE FROM Positions WHERE position_id = ?`,
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Position not found.' });
+        }
+
+        recordAuditLog(
+            req.body.currentUser || 'SYSTEM/ADMIN',
+            'POSITION_DELETE',
+            `Deleted Position ID: ${id}`
+        );
+
+        res.json({ message: 'Position deleted successfully.' });
+    } catch (err) {
+        console.error('Error deleting position:', err);
+        res.status(500).json({ message: 'Failed to delete position.', error: err.message });
+    }
+});
+
+
+
+// ==================== PAYROLL & REQUEST ROUTES (UNCHANGED) ====================
 
 // GET PAYROLL DASHBOARD STATS
 app.get('/api/payroll/dashboard-stats', async (req, res) => {
@@ -377,20 +729,20 @@ app.get('/api/payroll', async (req, res) => {
         const [payrolls] = await payrollPool.execute(
             `SELECT p.*, u.username as prepared_by_name
              FROM Payroll p
-             LEFT JOIN UserAccounts u ON p.prepared_by = u.user_id
+                      LEFT JOIN UserAccounts u ON p.prepared_by = u.user_id
              ORDER BY p.pay_date DESC, p.employee_id`
         );
 
         const enrichedPayrolls = await Promise.all(payrolls.map(async (payroll) => {
             try {
                 const [empRows] = await employeePool.execute(
-                    `SELECT 
-                        CONCAT(e.first_name, ' ', e.last_name) as employee_name,
-                        p.position_title as position,
+                    `SELECT
+                         CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+                         p.position_title as position,
                         d.department_name as department
                      FROM Employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
-                     LEFT JOIN Departments d ON e.department_id = d.department_id
+                         LEFT JOIN Positions p ON e.position_id = p.position_id
+                         LEFT JOIN Departments d ON e.department_id = d.department_id
                      WHERE e.employee_id = ?`,
                     [payroll.employee_id]
                 );
@@ -479,11 +831,23 @@ app.get('/api/pending-requests', async (req, res) => {
 // APPROVE PENDING REQUEST
 app.put('/api/pending-requests/:id/approve', async (req, res) => {
     const { id } = req.params;
+
+    // NOTE: You should get the user_name of the admin/manager from the request (e.g., JWT)
+    const approver_name = 'ADMIN_USER'; // Placeholder
+
     try {
         await payrollPool.execute(
             `UPDATE PendingRequests SET status = 'Approved' WHERE request_id = ?`,
             [id]
         );
+
+        // ✅ ADDED: Audit log request approval
+        recordAuditLog(
+            approver_name,
+            'REQUEST_APPROVED',
+            `Approved pending request ID: ${id}`
+        );
+
         res.json({ success: true, message: 'Request approved' });
     } catch (error) {
         console.error('Error approving request:', error);
@@ -494,11 +858,23 @@ app.put('/api/pending-requests/:id/approve', async (req, res) => {
 // REJECT PENDING REQUEST
 app.put('/api/pending-requests/:id/reject', async (req, res) => {
     const { id } = req.params;
+
+    // NOTE: You should get the user_name of the admin/manager from the request (e.g., JWT)
+    const rejecter_name = 'ADMIN_USER'; // Placeholder
+
     try {
         await payrollPool.execute(
             `UPDATE PendingRequests SET status = 'Rejected' WHERE request_id = ?`,
             [id]
         );
+
+        // ✅ ADDED: Audit log request rejection
+        recordAuditLog(
+            rejecter_name,
+            'REQUEST_REJECTED',
+            `Rejected pending request ID: ${id}`
+        );
+
         res.json({ success: true, message: 'Request rejected' });
     } catch (error) {
         console.error('Error rejecting request:', error);
@@ -537,7 +913,7 @@ app.get('/api/tax-contributions', async (req, res) => {
         try {
             const [monthly] = await payrollPool.execute(
                 `SELECT DATE_FORMAT(pay_date, '%b') as month, SUM(total_deductions) as total_contributions
-                 FROM Payroll 
+                 FROM Payroll
                  WHERE YEAR(pay_date) = YEAR(NOW())
                  GROUP BY MONTH(pay_date)
                  ORDER BY MONTH(pay_date)`
@@ -588,10 +964,10 @@ app.get('/api/timesheets', async (req, res) => {
         const enrichedTimesheets = await Promise.all(timesheets.map(async (timesheet) => {
             try {
                 const [empRows] = await employeePool.execute(
-                    `SELECT CONCAT(first_name, ' ', last_name) as employee_name, 
+                    `SELECT CONCAT(first_name, ' ', last_name) as employee_name,
                             p.position_title as position
                      FROM Employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
+                         LEFT JOIN Positions p ON e.position_id = p.position_id
                      WHERE e.employee_id = ?`,
                     [timesheet.employee_id]
                 );
@@ -637,5 +1013,3 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
-
-export { payrollPool, employeePool };

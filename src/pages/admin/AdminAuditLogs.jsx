@@ -8,15 +8,57 @@ export default function AdminAuditLogs() {
     const theme = useTheme();
     const [logs, setLogs] = useState([]);
     const [search, setSearch] = useState("");
+    const [isLoading, setIsLoading] = useState(true); // 💡 ADDED: Loading state
+    const [hasError, setHasError] = useState(false); // 💡 ADDED: Error state
 
     const fetchLogs = async (query = "") => {
+        setIsLoading(true);
+        setHasError(false);
         try {
             const res = await axios.get("/api/admin/audit-logs", { params: { search: query } });
+
+            // 💡 DEBUG: Log the received data to confirm records exist on the client side
+            console.log("✅ Audit Logs API Response Data:", res.data);
+
+            // Ensure logs are an array before setting state
             setLogs(res.data.logs || []);
         } catch (err) {
-            console.error("Error fetching audit logs:", err);
+            console.error("❌ Error fetching audit logs:", err);
             setLogs([]);
+            setHasError(true);
+        } finally {
+            setIsLoading(false);
         }
+    };
+
+    /**
+     * Helper function to format the MySQL datetime string ('YYYY-MM-DD HH:i:s')
+     * into a readable local time string consistently across browsers.
+     */
+    const formatLogDate = (dateString) => {
+        if (!dateString) return "N/A";
+
+        // 💡 FIX: Replace space with 'T' to create a quasi-ISO string for reliable Date parsing
+        const isoString = dateString.replace(' ', 'T');
+        const date = new Date(isoString);
+
+        // Check if the date is valid
+        if (isNaN(date.getTime())) {
+            return dateString; // Return original string if parsing fails
+        }
+
+        const options = {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        };
+
+        // Use toLocaleString for a single, consistent, and readable output.
+        return date.toLocaleString('en-US', options);
     };
 
     useEffect(() => {
@@ -43,8 +85,10 @@ export default function AdminAuditLogs() {
                         width="350px"
                         onChange={(e) => {
                             setSearch(e.target.value);
+                            // Fetches logs on every key stroke
                             fetchLogs(e.target.value);
                         }}
+                        value={search}
                     />
                 </Box>
             </Box>
@@ -61,15 +105,16 @@ export default function AdminAuditLogs() {
                     display: "flex",
                     flexDirection: "column",
                     "&:hover": {
-                        transform: "scale(1.02)",
+                        transform: "scale(1.005)",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
+                {/* Header Row */}
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gridTemplateColumns: "1.2fr 1fr 1fr 1.8fr",
                         color: theme.palette.text.primary,
                         fontWeight: 700,
                         p: "8px 0",
@@ -81,51 +126,70 @@ export default function AdminAuditLogs() {
                         zIndex: 10,
                     }}
                 >
-                    <span>Date</span>
+                    <span>Date / Time</span>
                     <span>User</span>
                     <span>Action</span>
                     <span>Description</span>
                 </Box>
 
+                {/* Log Entries Container */}
                 <Box
                     sx={{
                         maxHeight: "530px",
                         overflowY: "auto",
-                        "&::-webkit-scrollbar": { width: 0, height: 0 },
-                        scrollbarWidth: "none",
-                        msOverflowStyle: "none",
+                        "&::-webkit-scrollbar": { width: "4px", height: "4px" },
+                        "&::-webkit-scrollbar-thumb": {
+                            backgroundColor: theme.palette.divider,
+                            borderRadius: '2px'
+                        },
                         mt: "8px",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
-                    {logs.map((log, index) => (
-                        <Box
-                            key={index}
-                            sx={{
-                                marginTop: "10px",
-                                display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
-                                alignItems: "center",
-                                bgcolor: "#fff",
-                                color: "#1b2223",
-                                borderRadius: "8px",
-                                width: "100%",
-                                minHeight: "83px",
-                                transition: "all 0.3s ease",
-                                "&:hover": {
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                },
-                                textAlign: "center",
-                                padding: "8px",
-                            }}
-                        >
-                            <span>{log.date}</span>
-                            <span>{log.user_name}</span>
-                            <span>{log.action}</span>
-                            <span>{log.description}</span>
-                        </Box>
-                    ))}
+                    {/* 💡 RENDER LOGIC WITH LOADING AND ERROR STATES */}
+                    {isLoading ? (
+                        <Typography sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
+                            Loading audit logs...
+                        </Typography>
+                    ) : hasError ? (
+                        <Typography sx={{ textAlign: 'center', mt: 4, color: 'error.main' }}>
+                            Failed to load audit logs. Check the server connection and API path.
+                        </Typography>
+                    ) : logs.length === 0 ? (
+                        <Typography sx={{ textAlign: 'center', mt: 4, color: theme.palette.text.secondary }}>
+                            No audit logs found.
+                        </Typography>
+                    ) : (
+                        logs.map((log, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    marginTop: "10px",
+                                    display: "grid",
+                                    gridTemplateColumns: "1.2fr 1fr 1fr 1.8fr",
+                                    alignItems: "center",
+                                    bgcolor: "#fff",
+                                    color: "#1b2223",
+                                    borderRadius: "8px",
+                                    width: "100%",
+                                    minHeight: "83px",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    },
+                                    textAlign: "center",
+                                    padding: "8px",
+                                    wordBreak: "break-word",
+                                }}
+                            >
+                                <span>{formatLogDate(log.date)}</span>
+                                <span>{log.user_name}</span>
+                                <span>{log.action}</span>
+                                <span style={{ padding: '0 10px' }}>{log.description}</span>
+                            </Box>
+                        ))
+                    )}
                 </Box>
             </Box>
         </Box>
