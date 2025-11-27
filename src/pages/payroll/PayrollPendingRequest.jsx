@@ -3,12 +3,13 @@ import {
     Typography,
     useTheme,
     IconButton,
-    TextField
+    TextField,
+    Chip
 } from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import React, {useState, useEffect} from "react";
-import {RiCheckFill, RiCloseFill, RiDownload2Line, RiEyeFill} from "react-icons/ri";
+import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 import {exportToCSV} from "../../utils/pdfGenerator.js";
 import BoxModal from "../../components/BoxModal.jsx";
@@ -29,42 +30,59 @@ export default function PayrollPendingRequest() {
     const [error, setError] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({open: false, action: null, requestId: null});
 
-    // Fetch pending requests
-    useEffect(() => {
-        const fetchPendingRequests = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/pending-requests');
+    // Check if any filter is active
+    const hasActiveFilters = filter || searchTerm;
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch pending requests');
-                }
+    // Clear all filters
+    const handleClearFilters = () => {
+        setFilter("");
+        setSearchTerm("");
+    };
 
-                const data = await response.json();
-                console.log('✅ Pending requests:', data);
+    // Fetch pending requests function
+    const fetchPendingRequests = async () => {
+        try {
+            setLoading(true);
+            // Fetch ALL requests, not just pending - let frontend filter
+            const response = await fetch('http://localhost:8080/api/payroll/pending-requests?showAll=true');
 
-                const transformedData = data.map(request => ({
-                    type: request.request_type || "Overtime",
-                    employee: request.employee_name || `Employee ${request.employee_id}`,
-                    date: new Date(request.date_filed).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    }),
-                    amount: request.request_description || "N/A",
-                    status: request.status || "Pending",
-                    requestId: request.request_id
-                }));
-
-                setEmployeeRequests(transformedData);
-                setFilteredRequests(transformedData);
-                setLoading(false);
-            } catch (_err) {
-                console.error('❌ Error fetching pending requests:', _err);
-                setError(_err.message);
-                setLoading(false);
+            if (!response.ok) {
+                throw new Error('Failed to fetch pending requests');
             }
-        };
 
+            const data = await response.json();
+            console.log('✅ All requests:', data);
+
+            const transformedData = data.map(request => ({
+                type: request.request_type || "Overtime",
+                employee: request.employee_name || `Employee ${request.employee_id}`,
+                date: new Date(request.date_filed).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                }),
+                rawDate: new Date(request.date_filed), // For sorting
+                updatedAt: request.updated_at ? new Date(request.updated_at) : new Date(request.date_filed),
+                amount: request.request_description || "N/A",
+                status: request.status || "Pending",
+                requestId: request.request_id,
+                rejectReason: request.remarks || ""
+            }))
+            // Sort by most recent updated_at first (when processed), fallback to date_filed
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+
+            setEmployeeRequests(transformedData);
+            setFilteredRequests(transformedData);
+            setLoading(false);
+        } catch (_err) {
+            console.error('❌ Error fetching pending requests:', _err);
+            setError(_err.message);
+            setLoading(false);
+        }
+    };
+
+    // Fetch on mount
+    useEffect(() => {
         fetchPendingRequests();
     }, []);
 
@@ -113,23 +131,32 @@ export default function PayrollPendingRequest() {
         const {action, requestId} = confirmDialog;
         try {
             const endpoint = action === 'approve' ? 'approve' : 'reject';
-            const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}/${endpoint}`, {
+            console.log(`📝 ${action}ing request ${requestId}...`);
+            
+            const response = await fetch(`http://localhost:8080/api/payroll/pending-requests/${requestId}/${endpoint}`, {
                 method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    approved_by: 1, 
+                    remarks: action === 'approve' ? 'Approved' : (rejectType || 'Rejected')
+                })
             });
 
+            const data = await response.json();
+            
             if (response.ok) {
-                // Update the local state instead of reloading
-                setEmployeeRequests(prev =>
-                    prev.map(req =>
-                        req.requestId === requestId
-                            ? {...req, status: action === 'approve' ? 'Approved' : 'Rejected'}
-                            : req
-                    )
-                );
+                console.log(`✅ Request ${requestId} ${action}d successfully:`, data);
+                // Refetch to ensure data consistency from database
+                await fetchPendingRequests();
                 closeConfirmDialog();
+                setRejectType(""); // Clear reject reason
+            } else {
+                console.error(`❌ Failed to ${action} request:`, data);
+                alert(`Failed to ${action} request: ${data.error || 'Unknown error'}`);
             }
         } catch (_err) {
-            console.error(`Error ${action}ing request:`, _err);
+            console.error(`❌ Error ${action}ing request:`, _err);
+            alert(`Error ${action}ing request. Please check if the server is running.`);
         }
     };
 
@@ -194,35 +221,54 @@ export default function PayrollPendingRequest() {
 
                         <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
-                                onClick={() => {
+                                onClick={async () => {
                                     if (currentAction === "approve") {
-                                        // Approve logic
-                                        setEmployeeRequests(prev =>
-                                            prev.map(req =>
-                                                req.requestId === currentRequestId
-                                                    ? {...req, status: "Approved"} // triggers Pencil icon
-                                                    : req
-                                            )
-                                        );
+                                        // Call API to approve
+                                        try {
+                                            const response = await fetch(`http://localhost:8080/api/payroll/pending-requests/${currentRequestId}/approve`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ approved_by: 1, remarks: 'Approved' })
+                                            });
+                                            
+                                            if (response.ok) {
+                                                console.log('✅ Request approved successfully');
+                                                await fetchPendingRequests(); // Refresh data from DB
+                                            } else {
+                                                console.error('❌ Failed to approve request');
+                                                alert('Failed to approve request');
+                                            }
+                                        } catch (err) {
+                                            console.error('❌ Error approving request:', err);
+                                            alert('Error approving request');
+                                        }
                                         setIsModalOpen(false);
                                     } else if (currentAction === "reject") {
                                         // Reject logic - only if reason entered
                                         if (!rejectType.trim()) {
-                                            alert("Please enter a reason."); // user feedback
+                                            alert("Please enter a reason.");
                                             return;
                                         }
 
-                                        setEmployeeRequests(prev =>
-                                            prev.map(req =>
-                                                req.requestId === currentRequestId
-                                                    ? {
-                                                        ...req,
-                                                        status: "Rejected",
-                                                        rejectReason: rejectType // save reason in the row
-                                                    }
-                                                    : req
-                                            )
-                                        );
+                                        // Call API to reject
+                                        try {
+                                            const response = await fetch(`http://localhost:8080/api/payroll/pending-requests/${currentRequestId}/reject`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ approved_by: 1, remarks: rejectType })
+                                            });
+                                            
+                                            if (response.ok) {
+                                                console.log('✅ Request rejected successfully');
+                                                await fetchPendingRequests(); // Refresh data from DB
+                                            } else {
+                                                console.error('❌ Failed to reject request');
+                                                alert('Failed to reject request');
+                                            }
+                                        } catch (err) {
+                                            console.error('❌ Error rejecting request:', err);
+                                            alert('Error rejecting request');
+                                        }
 
                                         setRejectType(""); // clear input
                                         setIsModalOpen(false);
@@ -385,8 +431,8 @@ export default function PayrollPendingRequest() {
                     }}
                 >
                     <SearchBar
-                        placeholder="Enter Username"
-                        width="350px"
+                        placeholder="Search employee..."
+                        width="300px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -398,6 +444,22 @@ export default function PayrollPendingRequest() {
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
+
+                    {/* Clear filters button */}
+                    {hasActiveFilters && (
+                        <Chip
+                            label="Clear Filters"
+                            onDelete={handleClearFilters}
+                            deleteIcon={<RiCloseLine />}
+                            sx={{
+                                backgroundColor: theme.palette.primary.main,
+                                color: theme.palette.primary.contrastText,
+                                '& .MuiChip-deleteIcon': {
+                                    color: theme.palette.primary.contrastText,
+                                }
+                            }}
+                        />
+                    )}
                 </Box>
             </Box>
 
