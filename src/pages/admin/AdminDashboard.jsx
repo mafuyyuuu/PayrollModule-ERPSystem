@@ -12,11 +12,14 @@ const AdminDashboard = () => {
     const [processedPayouts, setProcessedPayouts] = useState(0);
     const [pendingPayouts, setPendingPayouts] = useState(0);
     const [upcomingSchedule, setUpcomingSchedule] = useState("Loading...");
+    const [dashboardNotifications, setDashboardNotifications] = useState([]);
 
-    // === FETCH DATA FROM BACKEND ===
+
+    // === FETCH DATA ===
     useEffect(() => {
         const fetchData = async () => {
             try {
+
                 const emp = await axios.get("http://localhost:8080/api/dashboard/total-employees");
                 const released = await axios.get("http://localhost:8080/api/dashboard/processed-payouts");
                 const pending = await axios.get("http://localhost:8080/api/dashboard/pending-payouts");
@@ -26,21 +29,18 @@ const AdminDashboard = () => {
                 setProcessedPayouts(released.data.total || 0);
                 setPendingPayouts(pending.data.total || 0);
                 setUpcomingSchedule(schedule.data.schedule || "No schedule");
+
+                const notifs = await axios.get("http://localhost:8080/api/dashboard/recent-activity-notifications");
+                setDashboardNotifications(notifs.data.notifications || []);
+
             } catch (error) {
-                console.log("Dashboard loading error:", error);
+                console.error("Dashboard loading error:", error);
             }
         };
 
         fetchData();
     }, []);
 
-    // === UI NOTIFICATIONS (static for now) ===
-    const notifications = [
-        { title: "Payroll Updated", message: "The payroll for October 2025 has been successfully processed." },
-        { title: "System Maintenance", message: "Scheduled maintenance will occur on November 15, 2025, from 12 AM to 2 AM." },
-        { title: "New Employee Added", message: "A new employee has been successfully added to the HR database." },
-        { title: "Policy Reminder", message: "Please review the updated attendance policy by November 20, 2025." },
-    ];
 
     return (
         <Box
@@ -53,6 +53,7 @@ const AdminDashboard = () => {
                 fontFamily: theme.typography.fontFamily,
             }}
         >
+
             {/* === DASHBOARD CARDS === */}
             <Box
                 display="grid"
@@ -149,46 +150,52 @@ const AdminDashboard = () => {
                         msOverflowStyle: "none",
                     }}
                 >
-                    {notifications.map((notif, index) => (
-                        <Box
-                            key={index}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                bgcolor: "#fff",
-                                p: 2,
-                                borderRadius: "10px",
-                                border: `1px solid ${theme.palette.divider}`,
-                                backdropFilter: "blur(12px)",
-                                transition: "all 0.3s ease",
-                                "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" },
-                            }}
-                        >
-                            <h3
-                                style={{
-                                    fontSize: "20px",
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#1b2223",
-                                    margin: "0 0 5px 0",
-                                    paddingLeft: "8px",
+                    {dashboardNotifications.length > 0 ? (
+                        dashboardNotifications.map((notif, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    width: "100%",
+                                    bgcolor: "#fff",
+                                    p: 2,
+                                    borderRadius: "10px",
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    backdropFilter: "blur(12px)",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" },
                                 }}
                             >
-                                {notif.title}
-                            </h3>
-                            <p
-                                style={{
-                                    fontSize: "16px",
-                                    lineHeight: 1.4,
-                                    color: "#333",
-                                    margin: 0,
-                                    paddingLeft: "8px",
-                                }}
-                            >
-                                {notif.message}
-                            </p>
-                        </Box>
-                    ))}
+                                <h3
+                                    style={{
+                                        fontSize: "20px",
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        color: "#1b2223",
+                                        margin: "0 0 5px 0",
+                                        paddingLeft: "8px",
+                                    }}
+                                >
+                                    {notif.title}
+                                </h3>
+                                <p
+                                    style={{
+                                        fontSize: "16px",
+                                        lineHeight: 1.4,
+                                        color: "#333",
+                                        margin: 0,
+                                        paddingLeft: "8px",
+                                    }}
+                                >
+                                    {notif.message}
+                                </p>
+                            </Box>
+                        ))
+                    ) : (
+                        <p style={{ textAlign: 'center', color: theme.palette.text.secondary, padding: '20px' }}>
+                            No recent system activity records found.
+                        </p>
+                    )}
                 </Box>
             </Box>
         </Box>

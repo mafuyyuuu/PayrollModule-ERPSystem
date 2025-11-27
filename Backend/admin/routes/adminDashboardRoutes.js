@@ -1,15 +1,13 @@
-// backend/admin/routes/adminDashboardRoutes.js
 import express from 'express';
-import { payrollDB, hrDB } from '../../db.js'; // must match your backend/db.js exports
+import { payrollPool, employeePool } from '../../server.js';
 
 const router = express.Router();
 
-// -----------------------------
-// DEBUG: SHOW SAMPLE EMPLOYEES
-// -----------------------------
+// Sample employees
+
 router.get('/debug/employees-sample', async (req, res) => {
     try {
-        const [rows] = await hrDB.execute(
+        const [rows] = await employeePool.execute(
             `SELECT employee_id, employee_number, first_name, last_name, employment_status, date_hired
              FROM Employees
              ORDER BY employee_id
@@ -22,12 +20,11 @@ router.get('/debug/employees-sample', async (req, res) => {
     }
 });
 
-// -----------------------------
-// DEBUG: SHOW SAMPLE PAYROLLS
-// -----------------------------
+// Sample payrolls
+
 router.get('/debug/payroll-sample', async (req, res) => {
     try {
-        const [rows] = await payrollDB.execute(
+        const [rows] = await payrollPool.execute(
             `SELECT payroll_id, employee_id, cutoff_start_date, cutoff_end_date, pay_date, status, net_pay
              FROM Payroll
              ORDER BY pay_date DESC
@@ -40,12 +37,11 @@ router.get('/debug/payroll-sample', async (req, res) => {
     }
 });
 
-// ==========================
-// TOTAL EMPLOYEES (EMS ONLY)
-// ==========================
+// Total Employees
+
 router.get('/total-employees', async (req, res) => {
     try {
-        const [rows] = await hrDB.execute(
+        const [rows] = await employeePool.execute(
             `SELECT COUNT(*) AS total FROM Employees WHERE employment_status = 'Active'`
         );
         res.json({ total: rows[0]?.total || 0 });
@@ -55,13 +51,12 @@ router.get('/total-employees', async (req, res) => {
     }
 });
 
-// ==========================
-// PROCESSED PAYOUTS (Payroll only)
-// ==========================
+
+// Processed Payouts
+
 router.get('/processed-payouts', async (req, res) => {
     try {
-        // include 'Processed' because your sample inserts use that status.
-        const [rows] = await payrollDB.execute(
+        const [rows] = await payrollPool.execute(
             `SELECT COALESCE(SUM(net_pay), 0) AS total
              FROM Payroll
              WHERE status IN ('Processed', 'Completed', 'Paid', 'Released')`
@@ -73,12 +68,11 @@ router.get('/processed-payouts', async (req, res) => {
     }
 });
 
-// ==========================
-// PENDING PAYOUTS (Payroll only)
-// ==========================
+// Pending Payouts
+
 router.get('/pending-payouts', async (req, res) => {
     try {
-        const [rows] = await payrollDB.execute(
+        const [rows] = await payrollPool.execute(
             `SELECT COALESCE(SUM(net_pay), 0) AS total
              FROM Payroll
              WHERE status IN ('Pending', 'Processing')`
@@ -90,22 +84,19 @@ router.get('/pending-payouts', async (req, res) => {
     }
 });
 
-// ==========================
-// UPCOMING PAYROLL SCHEDULE (exact semi-monthly date)
-// ==========================
+// Payroll Schedule (Pure js)
+
 router.get('/upcoming-schedule', async (req, res) => {
     try {
         const today = new Date();
         const year = today.getFullYear();
-        const month = today.getMonth(); // 0-indexed
+        const month = today.getMonth();
 
         let nextPayDate;
 
         if (today.getDate() <= 15) {
-            // Next pay date is the 15th of this month
             nextPayDate = new Date(year, month, 15);
         } else {
-            // Next pay date is the 30th of this month
             nextPayDate = new Date(year, month, 30);
         }
 
@@ -122,5 +113,39 @@ router.get('/upcoming-schedule', async (req, res) => {
 });
 
 
+// Notification (Based sa audit logs muna)
+router.get('/recent-activity-notifications', async (req, res) => {
+    try {
+        const [logRows] = await payrollPool.execute(
+            `SELECT date, user_name, action, description
+             FROM AuditLogs
+             ORDER BY date DESC
+             LIMIT 4`
+        );
+
+            const notifications = logRows.map(row => {
+            const logDate = new Date(row.date);
+            const formattedTime = logDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+            const formattedDate = logDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+            });
+
+            return {
+
+                title: `${row.action} by ${row.user_name}`,
+                message: `${formattedDate} at ${formattedTime}: ${row.description}`,
+            };
+        });
+
+        res.json({ notifications });
+    } catch (err) {
+        console.error('Error fetching recent activity notifications:', err);
+        res.status(500).json({ notifications: [] });
+    }
+});
 
 export default router;
