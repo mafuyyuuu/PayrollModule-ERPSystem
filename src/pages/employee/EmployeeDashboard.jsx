@@ -34,7 +34,7 @@ const EmployeeDashboard = () => {
         pendingSalary: null,
         SalaryRelease: null
     });
-    const [setDashboardLoading] = useState(true);
+    const [dashboardLoading, setDashboardLoading] = useState(true);
 
     // State for leave data
     const [leaveBalances, setLeaveBalances] = useState([]);
@@ -50,25 +50,26 @@ const EmployeeDashboard = () => {
     useEffect(() => {
         fetchDashboardData();
         fetchLeaveBalances();
-    }, [user?. employeeId]);
+    }, [user?.employeeId]);
 
     // Fetch dashboard card data
     const fetchDashboardData = async () => {
-        if (!user?.employeeId) {
+        if (!user?. employeeId) {
             setDashboardLoading(false);
             return;
         }
 
         try {
+            // ✅ Updated URL to match employeeRoutes.js
             const response = await fetch(
-                `http://localhost:8080/api/employees/${user. employeeId}/dashboard`
+                `http://localhost:8080/api/employee/dashboard/${user.employeeId}`
             );
             if (response.ok) {
-                const data = await response.json();
+                const data = await response. json();
                 setDashboardData({
-                    upcomingDisbursement: data.upcomingDisbursement,
-                    pendingSalary: data.pendingSalary,
-                    SalaryRelease: data.SalaryRelease
+                    upcomingDisbursement: data.latestPayslip?.pay_date || null,
+                    pendingSalary: data. latestPayslip?.net_pay || null,
+                    SalaryRelease: data.latestPayslip?.net_pay || null
                 });
             }
         } catch (error) {
@@ -78,30 +79,40 @@ const EmployeeDashboard = () => {
         }
     };
 
-
+    // ✅ Updated URL to match employeeRoutes.js
     const fetchLeaveBalances = async () => {
-        if (!user?.employeeId) {
+        console.log('🔍 User object:', user);  // Debug log
+        console.log('🔍 Employee ID:', user?. employeeId);  // Debug log
+
+        if (!user?. employeeId) {
+            console.log('❌ No employeeId found! ');  // Debug log
             setLoading(false);
             return;
         }
 
         try {
-            const response = await fetch(
-                `http://localhost:8080/api/employees/${user.employeeId}/leave-balances`
-            );
+            const url = `http://localhost:8080/api/employee/leave-balances/${user.employeeId}`;
+            console.log('🔍 Fetching from:', url);  // Debug log
+
+            const response = await fetch(url);
+            console.log('🔍 Response status:', response.status);  // Debug log
+
             if (response.ok) {
                 const data = await response.json();
+                console.log('✅ Leave balances data:', data);  // Debug log
                 setLeaveBalances(data);
+            } else {
+                console.log('❌ Response not OK:', await response.text());
             }
         } catch (error) {
-            console.error('Error fetching leave balances:', error);
+            console.error('❌ Error fetching leave balances:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const openFromPicker = () => fromRef.current?.showPicker();
-    const openToPicker = () => toRef. current?.showPicker();
+    const openFromPicker = () => fromRef.current?. showPicker();
+    const openToPicker = () => toRef.current?. showPicker();
 
     // Format currency
     const formatCurrency = (amount) => {
@@ -114,13 +125,23 @@ const EmployeeDashboard = () => {
 
     // Format date
     const formatDate = (dateString) => {
-        if (! dateString) return "—";
+        if (!dateString) return "—";
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
             year: 'numeric'
         });
+    };
+
+    // ✅ Calculate days between dates
+    const calculateDays = (start, end) => {
+        if (!start || !end) return 0;
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math. abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return diffDays;
     };
 
     // Handle leave submission
@@ -144,21 +165,23 @@ const EmployeeDashboard = () => {
         setMessage({ text: '', type: '' });
 
         try {
-            const response = await fetch('http://localhost:8080/api/leave-requests', {
+            // ✅ Updated URL to match employeeRoutes.js
+            const response = await fetch('http://localhost:8080/api/employee/leave-requests', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    employee_id: user. employeeId,
+                    employee_id: user.employeeId,
                     leave_type_id: selectedLeaveType,
                     start_date: fromDate,
                     end_date: toDate,
+                    total_days: calculateDays(fromDate, toDate),
                     reason: reason
                 })
             });
 
-            const data = await response.json();
+            const data = await response. json();
 
-            if (response. ok) {
+            if (response.ok) {
                 setMessage({ text: 'Leave request submitted successfully! ', type: 'success' });
                 // Reset form
                 setSelectedLeaveType(null);
@@ -168,7 +191,7 @@ const EmployeeDashboard = () => {
                 // Refresh leave balances
                 fetchLeaveBalances();
             } else {
-                setMessage({ text: data.message || 'Failed to submit leave request', type: 'error' });
+                setMessage({ text: data.error || 'Failed to submit leave request', type: 'error' });
             }
         } catch (error) {
             console.error('Error submitting leave:', error);
@@ -191,23 +214,36 @@ const EmployeeDashboard = () => {
                 }}
                 gap="20px"
             >
-                <DashboardCard
-                    icon="ri-group-line"
-                    title="Upcoming Disbursement"
-                    value={formatDate(dashboardData.upcomingDisbursement)}
-                />
-                <DashboardCard
-                    icon="ri-hand-coin-line"
-                    title="Pending Salary"
-                    value={formatCurrency(dashboardData.pendingSalary)}
-                    showHideButton
-                />
-                <DashboardCard
-                    icon="ri-timer-line"
-                    title="Salary Release"
-                    value={formatCurrency(dashboardData.SalaryRelease)}
-                    showHideButton
-                />
+                {dashboardLoading ? (
+
+                    <>
+                        {[1, 2, 3]. map((i) => (
+                            <Box key={i} display="flex" justifyContent="center" alignItems="center" height="120px">
+                                <CircularProgress size={24} />
+                            </Box>
+                        ))}
+                    </>
+                ) : (
+                    <>
+                        <DashboardCard
+                            icon="ri-group-line"
+                            title="Upcoming Disbursement"
+                            value={formatDate(dashboardData. upcomingDisbursement)}
+                        />
+                        <DashboardCard
+                            icon="ri-hand-coin-line"
+                            title="Pending Salary"
+                            value={formatCurrency(dashboardData.pendingSalary)}
+                            showHideButton
+                        />
+                        <DashboardCard
+                            icon="ri-timer-line"
+                            title="Salary Release"
+                            value={formatCurrency(dashboardData.SalaryRelease)}
+                            showHideButton
+                        />
+                    </>
+                )}
             </Box>
 
             {/* MAIN CONTENT AREA */}
@@ -228,11 +264,11 @@ const EmployeeDashboard = () => {
                     sx={{
                         backgroundColor:
                             theme. palette.mode === "dark"
-                                ? "rgba(255, 255, 255, 0.05)"
+                                ? "rgba(255, 255, 255, 0. 05)"
                                 : "rgba(255, 255, 255, 0. 2)",
                         fontFamily: theme.typography.fontFamily,
                         color: theme.palette. text.primary,
-                        border: `1px solid ${theme. palette.divider}`,
+                        border: `1px solid ${theme.palette. divider}`,
                         transition: "all 0.3s ease",
                         "&:hover": {
                             transform: "scale(1.02)",
@@ -310,9 +346,9 @@ const EmployeeDashboard = () => {
                                 p: "10px",
                                 borderRadius: "8px",
                                 backgroundColor: message.type === 'success'
-                                    ?  'rgba(76, 175, 80, 0.1)'
-                                    : 'rgba(244, 67, 54, 0. 1)',
-                                color: message.type === 'success' ? '#4caf50' : '#f44336',
+                                    ?  'rgba(76, 175, 80, 0. 1)'
+                                    : 'rgba(244, 67, 54, 0.1)',
+                                color: message.type === 'success' ?  '#4caf50' : '#f44336',
                                 fontSize: '14px',
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
                             }}
@@ -331,7 +367,7 @@ const EmployeeDashboard = () => {
                     >
                         {/* Leave Types - FROM DATABASE */}
                         <Box display="flex" flexDirection="column" gap="10px">
-                            {loading ? (
+                            {loading ?  (
                                 <Box display="flex" justifyContent="center" p={2}>
                                     <CircularProgress size={24} />
                                 </Box>
@@ -349,7 +385,7 @@ const EmployeeDashboard = () => {
                                                     ? theme.palette.mode === "dark"
                                                         ?  "rgba(58, 79, 80, 0.5)"
                                                         : "rgba(58, 79, 80, 0.15)"
-                                                    : theme.palette.background. default,
+                                                    : theme.palette.background.default,
                                             borderRadius: "10px",
                                             p: "12px 16px",
                                             cursor: "pointer",
@@ -432,13 +468,13 @@ const EmployeeDashboard = () => {
                                             "& input::-webkit-calendar-picker-indicator": {
                                                 display: "none",
                                             },
-                                            "& . MuiOutlinedInput-notchedOutline": {
+                                            "& .MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
-                                            "&:hover . MuiOutlinedInput-notchedOutline": {
+                                            "&:hover .MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
-                                            "&. Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                            "&. Mui-focused . MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
                                         },
@@ -463,7 +499,7 @@ const EmployeeDashboard = () => {
                                     inputRef={toRef}
                                     type="date"
                                     value={toDate}
-                                    onChange={(e) => setToDate(e.target.value)}
+                                    onChange={(e) => setToDate(e. target.value)}
                                     fullWidth
                                     variant="outlined"
                                     InputProps={{
@@ -477,18 +513,17 @@ const EmployeeDashboard = () => {
                                         sx: {
                                             height: "45px",
                                             borderRadius: "25px",
-                                            backgroundColor:
-                                            theme.palette.background. default,
+                                            backgroundColor: theme.palette. background.default,
                                             "& input::-webkit-calendar-picker-indicator": {
                                                 display: "none",
                                             },
                                             "& .MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
-                                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                            "&:hover . MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
-                                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                            "&. Mui-focused . MuiOutlinedInput-notchedOutline": {
                                                 border: "none",
                                             },
                                         },
@@ -520,10 +555,9 @@ const EmployeeDashboard = () => {
                                 variant="outlined"
                                 sx={{
                                     borderRadius: "12px",
-                                    backgroundColor:
-                                    theme.palette.background.default,
-                                    "& . MuiInputBase-input": {
-                                        color: theme.palette.text. primary,
+                                    backgroundColor: theme.palette. background.default,
+                                    "& .MuiInputBase-input": {
+                                        color: theme.palette. text.primary,
                                     },
                                     "& .MuiOutlinedInput-notchedOutline": {
                                         border: "none",
@@ -546,7 +580,7 @@ const EmployeeDashboard = () => {
                                 "&:hover": {
                                     backgroundColor:
                                         theme.palette.mode === "dark"
-                                            ? "rgba(255, 255, 255, 0. 1)"
+                                            ? "rgba(255, 255, 255, 0.1)"
                                             : "#1f2f31",
                                 },
                                 "&:disabled": {

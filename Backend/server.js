@@ -5,6 +5,8 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import payrollRoutes from './routes/payrollRoutes.js';
+import employeeRoutes from './routes/employeeRoutes.js'
 
 dotenv.config();
 
@@ -52,6 +54,10 @@ const __dirname = path.dirname(__filename);
 
 // ==================== API ROUTES (MUST BE BEFORE STATIC FILES) ====================
 
+// Import payroll and employee routes
+app.use('/api/payroll', payrollRoutes);
+app.use('/api/employee', employeeRoutes);
+
 // LOGIN ROUTE
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
@@ -89,7 +95,6 @@ app.post('/api/login', async (req, res) => {
                          e.date_of_birth,
                          e.sex,
                          e.civil_status,
-                         e.nationality,
                          e.street_address,
                          e.city,
                          e.province,
@@ -138,7 +143,6 @@ app.post('/api/login', async (req, res) => {
             response.birthday = employeeData.date_of_birth;
             response.sex = employeeData.sex;
             response.maritalStatus = employeeData.civil_status;
-            response.nationality = employeeData.nationality;
             response.address = `${employeeData.street_address}, ${employeeData.city}, ${employeeData.province}`;
             response.contactNumber = employeeData.mobile_number;
             response.emergencyContactName = employeeData.emergency_contact_name;
@@ -197,7 +201,6 @@ app.post('/api/create-user', async (req, res) => {
     }
 });
 
-
 // GET ALL EMPLOYEES
 app.get('/api/employees', async (req, res) => {
     try {
@@ -214,7 +217,6 @@ app.get('/api/employees', async (req, res) => {
                 e.civil_status,
                 e.email_address,
                 e.mobile_number,
-                e.nationality,
                 CONCAT(e.street_address, ', ', e.city, ', ', e.province) as full_address,
                 e.employment_type,
                 e.employment_status,
@@ -277,195 +279,6 @@ app.get('/api/employees/:id', async (req, res) => {
     }
 });
 
-// =====================================================
-// LEAVE MANAGEMENT ROUTES
-// =====================================================
-
-// GET LEAVE TYPES
-app.get('/api/leave-types', async (req, res) => {
-    try {
-        const [leaveTypes] = await employeePool.execute(
-            `SELECT * FROM LeaveTypes ORDER BY leave_type_id`
-        );
-        res.json(leaveTypes);
-    } catch (err) {
-        console.error('Error fetching leave types:', err);
-        res. status(500).json({ message: 'Error fetching leave types', error: err.message });
-    }
-});
-
-// GET EMPLOYEE LEAVE BALANCES
-app.get('/api/employees/:id/leave-balances', async (req, res) => {
-    const { id } = req.params;
-    const year = req.query. year || new Date().getFullYear();
-
-    try {
-        const [balances] = await employeePool.execute(
-            `SELECT 
-                lb.balance_id,
-                lb.employee_id,
-                lt.leave_type_id,
-                lt.leave_type_name,
-                lb.year,
-                lb. total_days,
-                lb.used_days,
-                lb.remaining_days
-             FROM LeaveBalances lb
-             JOIN LeaveTypes lt ON lb.leave_type_id = lt.leave_type_id
-             WHERE lb.employee_id = ?  AND lb.year = ? 
-             ORDER BY lt.leave_type_id`,
-            [id, year]
-        );
-        res.json(balances);
-    } catch (err) {
-        console.error('Error fetching leave balances:', err);
-        res.status(500). json({ message: 'Error fetching leave balances', error: err.message });
-    }
-});
-
-// GET EMPLOYEE DASHBOARD DATA
-app.get('/api/employees/:id/dashboard', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        let lastPayroll = null;
-        let pendingPayroll = null;
-        let upcomingDisbursement = null;
-
-        // Get last released payroll for this employee
-        // Table: Payroll (in payrollmanagementsystem)
-        // Status: 'Released' means already paid
-        const [lastPay] = await payrollPool.execute(
-            `SELECT 
-                payroll_id,
-                pay_date,
-                net_pay,
-                basic_pay,
-                overtime_pay,
-                bonuses,
-                deductions,
-                status,
-                payslip_reference_number
-             FROM Payroll 
-             WHERE employee_id = ?  AND status = 'Released'
-             ORDER BY pay_date DESC
-             LIMIT 1`,
-            [id]
-        );
-        if (lastPay. length > 0) {
-            lastPayroll = lastPay[0];
-        }
-
-        // Get pending/processing payroll for this employee
-        // Table: Payroll
-        // Status: 'Pending' or 'Processing' means not yet paid
-        const [pending] = await payrollPool.execute(
-            `SELECT 
-                payroll_id,
-                pay_date,
-                net_pay,
-                basic_pay,
-                status
-             FROM Payroll 
-             WHERE employee_id = ? AND status IN ('Pending', 'Processing', 'Processed')
-             ORDER BY pay_date DESC
-             LIMIT 1`,
-            [id]
-        );
-        if (pending.length > 0) {
-            pendingPayroll = pending[0];
-        }
-
-        // Get upcoming disbursement date
-        // Table: PayrollCutoffs
-        // Get next pay_date that is in the future
-        const [upcoming] = await payrollPool.execute(
-            `SELECT 
-                cutoff_id,
-                period_name,
-                cutoff_start_date,
-                cutoff_end_date,
-                pay_date,
-                status
-             FROM PayrollCutoffs 
-             WHERE pay_date >= CURDATE()
-             ORDER BY pay_date ASC
-             LIMIT 1`
-        );
-        if (upcoming.length > 0) {
-            upcomingDisbursement = upcoming[0]. pay_date;
-        }
-
-        // If no pending payroll, get salary from SalaryDetails table
-        let baseSalary = null;
-        if (! pendingPayroll) {
-            const [salaryDetails] = await payrollPool.execute(
-                `SELECT basic_rate FROM SalaryDetails WHERE employee_id = ?  LIMIT 1`,
-                [id]
-            );
-            if (salaryDetails.length > 0) {
-                baseSalary = salaryDetails[0].basic_rate;
-            }
-        }
-
-        res.json({
-            upcomingDisbursement: upcomingDisbursement,
-            pendingSalary: pendingPayroll ?  pendingPayroll.net_pay : baseSalary,
-            pendingStatus: pendingPayroll ? pendingPayroll.status : null,
-            SalaryRelease: lastPayroll ? lastPayroll.net_pay : null,
-            lastPayDate: lastPayroll ? lastPayroll.pay_date : null,
-            lastPayslipRef: lastPayroll ? lastPayroll.payslip_reference_number : null
-        });
-
-    } catch (err) {
-        console.error('Error fetching employee dashboard:', err);
-        res.status(500).json({ message: 'Error fetching dashboard data', error: err.message });
-    }
-});
-
-// SUBMIT LEAVE REQUEST
-app.post('/api/leave-requests', async (req, res) => {
-    const { employee_id, leave_type_id, start_date, end_date, reason } = req.body;
-
-    // Calculate total days
-    const start = new Date(start_date);
-    const end = new Date(end_date);
-    const total_days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-    try {
-        // Check if employee has enough leave balance
-        const [balances] = await employeePool.execute(
-            `SELECT remaining_days FROM LeaveBalances 
-             WHERE employee_id = ? AND leave_type_id = ? AND year = YEAR(?)`,
-            [employee_id, leave_type_id, start_date]
-        );
-
-        if (balances.length === 0 || balances[0].remaining_days < total_days) {
-            return res. status(400).json({ message: 'Insufficient leave balance' });
-        }
-
-        // Insert leave request
-        await employeePool.execute(
-            `INSERT INTO LeaveRequests (employee_id, leave_type_id, start_date, end_date, total_days, reason)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [employee_id, leave_type_id, start_date, end_date, total_days, reason]
-        );
-
-        // Update the used_days in LeaveBalances
-        await employeePool. execute(
-            `UPDATE LeaveBalances 
-             SET used_days = used_days + ?
-             WHERE employee_id = ? AND leave_type_id = ? AND year = YEAR(?)`,
-            [total_days, employee_id, leave_type_id, start_date]
-        );
-
-        res.json({ message: 'Leave request submitted successfully' });
-    } catch (err) {
-        console.error('Error submitting leave request:', err);
-        res. status(500).json({ message: 'Error submitting leave request', error: err. message });
-    }
-});
-
 // GET DEPARTMENTS
 app.get('/api/departments', async (req, res) => {
     try {
@@ -495,282 +308,11 @@ app.get('/api/positions', async (req, res) => {
     }
 });
 
-// GET PAYROLL DASHBOARD STATS
-app.get('/api/payroll/dashboard-stats', async (req, res) => {
-    try {
-        console.log('📊 Fetching dashboard stats...');
+// Note: Dashboard stats, payroll, cutoffs, pending-requests, tax-contributions, etc.
+// are now handled by payrollRoutes.js mounted at /api/payroll
+// See: Backend/routes/payrollRoutes.js
 
-        const [totalEmployees] = await employeePool.execute(
-            `SELECT COUNT(*) as count FROM Employees WHERE employment_status = "Active"`
-        );
-        console.log('Total Employees:', totalEmployees[0].count);
-
-        let processedCount = 0;
-        let pendingCount = 0;
-        let upcomingDate = null;
-
-        try {
-            const [processedPayouts] = await payrollPool.execute(
-                `SELECT COUNT(*) as count FROM Payroll WHERE status IN ("Completed", "Paid", "Released")`
-            );
-            processedCount = processedPayouts[0].count;
-        } catch (err) {
-            console.log('⚠️ Payroll table may not exist yet');
-        }
-
-        try {
-            const [pendingPayouts] = await payrollPool.execute(
-                `SELECT COUNT(*) as count FROM Payroll WHERE status IN ("Pending", "Processing")`
-            );
-            pendingCount = pendingPayouts[0].count;
-        } catch (err) {
-            console.log('⚠️ Payroll table may not exist yet');
-        }
-
-        try {
-            const [upcomingSchedule] = await payrollPool.execute(
-                `SELECT payout_date FROM Payroll WHERE status = "Scheduled" AND payout_date > NOW() ORDER BY payout_date ASC LIMIT 1`
-            );
-            upcomingDate = upcomingSchedule[0]?.payout_date;
-        } catch (err) {
-            console.log('⚠️ No upcoming schedule');
-        }
-
-        const stats = {
-            totalEmployees: totalEmployees[0].count || 0,
-            processedPayouts: processedCount,
-            pendingPayouts: pendingCount,
-            upcomingSchedule: upcomingDate
-        };
-
-        console.log('✅ Sending stats:', stats);
-        res.json(stats);
-    } catch (error) {
-        console.error('❌ Error fetching dashboard stats:', error);
-        res.status(500).json({ error: 'Failed to fetch dashboard statistics', details: error.message });
-    }
-});
-
-// GET PAYROLL RECORDS
-app.get('/api/payroll', async (req, res) => {
-    try {
-        const [payrolls] = await payrollPool.execute(
-            `SELECT p.*, u.username as prepared_by_name
-             FROM Payroll p
-             LEFT JOIN UserAccounts u ON p.prepared_by = u.user_id
-             ORDER BY p.pay_date DESC, p.employee_id`
-        );
-
-        const enrichedPayrolls = await Promise.all(payrolls.map(async (payroll) => {
-            try {
-                const [empRows] = await employeePool.execute(
-                    `SELECT 
-                        CONCAT(e.first_name, ' ', e.last_name) as employee_name,
-                        p.position_title as position,
-                        d.department_name as department
-                     FROM Employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
-                     LEFT JOIN Departments d ON e.department_id = d.department_id
-                     WHERE e.employee_id = ?`,
-                    [payroll.employee_id]
-                );
-
-                if (empRows.length > 0) {
-                    return {
-                        ...payroll,
-                        employee_name: empRows[0].employee_name,
-                        position: empRows[0].position,
-                        department: empRows[0].department
-                    };
-                }
-            } catch (empErr) {
-                console.error(`Error fetching employee ${payroll.employee_id}:`, empErr);
-            }
-
-            return {
-                ...payroll,
-                employee_name: `Employee ID: ${payroll.employee_id}`,
-                position: 'N/A',
-                department: 'N/A'
-            };
-        }));
-
-        res.json(enrichedPayrolls);
-    } catch (err) {
-        console.error('Error fetching payroll:', err);
-        res.status(500).json({ message: 'Error fetching payroll data', error: err.message });
-    }
-});
-
-// GET CUTOFF PERIODS
-app.get('/api/cutoffs', async (req, res) => {
-    try {
-        const [cutoffs] = await payrollPool.execute(
-            `SELECT * FROM PayrollCutoffs ORDER BY cutoff_start_date DESC`
-        );
-        res.json(cutoffs);
-    } catch (err) {
-        console.error('Error fetching cutoffs:', err);
-        res.status(500).json({ message: 'Error fetching cutoff periods', error: err.message });
-    }
-});
-
-// GET PENDING REQUESTS
-app.get('/api/pending-requests', async (req, res) => {
-    try {
-        console.log('📋 Fetching pending requests...');
-
-        try {
-            const [requests] = await payrollPool.execute(
-                `SELECT * FROM Requests WHERE status = 'Pending' ORDER BY date_filed DESC`
-            );
-
-            const enrichedRequests = await Promise.all(requests.map(async (request) => {
-                try {
-                    const [empRows] = await employeePool.execute(
-                        `SELECT CONCAT(first_name, ' ', last_name) as employee_name
-                         FROM Employees WHERE employee_id = ?`,
-                        [request.employee_id]
-                    );
-
-                    return {
-                        ...request,
-                        employee_name: empRows[0]?.employee_name || `Employee ${request.employee_id}`
-                    };
-                } catch (empErr) {
-                    return {
-                        ...request,
-                        employee_name: `Employee ${request.employee_id}`
-                    };
-                }
-            }));
-
-            res.json(enrichedRequests);
-        } catch (tableErr) {
-            console.log('⚠️ Requests table may not exist, returning empty array');
-            res.json([]);
-        }
-    } catch (error) {
-        console.error('❌ Error fetching pending requests:', error);
-        res.status(500).json({ error: 'Failed to fetch pending requests', details: error.message });
-    }
-});
-
-// APPROVE PENDING REQUEST
-app.put('/api/pending-requests/:id/approve', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await payrollPool.execute(
-            `UPDATE Requests SET status = 'Approved' WHERE request_id = ?`,
-            [id]
-        );
-        res.json({ success: true, message: 'Request approved' });
-    } catch (error) {
-        console.error('Error approving request:', error);
-        res.status(500).json({ error: 'Failed to approve request' });
-    }
-});
-
-// REJECT PENDING REQUEST
-app.put('/api/pending-requests/:id/reject', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await payrollPool.execute(
-            `UPDATE Requests SET status = 'Rejected' WHERE request_id = ?`,
-            [id]
-        );
-        res.json({ success: true, message: 'Request rejected' });
-    } catch (error) {
-        console.error('Error rejecting request:', error);
-        res.status(500).json({ error: 'Failed to reject request' });
-    }
-});
-
-// GET PAYROLL REPORTS
-app.get('/api/payroll-reports', async (req, res) => {
-    try {
-        console.log('📊 Fetching payroll reports...');
-
-        try {
-            const [reports] = await payrollPool.execute(
-                `SELECT * FROM Payroll WHERE status IN ('Released', 'Completed', 'Paid') ORDER BY pay_date DESC LIMIT 50`
-            );
-            res.json(reports);
-        } catch (tableErr) {
-            console.log('⚠️ Payroll table may not exist, returning empty array');
-            res.json([]);
-        }
-    } catch (error) {
-        console.error('❌ Error fetching reports:', error);
-        res.status(500).json({ error: 'Failed to fetch reports', details: error.message });
-    }
-});
-
-// GET TAX CONTRIBUTIONS
-app.get('/api/tax-contributions', async (req, res) => {
-    try {
-        console.log('💰 Fetching tax contributions...');
-
-        let monthlyData = [];
-        let upcomingDeadlines = [];
-        let summaryData = {};
-
-        // Get monthly contribution totals from TaxContributions table
-        try {
-            const [monthly] = await payrollPool.execute(
-                `SELECT 
-                    DATE_FORMAT(p.pay_date, '%b') as month,
-                    MONTH(p.pay_date) as month_num,
-                    SUM(tc.sss_contribution) as sss,
-                    SUM(tc.philhealth_contribution) as philhealth,
-                    SUM(tc.pagibig_contribution) as pagibig,
-                    SUM(tc.withholding_tax) as tax,
-                    SUM(tc.total_contributions) as total_contributions
-                 FROM TaxContributions tc
-                 JOIN Payroll p ON tc.payroll_id = p.payroll_id
-                 WHERE YEAR(p.pay_date) = YEAR(NOW())
-                 GROUP BY MONTH(p.pay_date), DATE_FORMAT(p.pay_date, '%b')
-                 ORDER BY month_num`
-            );
-            monthlyData = monthly;
-        } catch (err) {
-            console.log('⚠️ Could not fetch monthly data:', err.message);
-        }
-
-        // Get upcoming deadlines
-        try {
-            const [deadlines] = await payrollPool.execute(
-                `SELECT * FROM ContributionDeadlines ORDER BY deadline_date ASC LIMIT 10`
-            );
-            upcomingDeadlines = deadlines;
-        } catch (err) {
-            console.log('⚠️ Could not fetch deadlines:', err.message);
-        }
-
-        // Get contribution summary
-        try {
-            const [summary] = await payrollPool.execute(
-                `SELECT 
-                    SUM(sss_contribution) as total_sss,
-                    SUM(philhealth_contribution) as total_philhealth,
-                    SUM(pagibig_contribution) as total_pagibig,
-                    SUM(withholding_tax) as total_tax,
-                    SUM(total_contributions) as grand_total
-                 FROM TaxContributions`
-            );
-            summaryData = summary[0] || {};
-        } catch (err) {
-            console.log('⚠️ Could not fetch summary');
-        }
-
-        res.json({ monthlyData, upcomingDeadlines, summaryData });
-    } catch (error) {
-        console.error('❌ Error fetching tax data:', error);
-        res.status(500).json({ error: 'Failed to fetch tax data', details: error.message });
-    }
-});
-
-// GET TIMESHEETS
+// GET TIMESHEETS (legacy route - keep for now)
 app.get('/api/timesheets', async (req, res) => {
     const { employee_id, start_date, end_date } = req.query;
 
