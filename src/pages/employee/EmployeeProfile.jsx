@@ -1,24 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Box,
     Typography,
     Button,
     useTheme,
+    CircularProgress,
 } from "@mui/material";
 import banner from "../../assets/banner.jpg";
 import finn from "../../assets/finn.png";
 import { useUser } from "../../components/UserContext";
 import ViewTextField from "../../components/ViewTextField.jsx";
 
-
 export default function EmployeeProfileLayout() {
     const theme = useTheme();
     const { user } = useUser();
-    const nameEmail = {
-        name: user.name,
-        email: user.email,
-    };
     const [activeTab, setActiveTab] = useState("personal");
+
+    // State for profile data from API
+    const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch profile data from employeeRoutes API
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (! user?. employeeId) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/employee/profile/${user.employeeId}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Profile data:', data);
+                    setProfile(data);
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, [user?.employeeId]);
+
+    // Show loading
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    // Use profile from API, fallback to user context
+    const displayData = profile || user || {};
 
     return (
         <Box
@@ -26,10 +65,12 @@ export default function EmployeeProfileLayout() {
             gridTemplateColumns={{ xs: "1fr", md: "320px 1fr" }}
             gap="30px"
             p="0 20px"
-            sx={{ height: "100%",
+            sx={{
+                height: "100%",
                 "&::-webkit-scrollbar": { width: 0, height: 0 },
                 scrollbarWidth: "none",
-                msOverflowStyle: "none",}}
+                msOverflowStyle: "none",
+            }}
         >
             {/* LEFT PANEL */}
             <Box
@@ -44,7 +85,7 @@ export default function EmployeeProfileLayout() {
                     flexDirection: "column",
                     alignItems: "center",
                     textAlign: "center",
-                    border: `1px solid ${theme.palette.divider}`,
+                    border: `1px solid ${theme.palette. divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -58,10 +99,10 @@ export default function EmployeeProfileLayout() {
                         width: "100%",
                         height: "110px",
                         borderRadius: "15px 15px 0 0",
-                        backgroundImage: `url(${banner})`,   // <--- replace with your header image
+                        backgroundImage: `url(${banner})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
-                        marginBottom: "-90px",   // pulls the profile photo upward like your design
+                        marginBottom: "-90px",
                     }}
                 />
 
@@ -86,92 +127,82 @@ export default function EmployeeProfileLayout() {
                             objectFit: "cover",
                             border: `6px solid ${
                                 theme.palette.mode === "dark"
-                                    ? "rgb(35,45,47)"
+                                    ?  "rgb(35,45,47)"
                                     : "rgb(218,219,219)"
                             }`,
                             position: "relative",
-                            top: "-50px",  // makes the circle overlap the header just like your screenshot
+                            top: "-50px",
                         }}
                     />
                 </Box>
 
                 <Box display="flex" flexDirection="column" marginTop="-30px">
-                <Typography variant="h4" sx={{ fontWeight: 600, fontFamily: "'TTHoves-Bold', sans-serif",}}>
-                    {nameEmail.name}
-                </Typography>
-                <Typography
-                    variant="body2"
-                    sx={{ color: theme.palette.text.secondary, fontFamily: "'TTHoves-Regular', sans-serif", }}
-                >
-                    {nameEmail.email}
-                </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 600, fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                        {displayData.name || `${displayData.firstName || ''} ${displayData.lastName || ''}`}
+                    </Typography>
+                    <Typography
+                        variant="body2"
+                        sx={{ color: theme.palette.text.secondary, fontFamily: "'TTHoves-Regular', sans-serif" }}
+                    >
+                        {displayData.email}
+                    </Typography>
                 </Box>
 
                 <Box display="flex" flexDirection="column" width="280px" justifyItems="center" alignContent="center">
-                {/* Navigation Buttons */}
-                <Button
-                    fullWidth
-                    onClick={() => setActiveTab("personal")}
-                    sx={{
-                        fontWeight: "bold",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        mt: 4,
-                        padding: "10px",
-                        borderRadius: "12px",
-                        backgroundColor:
-                            activeTab === "personal"
-                                ? "rgb(166,170,178, 0.3)"
-                                : "transparent",
-                        color:
-                            activeTab === "personal"
-                                ? theme.palette.text.primary
-                                : theme.palette.text.primary,
+                    {/* Navigation Buttons */}
+                    <Button
+                        fullWidth
+                        onClick={() => setActiveTab("personal")}
+                        sx={{
+                            fontWeight: "bold",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            mt: 4,
+                            padding: "10px",
+                            borderRadius: "12px",
+                            backgroundColor:
+                                activeTab === "personal"
+                                    ? "rgb(166,170,178, 0.3)"
+                                    : "transparent",
+                            color: theme.palette.text.primary,
+                            justifyContent: "flex-start",
+                            paddingLeft: "43px",
+                            textTransform: "none",
+                            fontSize: "16px",
+                            "&:hover": {
+                                backgroundColor: "rgb(166,170,178)"
+                            },
+                        }}
+                    >
+                        <i className="ri-user-line" style={{ marginRight: "10px" }}></i>
+                        Personal Information
+                    </Button>
 
-                        justifyContent: "flex-start",
-                        paddingLeft: "43px",
-                        textTransform: "none",
-                        fontSize: "16px",
-                        "&:hover": {
-                            backgroundColor: "rgb(166,170,178)"
-                        },
-                    }}
-                >
-                    <i className="ri-user-line" style={{ marginRight: "10px" }}></i>
-                    Personal Information
-                </Button>
-
-                <Button
-                    fullWidth
-                    onClick={() => setActiveTab("employment")}
-                    sx={{
-                        fontWeight: "bold",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        mt: 1,
-                        padding: "10px",
-                        borderRadius: "12px",
-                        backgroundColor:
-                            activeTab === "employment"
-                                ? "rgb(166,170,178, 0.3)"
-                                : "transparent",
-                        color:
-                            activeTab === "employment"
-                                ? theme.palette.text.primary
-                                : theme.palette.text.primary,
-                        paddingLeft: "43px",
-                        justifyContent: "flex-start",
-                        textTransform: "none",
-                        fontSize: "16px",
-                        "&:hover": {
-                            backgroundColor: "rgb(166,170,178)"
-                        },
-                    }}
-                >
-                    <i
-                        className="ri-briefcase-line"
-                        style={{ marginRight: "10px" }}
-                    ></i>
-                    Employment Details
-                </Button>
+                    <Button
+                        fullWidth
+                        onClick={() => setActiveTab("employment")}
+                        sx={{
+                            fontWeight: "bold",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            mt: 1,
+                            padding: "10px",
+                            borderRadius: "12px",
+                            backgroundColor:
+                                activeTab === "employment"
+                                    ? "rgb(166,170,178, 0.3)"
+                                    : "transparent",
+                            color: theme.palette.text. primary,
+                            paddingLeft: "43px",
+                            justifyContent: "flex-start",
+                            textTransform: "none",
+                            fontSize: "16px",
+                            "&:hover": {
+                                backgroundColor: "rgb(166,170,178)"
+                            },
+                        }}
+                    >
+                        <i className="ri-briefcase-line" style={{ marginRight: "10px" }}></i>
+                        Employment Details
+                    </Button>
                 </Box>
             </Box>
 
@@ -185,18 +216,18 @@ export default function EmployeeProfileLayout() {
                     backdropFilter: "blur(18px)",
                     borderRadius: "20px",
                     padding: "35px",
-                    border: `1px solid ${theme.palette.divider}`,
+                    border: `1px solid ${theme.palette. divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0. 15)",
                     },
                 }}
             >
-                {activeTab === "personal" ? (
-                    <PersonalInformationForm />
+                {activeTab === "personal" ?  (
+                    <PersonalInformationForm profile={displayData} />
                 ) : (
-                    <EmploymentDetailsForm />
+                    <EmploymentDetailsForm profile={displayData} />
                 )}
             </Box>
         </Box>
@@ -205,21 +236,31 @@ export default function EmployeeProfileLayout() {
 
 /* --------------------------- PERSONAL INFO FORM --------------------------- */
 
-function PersonalInformationForm() {
+function PersonalInformationForm({ profile }) {
     const theme = useTheme();
-    const { user } = useUser();
+
+    // Format date for display
+    const formatDate = (date) => {
+        if (!date) return "—";
+        return new Date(date).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
 
     const personalInfoData = {
-        address: user.address,
-        birthdate: user.birthday,
-        age: user.age,
-        sex: user.sex,
-        maritalStatus: user.maritalStatus,
-        nationality: user.nationality,
-        contactNumber: user.contactNumber,
-        emergencyContactName: user.emergencyContactName,
-        emergencyContactNumber: user.emergencyContactNumber,
+        address: profile?. address || "—",
+        birthdate: formatDate(profile?.birthday),
+        age: profile?.age || "—",
+        sex: profile?.sex || "—",
+        maritalStatus: profile?.maritalStatus || "—",
+        nationality: profile?.nationality || "—",
+        contactNumber: profile?.contactNumber || "—",
+        emergencyContactName: profile?.emergencyContactName || "—",
+        emergencyContactNumber: profile?.emergencyContactNumber || "—",
     };
+
     return (
         <Box>
             <Box sx={{
@@ -228,107 +269,80 @@ function PersonalInformationForm() {
                 paddingBottom: "10px",
                 marginBottom: 4,
             }}>
-                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                     <i className="ri-user-line" style={{ marginRight: "10px" }}></i>
                     Personal Information
                 </Typography>
             </Box>
-            <Box mb = "20px">
-                <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+
+            <Box mb="20px">
+                <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                     Address
                 </Typography>
-                <ViewTextField
-                    value={personalInfoData.address}
-                />
+                <ViewTextField value={personalInfoData.address} />
             </Box>
 
-            <Box
-                display="grid"
-                gridTemplateColumns={{ md: "1fr 1fr" }}
-                gap="20px"
-            >
+            <Box display="grid" gridTemplateColumns={{ md: "1fr 1fr" }} gap="20px">
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Birthdate
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.birthdate}
-                    />
+                    <ViewTextField value={personalInfoData.birthdate} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Age
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.age}
-                    />
+                    <ViewTextField value={personalInfoData.age} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Sex
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.sex}
-                    />
+                    <ViewTextField value={personalInfoData.sex} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
-                       Marital Status
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                        Marital Status
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.maritalStatus}
-                    />
+                    <ViewTextField value={personalInfoData.maritalStatus} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Nationality
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.nationality}
-                    />
+                    <ViewTextField value={personalInfoData.nationality} />
                 </Box>
 
-
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Contact Number
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.contactNumber}
-                    />
+                    <ViewTextField value={personalInfoData.contactNumber} />
                 </Box>
             </Box>
 
-            <Typography sx={{ mt: 6, mb: 3, fontWeight: 300, fontFamily: "'TTHoves-Regular', sans-serif"}}>
+            <Typography sx={{ mt: 6, mb: 3, fontWeight: 300, fontFamily: "'TTHoves-Regular', sans-serif" }}>
                 Emergency Contact
             </Typography>
 
-            <Box
-                display="grid"
-                gridTemplateColumns={{ md: "1fr 1fr" }}
-                gap="20px"
-                mb = "10px"
-            >
+            <Box display="grid" gridTemplateColumns={{ md: "1fr 1fr" }} gap="20px" mb="10px">
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Contact Name
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.emergencyContactName}
-                    />
+                    <ViewTextField value={profile?. emergencyContactName || "—"} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Contact Number
                     </Typography>
-                    <ViewTextField
-                        value={personalInfoData.emergencyContactNumber}
-                    />
+                    <ViewTextField value={profile?.emergencyContactNumber || "—"} />
                 </Box>
             </Box>
         </Box>
@@ -337,16 +351,25 @@ function PersonalInformationForm() {
 
 /* --------------------------- EMPLOYMENT DETAILS FORM --------------------------- */
 
-function EmploymentDetailsForm() {
+function EmploymentDetailsForm({ profile }) {
     const theme = useTheme();
-    const { user } = useUser(); // ⬅ GET USER DATA HERE
+
+    // Format date for display
+    const formatDate = (date) => {
+        if (! date) return "—";
+        return new Date(date).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
 
     const employmentDetails = {
-        employmentId: user.employeeId,
-        department: user.department ?? "—",
-        position: user.position ?? "—",
-        employmentType: user.employmentType ?? "—",
-        dateHired: user.dateHired ?? "—",
+        employmentId: profile?.employeeId || "—",
+        department: profile?.department || "—",
+        position: profile?.position || "—",
+        employmentType: profile?.employmentType || "—",
+        dateHired: formatDate(profile?.dateHired),
     };
 
     return (
@@ -356,68 +379,50 @@ function EmploymentDetailsForm() {
                 paddingBottom: "10px",
                 marginBottom: 4,
             }}>
-                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                     <i className="ri-briefcase-line" style={{ marginRight: "10px" }}></i>
                     Employment Details
                 </Typography>
             </Box>
 
-            <Box
-                display="grid"
-                gridTemplateColumns={{ md: "1fr 1fr" }}
-                gap="20px"
-            >
+            <Box display="grid" gridTemplateColumns={{ md: "1fr 1fr" }} gap="20px">
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Employment ID
                     </Typography>
-                    <ViewTextField
-                        value={employmentDetails.employmentId}
-                    />
+                    <ViewTextField value={employmentDetails.employmentId} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Department
                     </Typography>
-                    <ViewTextField
-                        value={employmentDetails.department}
-                    />
+                    <ViewTextField value={employmentDetails.department} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Position
                     </Typography>
-                    <ViewTextField
-                        value={employmentDetails.position}
-                    />
+                    <ViewTextField value={employmentDetails. position} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Employment Type
                     </Typography>
-                    <ViewTextField
-                        value={employmentDetails.employmentType}
-                    />
+                    <ViewTextField value={employmentDetails.employmentType} />
                 </Box>
 
                 <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif",}}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Date Hired
                     </Typography>
-                    <ViewTextField
-                        value={employmentDetails.dateHired}
-                    />
+                    <ViewTextField value={employmentDetails.dateHired} />
                 </Box>
 
-
-                <Box>
-
-                </Box>
+                <Box></Box>
             </Box>
-
         </Box>
     );
 }

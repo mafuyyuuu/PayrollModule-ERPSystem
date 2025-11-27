@@ -1,73 +1,134 @@
-import {Box, Typography, IconButton, TextField} from "@mui/material";
+import {Box, Typography} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
-import BoxModal from "../../components/BoxModal.jsx";
-import React, {useState} from "react";
-import {RiPencilFill} from "react-icons/ri";
-
-const employeePayrollData = [
-    {
-        id: 1,
-        name: "Jherwin Jimenez",
-        gross: "₱45,000",
-        deductions: "₱5,000",
-        benefits: "₱2,000",
-        net: "₱42,000",
-    },
-    {
-        id: 2,
-        name: "Symon Banana",
-        gross: "₱38,000",
-        deductions: "₱4,500",
-        benefits: "₱1,500",
-        net: "₱35,000",
-    },
-    {
-        id: 3,
-        name: "Symon Banana",
-        gross: "₱38,000",
-        deductions: "₱4,500",
-        benefits: "₱1,500",
-        net: "₱35,000",
-    },
-    {
-        id: 4,
-        name: "Symon Banana",
-        gross: "₱38,000",
-        deductions: "₱4,500",
-        benefits: "₱1,500",
-        net: "₱35,000",
-    },
-    {
-        id: 5,
-        name: "Symon Banana",
-        gross: "₱38,000",
-        deductions: "₱4,500",
-        benefits: "₱1,500",
-        net: "₱35,000",
-    },
-    {
-        id: 6,
-        name: "Symon Banana",
-        gross: "₱38,000",
-        deductions: "₱4,500",
-        benefits: "₱1,500",
-        net: "₱35,000",
-    },
-];
+import React, {useState, useEffect} from "react";
+import ActionButton from "../../components/ActionButton.jsx";
 
 const ManagerPayrollSummary = () => {
-    const [openModal, setOpenModal] = useState(false);
-    const [selectedRow, setSelectedRow] = useState(null);
-
-    const handleView = (row) => {
-        setSelectedRow(row);
-        setOpenModal(true);
-    };
+    const [employeePayrollData, setEmployeePayrollData] = useState([]);
+    const [activityLogs, setActivityLogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [logsLoading, setLogsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [stats, setStats] = useState({
+        totalPayrollCost: 0,
+        totalDeductions: 0,
+        totalBenefits: 0
+    });
 
     const theme = useTheme();
+
+    // Fetch payroll data
+    useEffect(() => {
+        const fetchPayrollData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/manager/payroll');
+                if (!response.ok) throw new Error('Failed to fetch payroll data');
+                const data = await response.json();
+
+                // Transform and aggregate by employee
+                const employeeMap = {};
+                data.forEach(p => {
+                    const key = p.employee_id;
+                    if (!employeeMap[key]) {
+                        employeeMap[key] = {
+                            id: p.employee_id,
+                            name: p.employee_name,
+                            gross: 0,
+                            deductions: 0,
+                            benefits: 0,
+                            net: 0
+                        };
+                    }
+                    employeeMap[key].gross += parseFloat(p.gross) || 0;
+                    employeeMap[key].deductions += parseFloat(p.deductions) || 0;
+                    employeeMap[key].benefits += parseFloat(p.benefits) || 0;
+                    employeeMap[key].net += parseFloat(p.net_pay) || 0;
+                });
+
+                const aggregatedData = Object.values(employeeMap);
+                setEmployeePayrollData(aggregatedData);
+
+                // Calculate totals
+                const totals = aggregatedData.reduce((acc, emp) => ({
+                    totalPayrollCost: acc.totalPayrollCost + emp.gross,
+                    totalDeductions: acc.totalDeductions + emp.deductions,
+                    totalBenefits: acc.totalBenefits + emp.benefits
+                }), { totalPayrollCost: 0, totalDeductions: 0, totalBenefits: 0 });
+
+                setStats(totals);
+            } catch (error) {
+                console.error('Error fetching payroll data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const fetchActivityLogs = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/manager/activity-logs');
+                if (!response.ok) throw new Error('Failed to fetch activity logs');
+                const data = await response.json();
+                setActivityLogs(data);
+            } catch (error) {
+                console.error('Error fetching activity logs:', error);
+            } finally {
+                setLogsLoading(false);
+            }
+        };
+
+        fetchPayrollData();
+        fetchActivityLogs();
+    }, []);
+
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+
+    const formatDateTime = (dateTime) => {
+        if (!dateTime) return 'N/A';
+        const date = new Date(dateTime);
+        return date.toLocaleString('en-PH', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const filteredData = employeePayrollData.filter(row =>
+        !searchTerm || row.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const exportToCSV = () => {
+        const headers = ['Employee Name', 'Gross', 'Deductions', 'Benefits', 'Net'];
+        const csvData = filteredData.map(row => [
+            row.name,
+            row.gross,
+            row.deductions,
+            row.benefits,
+            row.net
+        ]);
+        
+        const csvContent = [
+            headers.join(','),
+            ...csvData.map(row => row.join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `payroll_summary_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
 
     return (
         <Box
@@ -78,348 +139,259 @@ const ManagerPayrollSummary = () => {
                 <DashboardCard
                     icon="ri-cash-line"
                     title="Total Payroll Cost"
-                    value="₱455,000"
+                    value={loading ? "..." : formatCurrency(stats.totalPayrollCost)}
                 />
                 <DashboardCard
                     icon="ri-file-reduce-line"
                     title="Total Deductions"
-                    value="₱56,000"
+                    value={loading ? "..." : formatCurrency(stats.totalDeductions)}
                 />
                 <DashboardCard
                     icon="ri-hand-coin-line"
                     title="Total Benefits"
-                    value="₱237,000"
+                    value={loading ? "..." : formatCurrency(stats.totalBenefits)}
                 />
             </Box>
 
+            {/* MAIN CONTENT - Two columns */}
             <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mt={4}
-                mb={2}
+                display="grid"
+                gridTemplateColumns={{ xs: "1fr", md: "1.5fr 1fr" }}
+                gap="20px"
+                mt={3}
             >
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontSize: "20px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        color: theme.palette.text.primary,
-                    }}
-                >
-                    Employee Payroll Details
-                </Typography>
-                <SearchBar
-                    placeholder="Enter Employee Name"
-                    width="350px"
-                />
-            </Box>
-
-            {/* TABLE CONTAINER */}
-            <Box
-                sx={{
-                    height: "68.9%",
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: "15px",
-                    backdropFilter: "blur(12px)",
-                    p: "12px 24px",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    flexDirection: "column",
-                    "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
-                }}
-            >
-                {/* HEADER ROW */}
-                <Box
-                    sx={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(6, 1fr)",
-                        color: theme.palette.text.primary,
-                        fontWeight: 700,
-                        p: "8px 0",
-                        width: "100%",
-                        alignItems: "center",
-                        textAlign: "center",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 10,
-                    }}
-                >
-                    <span>Employee Name</span>
-                    <span>Gross</span>
-                    <span>Deductions</span>
-                    <span>Benefits</span>
-                    <span>Net</span>
-                    <span>Action</span>
-                </Box>
-
-                {/* DATA ROWS */}
-                <Box
-                    sx={{
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {width: 0, height: 0},
-                        scrollbarWidth: "none",
-                        msOverflowStyle: "none",
-                        mt: "8px",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                    }}
-                >
-                    {employeePayrollData.map((row) => (
-                        <Box
+                {/* LEFT COLUMN - Payroll Summary Table */}
+                <Box>
+                    <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        mb={2}
+                    >
+                        <Typography
+                            variant="h5"
                             sx={{
-                                marginTop: "10px",
-                                display: "grid",
-                                gridTemplateColumns: "repeat(6, 1fr)",
-                                alignItems: "center",
-                                bgcolor: "#fff",
-                                color: "#1b2223",
-                                borderRadius: "8px",
-                                width: "100%",
-                                minHeight: "83px",
-                                transition: "all 0.3s ease",
-                                "&:hover": {
-                                    transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                },
-                                textAlign: "center",
+                                fontSize: "20px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
                             }}
                         >
-                            <span>{row.name}</span>
-                            <span>{row.gross}</span>
-                            <span>{row.deductions}</span>
-                            <span>{row.benefits}</span>
-                            <span>{row.net}</span>
-                            <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
-                                <IconButton
-                                    onClick={() => handleView(row)}
-                                    sx={{
-                                        backgroundColor: "#172224",
-                                        color: "#fff",
-                                        width: 40,
-                                        height: 40,
-                                        borderRadius: "50%",
-                                        transition: "all 0.2s ease",
-                                        "&:hover": {
-                                            backgroundColor: "#2E3B3D",
-                                            color: "#fff",
-                                            transform: "translateY(-3px)",
-                                        },
-                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                    }}
-                                >
-                                    <RiPencilFill style={{fontSize: 19}}/>
-                                </IconButton>
-                            </Box>
-                        </Box>
-                    ))}
-                </Box>
-            </Box>
-            <BoxModal open={openModal} onClose={() => setOpenModal(false)}>
-                {selectedRow && (
-                    <>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                mb: 2
-                            }}
-                        >
-                            <Typography
-                                variant="h5"
-                                sx={{
-                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
-                                }}
-                            >
-                                Employee Payroll Details
-                            </Typography>
-                        </Box>
-
-                        {/* Employee Field */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                Employee Name
-                            </Typography>
-                            <TextField
-                                value={selectedRow.name}
-                                fullWidth
-                                variant="outlined"
-                                size="small"
-                                InputProps={{
-                                    readOnly: true,
-                                }}
-                                sx={{
-                                    "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
-                                        backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {
-                                            border: "none",
-                                        },
-                                        "&:hover fieldset": {
-                                            border: "none",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            border: "none",
-                                        },
-                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
-                                }}
+                            Employee Payroll Summary
+                        </Typography>
+                        <Box display="flex" gap={1}>
+                            <ActionButton
+                                text="Export CSV"
+                                width="120px"
+                                onClick={exportToCSV}
+                            />
+                            <SearchBar
+                                placeholder="Search Employee"
+                                width="250px"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </Box>
+                    </Box>
 
-                        {/* Grid for other fields */}
+                    {/* TABLE CONTAINER */}
+                    <Box
+                        sx={{
+                            height: "400px",
+                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                            border: `1px solid ${theme.palette.divider}`,
+                            borderRadius: "15px",
+                            backdropFilter: "blur(12px)",
+                            p: "12px 24px",
+                            transition: "all 0.3s ease",
+                            display: "flex",
+                            flexDirection: "column",
+                            "&:hover": {
+                                transform: "scale(1.01)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                            },
+                        }}
+                    >
+                        {/* HEADER ROW */}
                         <Box
-                            display="grid"
-                            gridTemplateColumns={{md: "1fr 1fr"}}
-                            gap={1}
-                            mt={2}
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+                                color: theme.palette.text.primary,
+                                fontWeight: 700,
+                                p: "8px 0",
+                                width: "100%",
+                                alignItems: "center",
+                                textAlign: "center",
+                                position: "sticky",
+                                top: 0,
+                                zIndex: 10,
+                            }}
                         >
-                            {/* Gross */}
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                                <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                    Gross
-                                </Typography>
-                                <TextField
-                                    value={selectedRow.gross}
-                                    variant="outlined"
-                                    size="small"
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
-                                            backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
-                                    }}
-                                />
-                            </Box>
-
-                            {/* Deductions */}
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                                <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                    Deductions
-                                </Typography>
-                                <TextField
-                                    value={selectedRow.deductions}
-                                    variant="outlined"
-                                    size="small"
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
-                                            backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
-                                    }}
-                                />
-                            </Box>
+                            <span style={{textAlign: "left"}}>Employee Name</span>
+                            <span>Gross</span>
+                            <span>Deductions</span>
+                            <span>Benefits</span>
+                            <span>Net</span>
                         </Box>
 
+                        {/* DATA ROWS */}
                         <Box
-                            display="grid"
-                            gridTemplateColumns={{md: "1fr 1fr"}}
-                            gap={1}
-                            mt={2}
+                            sx={{
+                                overflowY: "auto",
+                                "&::-webkit-scrollbar": {width: 0, height: 0},
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                                mt: "8px",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            }}
                         >
-                            {/* Benefits */}
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                                <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                    Benefits
-                                </Typography>
-                                <TextField
-                                    value={selectedRow.benefits}
-                                    variant="outlined"
-                                    size="small"
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
+                            {loading ? (
+                                <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.primary }}>
+                                    Loading payroll data...
+                                </Box>
+                            ) : filteredData.length === 0 ? (
+                                <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                    No payroll data found.
+                                </Box>
+                            ) : (
+                            filteredData.map((row) => (
+                                <Box
+                                    key={row.id}
                                     sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
-                                            backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                        marginTop: "8px",
+                                        display: "grid",
+                                        gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+                                        alignItems: "center",
+                                        bgcolor: "#fff",
+                                        color: "#1b2223",
+                                        borderRadius: "8px",
+                                        width: "100%",
+                                        minHeight: "55px",
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                        },
+                                        textAlign: "center",
+                                        px: 2,
                                     }}
-                                />
-                            </Box>
-
-                            {/* Net */}
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
-                                <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                                    Net
-                                </Typography>
-                                <TextField
-                                    value={selectedRow.net}
-                                    variant="outlined"
-                                    size="small"
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                    sx={{
-                                        "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
-                                            backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
-                                    }}
-                                />
-                            </Box>
-
+                                >
+                                    <span style={{textAlign: "left"}}>{row.name}</span>
+                                    <span>{formatCurrency(row.gross)}</span>
+                                    <span>{formatCurrency(row.deductions)}</span>
+                                    <span>{formatCurrency(row.benefits)}</span>
+                                    <span style={{fontWeight: 700, color: "#2E7D32"}}>{formatCurrency(row.net)}</span>
+                                </Box>
+                            ))
+                            )}
                         </Box>
-                    </>
-                )}
-            </BoxModal>
+                    </Box>
+                </Box>
+
+                {/* RIGHT COLUMN - Activity Logs */}
+                <Box>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontSize: "20px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: theme.palette.text.primary,
+                            mb: 2,
+                        }}
+                    >
+                        <i className="ri-history-line" style={{ marginRight: "8px" }}></i>
+                        Recent Activity
+                    </Typography>
+
+                    <Box
+                        sx={{
+                            height: "400px",
+                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
+                            border: `1px solid ${theme.palette.divider}`,
+                            borderRadius: "15px",
+                            backdropFilter: "blur(12px)",
+                            p: "16px",
+                            transition: "all 0.3s ease",
+                            display: "flex",
+                            flexDirection: "column",
+                            "&:hover": {
+                                transform: "scale(1.01)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                            },
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                overflowY: "auto",
+                                "&::-webkit-scrollbar": {width: 0, height: 0},
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                                flex: 1,
+                            }}
+                        >
+                            {logsLoading ? (
+                                <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.primary }}>
+                                    Loading activity logs...
+                                </Box>
+                            ) : activityLogs.length === 0 ? (
+                                <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                    No recent activity.
+                                </Box>
+                            ) : (
+                                activityLogs.map((log, index) => (
+                                    <Box
+                                        key={`${log.type}-${log.id}-${index}`}
+                                        sx={{
+                                            p: "12px",
+                                            mb: 1,
+                                            bgcolor: "#fff",
+                                            borderRadius: "10px",
+                                            borderLeft: `4px solid ${
+                                                log.status === 'Approved' ? '#4CAF50' : 
+                                                log.status === 'Rejected' ? '#F44336' : 
+                                                log.status === 'Released' ? '#2196F3' : '#FF9800'
+                                            }`,
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                transform: "translateX(4px)",
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                            },
+                                        }}
+                                    >
+                                        <Typography
+                                            sx={{
+                                                fontSize: "14px",
+                                                fontWeight: 600,
+                                                color: "#1b2223",
+                                                mb: 0.5,
+                                            }}
+                                        >
+                                            {log.action}
+                                        </Typography>
+                                        <Typography
+                                            sx={{
+                                                fontSize: "13px",
+                                                color: "#666",
+                                            }}
+                                        >
+                                            {log.employee}
+                                        </Typography>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                mt: 1,
+                                                fontSize: "12px",
+                                                color: "#888",
+                                            }}
+                                        >
+                                            <span>By: {log.processedBy}</span>
+                                            <span>{formatDateTime(log.dateTime)}</span>
+                                        </Box>
+                                    </Box>
+                                ))
+                            )}
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
         </Box>
     );
 };

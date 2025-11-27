@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import payrollRoutes from './routes/payrollRoutes.js';
+import managerRoutes from './routes/managerRoutes.js';
+import employeeRoutes from './routes/employeeRoutes.js'
 
 dotenv.config();
 
@@ -53,12 +55,14 @@ const __dirname = path.dirname(__filename);
 
 // ==================== API ROUTES (MUST BE BEFORE STATIC FILES) ====================
 
-// Import payroll routes
+// Import routes
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/employee', employeeRoutes);
+app.use('/api/manager', managerRoutes);
 
 // LOGIN ROUTE
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     const roleMap = {
         1: 'admin',
@@ -71,8 +75,8 @@ app.post('/api/login', async (req, res) => {
         const [userRows] = await payrollPool.execute(
             `SELECT user_id, employee_id, username, email_address, role_id, status
              FROM UserAccounts
-             WHERE email_address = ? AND password = ?`,
-            [email, password]
+             WHERE username = ? AND password = ?`,
+            [username, password]
         );
 
         if (userRows.length === 0) {

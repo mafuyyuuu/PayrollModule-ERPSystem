@@ -408,15 +408,29 @@ const PayrollDashboard = () => {
                                     >
                                         {activity.description}
                                     </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            color: theme.palette.text.disabled,
-                                            fontSize: "11px",
-                                        }}
-                                    >
-                                        {new Date(activity.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </Typography>
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 0.5 }}>
+                                        <Typography
+                                            variant="caption"
+                                            sx={{
+                                                color: theme.palette.text.disabled,
+                                                fontSize: "11px",
+                                            }}
+                                        >
+                                            {activity.processedAt || new Date(activity.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </Typography>
+                                        {activity.processedBy && (
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    color: theme.palette.primary.main,
+                                                    fontSize: "10px",
+                                                    fontStyle: "italic",
+                                                }}
+                                            >
+                                                by {activity.processedBy}
+                                            </Typography>
+                                        )}
+                                    </Box>
                                 </Box>
                             ))
                         ) : (

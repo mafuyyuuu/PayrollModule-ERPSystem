@@ -394,9 +394,38 @@ INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhea
 -- =====================================================
 -- MIGRATION: If you already have data in the database, run these queries to add timestamp columns
 -- =====================================================
-ALTER TABLE Payroll ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE Payroll ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-ALTER TABLE Requests ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE Requests ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-UPDATE Payroll SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
-UPDATE Requests SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
+# ALTER TABLE Payroll ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+# ALTER TABLE Payroll ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+# ALTER TABLE Requests ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+# ALTER TABLE Requests ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+# UPDATE Payroll SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
+# UPDATE Requests SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
+
+-- =====================================================
+-- ACTIVITY LOGS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS ActivityLogs
+(
+    log_id       INT AUTO_INCREMENT PRIMARY KEY,
+    action_type  VARCHAR(100) NOT NULL,
+    entity_type  VARCHAR(100) NOT NULL,
+    entity_id    INT,
+    employee_id  INT,
+    processed_by INT,
+    description  TEXT,
+    old_values   JSON,
+    new_values   JSON,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_entity (entity_type, entity_id),
+    INDEX idx_created_at (created_at)
+);
+
+-- Insert sample activity logs
+INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, processed_by, description) VALUES
+('Approved', 'Timesheet', 1, 1, 9, 'Timesheet approved for Juan Dela Cruz'),
+('Approved', 'Timesheet', 2, 1, 9, 'Timesheet approved for Juan Dela Cruz'),
+('Approved', 'Timesheet', 6, 2, 8, 'Timesheet approved for Maria Reyes'),
+('Rejected', 'Request', 5, 5, 9, 'Bonus request rejected - Not eligible this quarter'),
+('Approved', 'Request', 3, 3, 8, 'Reimbursement request approved'),
+('Created', 'Payroll', 1, 1, 4, 'Payroll created for Juan Dela Cruz'),
+('Processed', 'Payroll', 1, 1, 4, 'Payroll processed for Juan Dela Cruz');
