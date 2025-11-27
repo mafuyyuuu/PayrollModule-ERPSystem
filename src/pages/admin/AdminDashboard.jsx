@@ -7,7 +7,7 @@ import axios from "axios";
 const AdminDashboard = () => {
     const theme = useTheme();
 
-    // === STATE FOR BACKEND DATA ===
+    // === STATE FOR BACKEND DATA  ===
     const [totalEmployees, setTotalEmployees] = useState(0);
     const [processedPayouts, setProcessedPayouts] = useState(0);
     const [pendingPayouts, setPendingPayouts] = useState(0);
