@@ -110,6 +110,16 @@ CREATE TABLE WorkExperience (
     FOREIGN KEY (employee_id) REFERENCES Employees(employee_id)
 );
 
+-- AuditLog
+CREATE TABLE AuditLogs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_name VARCHAR(255) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    description TEXT
+);
+
+
 -- =====================================================
 -- INSERT SAMPLE DATA
 -- =====================================================
