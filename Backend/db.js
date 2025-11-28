@@ -11,13 +11,12 @@ export const payrollDB = mysql.createPool({
     port: process.env.DB_PORT || 3306
 });
 
-// Employee Management System Database (external system via VPN)
 // This is the HR database with employee data
 export const hrDB = mysql.createPool({
-    host: process.env.EMP_DB_HOST || 'localhost',
-    user: process.env.EMP_DB_USER || 'payroll_vpn',
-    password: process.env.EMP_DB_PASSWORD || 'vpn_payroll_2025',
-    database: process.env.EMP_DB_NAME || 'employeemanagementsystem',
+    host: process.env.EMP_DB_HOST || '26.212.193.34',
+    user: process.env.EMP_DB_USER || 'payroll',
+    password: process.env.EMP_DB_PASSWORD || 'payroll',
+    database: process.env.EMP_DB_NAME || 'employee_management_system',
     port: process.env.EMP_DB_PORT || 3306
 });
 

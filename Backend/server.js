@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import express from 'express';
 import cors from 'cors';
-import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { payrollDB, hrDB } from './db.js';
 import payrollRoutes from './routes/payrollRoutes.js';
 import managerRoutes from './routes/managerRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js'
@@ -14,41 +14,6 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// ✅ MySQL connection for Payroll System
-const payrollPool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'payrollsystem',
-    password: process.env.DB_PASSWORD || 'payroll',
-    database: process.env.DB_NAME || 'payrollmanagementsystem',
-    port: process.env.DB_PORT || 3306
-});
-
-// ✅ MySQL connection for Employee Management System (via VPN)
-const employeePool = mysql.createPool({
-    host: process.env.EMP_DB_HOST || 'localhost',
-    user: process.env.EMP_DB_USER || 'payroll_vpn',
-    password: process.env.EMP_DB_PASSWORD || 'vpn_payroll_2025',
-    database: process.env.EMP_DB_NAME || 'employeemanagementsystem',
-    port: process.env.EMP_DB_PORT || 3306
-});
-
-// ✅ Test DB connections
-try {
-    const payrollConn = await payrollPool.getConnection();
-    console.log('✅ Connected to Payroll Management System database');
-    payrollConn.release();
-} catch (err) {
-    console.error('❌ Payroll database connection failed:', err);
-}
-
-try {
-    const empConn = await employeePool.getConnection();
-    console.log('✅ Connected to Employee Management System database');
-    empConn.release();
-} catch (err) {
-    console.error('⚠️ Employee database connection failed (VPN may not be active):', err);
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -72,7 +37,7 @@ app.post('/api/login', async (req, res) => {
     };
 
     try {
-        const [userRows] = await payrollPool.execute(
+        const [userRows] = await payrollDB.execute(
             `SELECT user_id, employee_id, username, email_address, role_id, status
              FROM UserAccounts
              WHERE username = ? AND password = ?`,
@@ -88,7 +53,7 @@ app.post('/api/login', async (req, res) => {
 
         if (user.employee_id) {
             try {
-                const [empRows] = await employeePool.execute(
+                const [empRows] = await hrDB.execute(
                     `SELECT
                          e.employee_id,
                          e.first_name,
@@ -96,21 +61,19 @@ app.post('/api/login', async (req, res) => {
                          e.last_name,
                          e.date_of_birth,
                          e.sex,
-                         e.civil_status,
-                         e.street_address,
-                         e.city,
-                         e.province,
-                         e.mobile_number,
-                         e.employment_type,
-                         e.date_hired,
-                         p.position_title,
+                         e.marital_status,
+                         e.address,
+                         e.contact_number,
+                         et.employee_type_name as employment_type,
+                         p.position_name as position_title,
                          d.department_name,
                          ec.contact_name as emergency_contact_name,
-                         ec.mobile_number as emergency_contact_number
-                     FROM Employees e
-                              LEFT JOIN Positions p ON e.position_id = p.position_id
-                              LEFT JOIN Departments d ON e.department_id = d.department_id
-                              LEFT JOIN EmergencyContacts ec ON e.employee_id = ec.employee_id
+                         ec.contact_number as emergency_contact_number
+                     FROM employees e
+                              LEFT JOIN positions p ON e.position_id = p.position_id
+                              LEFT JOIN departments d ON e.department_id = d.department_id
+                              LEFT JOIN employeetype et ON e.employee_type_id = et.employee_type_id
+                              LEFT JOIN emergencycontacts ec ON e.employee_id = ec.employee_id
                      WHERE e.employee_id = ?
                          LIMIT 1`,
                     [user.employee_id]
@@ -141,12 +104,11 @@ app.post('/api/login', async (req, res) => {
             response.position = employeeData.position_title;
             response.department = employeeData.department_name;
             response.employmentType = employeeData.employment_type;
-            response.dateHired = employeeData.date_hired;
             response.birthday = employeeData.date_of_birth;
             response.sex = employeeData.sex;
-            response.maritalStatus = employeeData.civil_status;
-            response.address = `${employeeData.street_address}, ${employeeData.city}, ${employeeData.province}`;
-            response.contactNumber = employeeData.mobile_number;
+            response.maritalStatus = employeeData.marital_status;
+            response.address = employeeData.address;
+            response.contactNumber = employeeData.contact_number;
             response.emergencyContactName = employeeData.emergency_contact_name;
             response.emergencyContactNumber = employeeData.emergency_contact_number;
         }
@@ -176,8 +138,8 @@ app.post('/api/create-user', async (req, res) => {
     try {
         if (employee_id) {
             try {
-                const [empRows] = await employeePool.execute(
-                    `SELECT employee_id FROM Employees WHERE employee_id = ?`,
+                const [empRows] = await hrDB.execute(
+                    `SELECT employee_id FROM employees WHERE employee_id = ?`,
                     [employee_id]
                 );
 
@@ -190,7 +152,7 @@ app.post('/api/create-user', async (req, res) => {
             }
         }
 
-        await payrollPool.execute(
+        await payrollDB.execute(
             `INSERT INTO UserAccounts (employee_id, username, email_address, password, role_id, status)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [employee_id || null, username, email, password, role_id, 'Active']
@@ -206,34 +168,27 @@ app.post('/api/create-user', async (req, res) => {
 // GET ALL EMPLOYEES
 app.get('/api/employees', async (req, res) => {
     try {
-        const [employees] = await employeePool.execute(
+        const [employees] = await hrDB.execute(
             `SELECT 
                 e.employee_id,
-                e.employee_number,
                 CONCAT(e.first_name, ' ', IFNULL(e.middle_name, ''), ' ', e.last_name) as full_name,
                 e.first_name,
                 e.middle_name,
                 e.last_name,
                 e.date_of_birth,
                 e.sex,
-                e.civil_status,
-                e.email_address,
-                e.mobile_number,
-                CONCAT(e.street_address, ', ', e.city, ', ', e.province) as full_address,
-                e.employment_type,
-                e.employment_status,
-                e.date_hired,
-                e.sss_number,
-                e.philhealth_number,
-                e.pagibig_number,
-                e.tin_number,
-                p.position_title as position,
-                d.department_name as department,
-                d.department_code
-             FROM Employees e
-             LEFT JOIN Positions p ON e.position_id = p.position_id
-             LEFT JOIN Departments d ON e.department_id = d.department_id
-             WHERE e.employment_status = 'Active'
+                e.marital_status,
+                e.email,
+                e.contact_number,
+                e.address,
+                et.employee_type_name as employment_type,
+                e.salary,
+                p.position_name as position,
+                d.department_name as department
+             FROM employees e
+             LEFT JOIN positions p ON e.position_id = p.position_id
+             LEFT JOIN departments d ON e.department_id = d.department_id
+             LEFT JOIN employeetype et ON e.employee_type_id = et.employee_type_id
              ORDER BY e.employee_id`
         );
 
@@ -249,15 +204,16 @@ app.get('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [employees] = await employeePool.execute(
+        const [employees] = await hrDB.execute(
             `SELECT
                  e.*,
-                 p.position_title,
+                 p.position_name,
                  d.department_name,
-                 d.department_code
-             FROM Employees e
-                      LEFT JOIN Positions p ON e.position_id = p.position_id
-                      LEFT JOIN Departments d ON e.department_id = d.department_id
+                 et.employee_type_name
+             FROM employees e
+                      LEFT JOIN positions p ON e.position_id = p.position_id
+                      LEFT JOIN departments d ON e.department_id = d.department_id
+                      LEFT JOIN employeetype et ON e.employee_type_id = et.employee_type_id
              WHERE e.employee_id = ?`,
             [id]
         );
@@ -266,8 +222,8 @@ app.get('/api/employees/:id', async (req, res) => {
             return res.status(404).json({ message: 'Employee not found' });
         }
 
-        const [contacts] = await employeePool.execute(
-            `SELECT * FROM EmergencyContacts WHERE employee_id = ?`,
+        const [contacts] = await hrDB.execute(
+            `SELECT * FROM emergencycontacts WHERE employee_id = ?`,
             [id]
         );
 
@@ -284,8 +240,8 @@ app.get('/api/employees/:id', async (req, res) => {
 // GET DEPARTMENTS
 app.get('/api/departments', async (req, res) => {
     try {
-        const [departments] = await employeePool.execute(
-            `SELECT * FROM Departments ORDER BY department_name`
+        const [departments] = await hrDB.execute(
+            `SELECT * FROM departments ORDER BY department_name`
         );
         res.json(departments);
     } catch (err) {
@@ -297,11 +253,11 @@ app.get('/api/departments', async (req, res) => {
 // GET POSITIONS
 app.get('/api/positions', async (req, res) => {
     try {
-        const [positions] = await employeePool.execute(
-            `SELECT p.*, d.department_name
-             FROM Positions p
-                      LEFT JOIN Departments d ON p.department_id = d.department_id
-             ORDER BY p.position_title`
+        const [positions] = await hrDB.execute(
+            `SELECT p.position_id, p.position_name, p.position_description, 
+                    p.position_min_salary, p.position_max_salary
+             FROM positions p
+             ORDER BY p.position_name`
         );
         res.json(positions);
     } catch (err) {
@@ -334,15 +290,15 @@ app.get('/api/timesheets', async (req, res) => {
 
         query += ` ORDER BY date DESC, employee_id`;
 
-        const [timesheets] = await payrollPool.execute(query, params);
+        const [timesheets] = await payrollDB.execute(query, params);
 
         const enrichedTimesheets = await Promise.all(timesheets.map(async (timesheet) => {
             try {
-                const [empRows] = await employeePool.execute(
+                const [empRows] = await hrDB.execute(
                     `SELECT CONCAT(first_name, ' ', last_name) as employee_name, 
-                            p.position_title as position
-                     FROM Employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
+                            p.position_name as position
+                     FROM employees e
+                     LEFT JOIN positions p ON e.position_id = p.position_id
                      WHERE e.employee_id = ?`,
                     [timesheet.employee_id]
                 );

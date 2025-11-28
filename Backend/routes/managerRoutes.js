@@ -11,7 +11,7 @@ router.get('/dashboard-stats', async (req, res) => {
     try {
         // Get active employees count
         const [activeEmployees] = await hrDB.query(
-            "SELECT COUNT(*) as count FROM employees WHERE employment_status = 'Active'"
+            "SELECT COUNT(*) as count FROM employees"
         );
 
         // Get pending approvals (timesheets + requests)
@@ -98,11 +98,11 @@ router.get('/timesheets', async (req, res) => {
             try {
                 const [empRows] = await hrDB.query(
                     `SELECT CONCAT(first_name, ' ', last_name) as employee_name,
-                            p.position_title as position,
+                            p.position_name as position,
                             d.department_name as department
                      FROM employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
-                     LEFT JOIN Departments d ON e.department_id = d.department_id
+                     LEFT JOIN positions p ON e.position_id = p.position_id
+                     LEFT JOIN departments d ON e.department_id = d.department_id
                      WHERE e.employee_id = ?`,
                     [timesheet.employee_id]
                 );
@@ -341,11 +341,11 @@ router.get('/pending-requests', async (req, res) => {
             try {
                 const [empRows] = await hrDB.query(
                     `SELECT CONCAT(first_name, ' ', last_name) as employee_name,
-                            p.position_title as position,
+                            p.position_name as position,
                             d.department_name as department
                      FROM employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
-                     LEFT JOIN Departments d ON e.department_id = d.department_id
+                     LEFT JOIN positions p ON e.position_id = p.position_id
+                     LEFT JOIN departments d ON e.department_id = d.department_id
                      WHERE e.employee_id = ?`,
                     [request.employee_id]
                 );
@@ -458,11 +458,11 @@ router.get('/payroll', async (req, res) => {
             try {
                 const [empRows] = await hrDB.query(
                     `SELECT CONCAT(first_name, ' ', last_name) as employee_name,
-                            p.position_title as position,
+                            p.position_name as position,
                             d.department_name as department
                      FROM employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
-                     LEFT JOIN Departments d ON e.department_id = d.department_id
+                     LEFT JOIN positions p ON e.position_id = p.position_id
+                     LEFT JOIN departments d ON e.department_id = d.department_id
                      WHERE e.employee_id = ?`,
                     [payroll.employee_id]
                 );
@@ -557,12 +557,11 @@ router.get('/employees', async (req, res) => {
             `SELECT 
                 e.employee_id,
                 CONCAT(e.first_name, ' ', e.last_name) as full_name,
-                p.position_title as position,
+                p.position_name as position,
                 d.department_name as department
              FROM employees e
-             LEFT JOIN Positions p ON e.position_id = p.position_id
-             LEFT JOIN Departments d ON e.department_id = d.department_id
-             WHERE e.employment_status = 'Active'
+             LEFT JOIN positions p ON e.position_id = p.position_id
+             LEFT JOIN departments d ON e.department_id = d.department_id
              ORDER BY e.first_name, e.last_name`
         );
 
@@ -595,11 +594,11 @@ router.get('/timesheets/:id', async (req, res) => {
         try {
             const [empRows] = await hrDB.query(
                 `SELECT CONCAT(first_name, ' ', last_name) as employee_name,
-                        p.position_title as position,
+                        p.position_name as position,
                         d.department_name as department
                  FROM employees e
-                 LEFT JOIN Positions p ON e.position_id = p.position_id
-                 LEFT JOIN Departments d ON e.department_id = d.department_id
+                 LEFT JOIN positions p ON e.position_id = p.position_id
+                 LEFT JOIN departments d ON e.department_id = d.department_id
                  WHERE e.employee_id = ?`,
                 [timesheet.employee_id]
             );
@@ -715,9 +714,9 @@ router.get('/top-employees', async (req, res) => {
             try {
                 const [empRows] = await hrDB.query(
                     `SELECT CONCAT(first_name, ' ', last_name) as name, 
-                            p.position_title as position
+                            p.position_name as position
                      FROM employees e
-                     LEFT JOIN Positions p ON e.position_id = p.position_id
+                     LEFT JOIN positions p ON e.position_id = p.position_id
                      WHERE e.employee_id = ?`,
                     [emp.employee_id]
                 );
@@ -794,7 +793,7 @@ router.get('/reports/department-summary', async (req, res) => {
                 const [empRows] = await hrDB.query(
                     `SELECT d.department_name as department
                      FROM employees e
-                     LEFT JOIN Departments d ON e.department_id = d.department_id
+                     LEFT JOIN departments d ON e.department_id = d.department_id
                      WHERE e.employee_id = ?`,
                     [row.employee_id]
                 );
@@ -854,10 +853,10 @@ router.post('/calculate-salary', async (req, res) => {
             SELECT 
                 e.employee_id,
                 CONCAT(e.first_name, ' ', e.last_name) as name,
-                p.min_salary as monthly_salary,
-                p.position_title
+                e.salary,
+                p.position_name
             FROM employees e
-            LEFT JOIN Positions p ON e.position_id = p.position_id
+            LEFT JOIN positions p ON e.position_id = p.position_id
             WHERE e.employee_id = ?
         `, [employee_id]);
 
@@ -866,7 +865,7 @@ router.post('/calculate-salary', async (req, res) => {
         }
 
         const employee = empInfo[0];
-        const monthlySalary = parseFloat(employee.monthly_salary) || 25000;
+        const monthlySalary = parseFloat(employee.salary) || 25000;
 
         // Get timesheets for the cutoff period
         const [timesheets] = await payrollDB.query(`
@@ -949,7 +948,7 @@ router.post('/calculate-salary', async (req, res) => {
             employee: {
                 id: employee.employee_id,
                 name: employee.name,
-                position: employee.position_title,
+                position: employee.position_name,
                 monthlySalary: monthlySalary
             },
             period: {
@@ -998,9 +997,8 @@ router.post('/generate-payroll', async (req, res) => {
             SELECT 
                 e.employee_id,
                 CONCAT(e.first_name, ' ', e.last_name) as name,
-                p.min_salary as monthly_salary
+                e.salary
             FROM employees e
-            LEFT JOIN Positions p ON e.position_id = p.position_id
             WHERE e.employee_id = ?
         `, [employee_id]);
 
@@ -1008,7 +1006,7 @@ router.post('/generate-payroll', async (req, res) => {
             return res.status(404).json({ error: 'Employee not found' });
         }
 
-        const monthlySalary = parseFloat(empInfo[0].monthly_salary) || 25000;
+        const monthlySalary = parseFloat(empInfo[0].salary) || 25000;
 
         // Get approved timesheets
         const [timesheets] = await payrollDB.query(`
