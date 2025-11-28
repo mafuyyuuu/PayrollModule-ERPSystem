@@ -400,6 +400,9 @@ INSERT INTO TaxContributions (payroll_id, employee_id, sss_contribution, philhea
 # ALTER TABLE Requests ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 # UPDATE Payroll SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
 # UPDATE Requests SET created_at = NOW(), updated_at = NOW() WHERE created_at IS NULL;
+ALTER TABLE Requests ADD COLUMN emsStatus ENUM('APPROVED','PENDING','REJECTED');
+ALTER TABLE Requests ADD COLUMN emsRemarks varchar(250);
+
 
 -- =====================================================
 -- ACTIVITY LOGS TABLE
