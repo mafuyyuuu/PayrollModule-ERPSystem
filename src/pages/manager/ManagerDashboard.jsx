@@ -1,17 +1,67 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
-import {Line, LineChart, ResponsiveContainer} from "recharts";
-
-const earningsData = [
-    { month: "Jan", earnings: 20000 },
-    { month: "Feb", earnings: 23000 },
-    { month: "Mar", earnings: 21000 },
-    { month: "Apr", earnings: 26000 },
-    { month: "May", earnings: 24000 },
-];
+import {Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid} from "recharts";
+import { useState, useEffect } from "react";
 
 const ManagerDashboard = () => {
     const theme = useTheme();
+    const [stats, setStats] = useState({
+        activeEmployees: 0,
+        pendingApprovals: 0,
+        totalDepartmentPayroll: 0,
+        attendanceRate: 0
+    });
+    const [earningsData, setEarningsData] = useState([]);
+    const [topEmployees, setTopEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                // Fetch dashboard stats
+                const statsResponse = await fetch('http://localhost:8080/api/manager/dashboard-stats');
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    setStats(statsData);
+                }
+
+                // Fetch earnings chart data
+                const earningsResponse = await fetch('http://localhost:8080/api/manager/earnings-chart');
+                if (earningsResponse.ok) {
+                    const earningsResult = await earningsResponse.json();
+                    if (earningsResult.length > 0) {
+                        setEarningsData(earningsResult.map(item => ({
+                            month: item.month,
+                            earnings: parseFloat(item.earnings) || 0
+                        })));
+                    }
+                }
+
+                // Fetch top performing employees
+                const topResponse = await fetch('http://localhost:8080/api/manager/top-employees');
+                if (topResponse.ok) {
+                    const topData = await topResponse.json();
+                    setTopEmployees(topData);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+
     return (
         <Box width="100%" height="80%">
             {/* DASHBOARD CARDS */}
@@ -19,22 +69,22 @@ const ManagerDashboard = () => {
                 <DashboardCard
                     icon="ri-user-3-fill"
                     title="Active Employees"
-                    value="55"
+                    value={loading ? "..." : stats.activeEmployees.toString()}
                 />
                 <DashboardCard
                     icon="ri-pass-pending-fill"
                     title="Pending Approvals"
-                    value="XXXX"
+                    value={loading ? "..." : stats.pendingApprovals.toString()}
                 />
                 <DashboardCard
                     icon="ri-briefcase-4-fill"
                     title="Total Department Payroll"
-                    value="₱520,000"
+                    value={loading ? "..." : formatCurrency(stats.totalDepartmentPayroll)}
                 />
                 <DashboardCard
                     icon="ri-percent-line"
                     title="Attendance Rate"
-                    value="96%"
+                    value={loading ? "..." : `${stats.attendanceRate}%`}
                 />
             </Box>
 
@@ -80,6 +130,66 @@ const ManagerDashboard = () => {
                         ></i>
                         Top Performing Employees
                     </Typography>
+                    
+                    {/* Table Header */}
+                    <Box
+                        sx={{
+                            display: "grid",
+                            gridTemplateColumns: "50px 2fr 1.5fr 1fr 1fr 1fr",
+                            fontWeight: 700,
+                            p: "8px 0",
+                            borderBottom: `1px solid ${theme.palette.divider}`,
+                            fontSize: "14px",
+                        }}
+                    >
+                        <span>#</span>
+                        <span>Employee</span>
+                        <span>Position</span>
+                        <span>Days Present</span>
+                        <span>Avg Hours</span>
+                        <span>Overtime</span>
+                    </Box>
+
+                    {/* Table Body */}
+                    <Box sx={{ mt: 1 }}>
+                        {loading ? (
+                            <Box sx={{ p: 2, textAlign: 'center' }}>Loading...</Box>
+                        ) : topEmployees.length === 0 ? (
+                            <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                No employee data available
+                            </Box>
+                        ) : (
+                            topEmployees.map((emp) => (
+                                <Box
+                                    key={emp.rank}
+                                    sx={{
+                                        display: "grid",
+                                        gridTemplateColumns: "50px 2fr 1.5fr 1fr 1fr 1fr",
+                                        p: "12px 0",
+                                        borderBottom: `1px solid ${theme.palette.divider}`,
+                                        fontSize: "14px",
+                                        alignItems: "center",
+                                        "&:hover": {
+                                            backgroundColor: theme.palette.mode === "dark" 
+                                                ? "rgba(255,255,255,0.05)" 
+                                                : "rgba(0,0,0,0.02)",
+                                        },
+                                    }}
+                                >
+                                    <span style={{ fontWeight: 700, color: emp.rank <= 3 ? "#4CAF50" : "inherit" }}>
+                                        {emp.rank}
+                                    </span>
+                                    <span style={{ fontWeight: 500 }}>{emp.name}</span>
+                                    <span style={{ color: theme.palette.text.secondary }}>{emp.position}</span>
+                                    <span>{emp.daysPresent} days</span>
+                                    <span>{emp.avgHours}h</span>
+                                    <span style={{ color: parseFloat(emp.overtime) > 0 ? "#FF9800" : "inherit" }}>
+                                        {emp.overtime}h
+                                    </span>
+                                </Box>
+                            ))
+                        )}
+                    </Box>
                 </Box>
 
                 {/* Total Earning */}
@@ -113,19 +223,59 @@ const ManagerDashboard = () => {
                             className="ri-hand-coin-fill"
                             style={{ fontSize: 18, marginRight: "10px", color: theme.palette.text.primary }}
                         ></i>
-                        Total Earning
+                        Monthly Earnings
                     </Typography>
-                    <ResponsiveContainer width="100%" height={185} mt="10px">
-                        <LineChart data={earningsData}>
-                            <Line
-                                type="monotone"
-                                dataKey="earnings"
-                                stroke="#3A4F50"
-                                strokeWidth={3}
-                                dot={{ r: 4, strokeWidth: 1 }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    {loading ? (
+                        <Box sx={{ p: 4, textAlign: 'center' }}>Loading chart...</Box>
+                    ) : earningsData.length === 0 ? (
+                        <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                            No earnings data available
+                        </Box>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={200}>
+                            <LineChart data={earningsData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                                <XAxis 
+                                    dataKey="month" 
+                                    stroke={theme.palette.text.primary}
+                                    fontSize={12}
+                                />
+                                <YAxis 
+                                    stroke={theme.palette.text.primary}
+                                    fontSize={12}
+                                    tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`}
+                                />
+                                <Tooltip 
+                                    formatter={(value) => [formatCurrency(value), "Earnings"]}
+                                    contentStyle={{
+                                        backgroundColor: theme.palette.background.paper,
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        borderRadius: "8px",
+                                    }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="earnings"
+                                    stroke="#4CAF50"
+                                    strokeWidth={3}
+                                    dot={{ r: 5, strokeWidth: 2, fill: "#fff" }}
+                                    activeDot={{ r: 7 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    )}
+                    
+                    {/* Summary below chart */}
+                    {earningsData.length > 0 && (
+                        <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+                            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 1 }}>
+                                Total (Last {earningsData.length} months)
+                            </Typography>
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: "#4CAF50" }}>
+                                {formatCurrency(earningsData.reduce((sum, item) => sum + item.earnings, 0))}
+                            </Typography>
+                        </Box>
+                    )}
                 </Box>
             </Box>
         </Box>

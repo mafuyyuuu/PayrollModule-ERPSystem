@@ -3,74 +3,63 @@ import {useTheme} from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {RiCheckFill, RiCloseFill, RiEyeFill} from "react-icons/ri";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
-
-// Sample data for Manager Timesheet table
-const PendingRequest = [
-    {
-        id: 1,
-        requestType: "Overtime",
-        employee: "Jherwin Jimenez",
-        date: "2025-10-25",
-        amount: "P1,200.00",
-        status: "Pending",
-    },
-    {
-        id: 2,
-        requestType: "Overtime",
-        employee: "Symon Banana",
-        date: "2025-10-25",
-        amount: "P1,200.00",
-        status: "Rejected",
-    },
-    {
-        id: 3,
-        requestType: "Overtime",
-        employee: "Michael Cruz",
-        date: "2025-10-25",
-        amount: "P1,200.00",
-        status: "Approved",
-    },
-    {
-        id: 4,
-        requestType: "Overtime",
-        employee: "Michael Cruz",
-        date: "2025-10-25",
-        amount: "P1,200.00",
-        status: "Approved",
-    },
-    {
-        id: 5,
-        requestType: "Overtime",
-        employee: "Michael Cruz",
-        date: "2025-10-25",
-        amount: "P1,200.00",
-        status: "Approved",
-    },
-    {
-        id: 6,
-        requestType: "Overtime",
-        employee: "Michael Cruz",
-        date: "2025-10-25",
-        amount: "P1,200.00",
-        status: "Approved",
-    },
-];
 
 const ManagerPendingRequest = () => {
     const theme = useTheme();
 
     const [filter, setFilter] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [open, setOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [rejectionReason, setRejectionReason] = useState("");
     const [openModal, setOpenModal] = useState(false);
     const [showReasonInput, setShowReasonInput] = useState(false);
-    const [requests, setRequests] = useState(PendingRequest);
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [openApproveModal, setOpenApproveModal] = useState(false);
+
+    // Fetch requests from API
+    const fetchRequests = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:8080/api/manager/pending-requests');
+            if (!response.ok) throw new Error('Failed to fetch requests');
+            const data = await response.json();
+            
+            // Transform data
+            const transformedData = data.map(req => ({
+                id: req.request_id,
+                requestType: req.request_type,
+                employee: req.employee_name,
+                employee_id: req.employee_id,
+                date: req.date_filed ? new Date(req.date_filed).toISOString().split('T')[0] : '',
+                amount: req.request_description || 'N/A',
+                status: req.status,
+                reason: req.remarks || ''
+            }));
+            
+            setRequests(transformedData);
+        } catch (error) {
+            console.error('Error fetching requests:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRequests();
+    }, []);
+
+    // Filter requests
+    const filteredRequests = requests.filter(row => {
+        const matchesSearch = !searchTerm || row.employee.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = !filter || filter === 'all' || row.status === filter;
+        return matchesSearch && matchesFilter;
+    });
 
     const handleApproveClick = (request) => {
         setSelectedRequest(request);
@@ -81,33 +70,41 @@ const ManagerPendingRequest = () => {
         setOpenApproveModal(false);
     };
 
-    const handleConfirmApprove = () => {
-        setRequests((prev) =>
-            prev.map((req) =>
-                req.id === selectedRequest.id
-                    ? {...req, status: "Approved"} // no reason needed
-                    : req
-            )
-        );
-        handleCloseApproveModal();
+    const handleConfirmApprove = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/manager/pending-requests/${selectedRequest.id}/approve`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved_by: 1, remarks: 'Approved' })
+            });
+            if (!response.ok) throw new Error('Failed to approve request');
+            fetchRequests();
+            handleCloseApproveModal();
+        } catch (error) {
+            console.error('Error approving request:', error);
+            alert('Failed to approve request');
+        }
     };
 
-    const handleConfirmReject = () => {
+    const handleConfirmReject = async () => {
         if (!rejectionReason.trim()) {
             alert("Please provide a reason for rejection");
             return;
         }
 
-        // update the selected request in state
-        setRequests((prev) =>
-            prev.map((req) =>
-                req.id === selectedRequest.id
-                    ? {...req, status: "Rejected", reason: rejectionReason}
-                    : req
-            )
-        );
-
-        handleCloseModal(); // close the modal
+        try {
+            const response = await fetch(`http://localhost:8080/api/manager/pending-requests/${selectedRequest.id}/reject`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved_by: 1, remarks: rejectionReason })
+            });
+            if (!response.ok) throw new Error('Failed to reject request');
+            fetchRequests();
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+            alert('Failed to reject request');
+        }
     };
 
     const handleCloseModal = () => {
@@ -119,7 +116,7 @@ const ManagerPendingRequest = () => {
     const handleRejectClick = (request) => {
         setSelectedRequest(request);
         setOpenModal(true);
-        setShowReasonInput(true); // directly show reason input when rejecting
+        setShowReasonInput(true);
         setRejectionReason("");
     };
 
@@ -163,11 +160,19 @@ const ManagerPendingRequest = () => {
                     <FilterSelect
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
+                        options={[
+                            { value: 'all', label: 'All Status' },
+                            { value: 'Pending', label: 'Pending' },
+                            { value: 'Approved', label: 'Approved' },
+                            { value: 'Rejected', label: 'Rejected' },
+                        ]}
                     />
 
                     <SearchBar
                         placeholder="Enter Employee Name"
                         width="350px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </Box>
             </Box>
@@ -224,8 +229,18 @@ const ManagerPendingRequest = () => {
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                     }}
                 >
-                    {requests.map((row) => (
+                    {loading ? (
+                        <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.primary }}>
+                            Loading requests...
+                        </Box>
+                    ) : filteredRequests.length === 0 ? (
+                        <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                            No requests found.
+                        </Box>
+                    ) : (
+                    filteredRequests.map((row) => (
                         <Box
+                            key={row.id}
                             sx={{
                                 marginTop: "10px",
                                 display: "grid",
@@ -332,7 +347,8 @@ const ManagerPendingRequest = () => {
                                 )}
                             </Box>
                         </Box>
-                    ))}
+                    ))
+                    )}
                 </Box>
             </Box>
 
@@ -342,8 +358,74 @@ const ManagerPendingRequest = () => {
                     display: "flex", justifyContent: "flex-end", gap: 2, flexWrap: "wrap", mt: "20px"
                 }}
             >
-                <ActionButton text="Export Payslip PDF" width="200px"/>
-                <ActionButton text="Export CSV" width="200px"/>
+                <ActionButton 
+                    text="Export PDF" 
+                    width="150px"
+                    onClick={() => {
+                        const printContent = `
+                            <html>
+                            <head>
+                                <title>Pending Requests Report</title>
+                                <style>
+                                    body { font-family: Arial, sans-serif; padding: 20px; }
+                                    h1 { color: #333; }
+                                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                                    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                                    th { background-color: #4CAF50; color: white; }
+                                    tr:nth-child(even) { background-color: #f2f2f2; }
+                                    .approved { color: #4CAF50; }
+                                    .rejected { color: #F44336; }
+                                    .pending { color: #FF9800; }
+                                </style>
+                            </head>
+                            <body>
+                                <h1>Pending Requests Report</h1>
+                                <p>Generated: ${new Date().toLocaleString()}</p>
+                                <table>
+                                    <thead>
+                                        <tr><th>Request Type</th><th>Employee</th><th>Date</th><th>Details</th><th>Status</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        ${filteredRequests.map(row => `
+                                            <tr>
+                                                <td>${row.requestType}</td>
+                                                <td>${row.employee}</td>
+                                                <td>${row.date}</td>
+                                                <td>${row.amount}</td>
+                                                <td class="${row.status.toLowerCase()}">${row.status}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </body>
+                            </html>
+                        `;
+                        const printWindow = window.open('', '_blank');
+                        printWindow.document.write(printContent);
+                        printWindow.document.close();
+                        printWindow.print();
+                    }}
+                />
+                <ActionButton 
+                    text="Export CSV" 
+                    width="150px"
+                    onClick={() => {
+                        const headers = ['Request Type', 'Employee', 'Date', 'Details', 'Status'];
+                        const csvData = filteredRequests.map(row => [
+                            row.requestType,
+                            row.employee,
+                            row.date,
+                            row.amount,
+                            row.status
+                        ]);
+                        const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `requests_${new Date().toISOString().split('T')[0]}.csv`;
+                        link.click();
+                    }}
+                />
             </Box>
 
             {/* MODAL */}

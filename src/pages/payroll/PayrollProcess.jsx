@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, {useState, useEffect} from "react";
 import {
     Box,
@@ -7,17 +8,31 @@ import {
     Select,
     MenuItem,
     IconButton, Checkbox, Snackbar, Alert, Chip,
+    Stepper, Step, StepLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+    CircularProgress, Divider, Tooltip,
 } from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
-import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill} from "react-icons/ri";
+import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill, RiCalculatorLine, RiSaveLine, RiArrowLeftLine, RiArrowRightLine} from "react-icons/ri";
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
 import {PDFViewer, pdf} from "@react-pdf/renderer";
 
+const steps = ['Select Pay Period', 'Review Timesheets', 'Calculate Payroll', 'Review & Approve'];
+
 export default function PayoutProcessing() {
     const theme = useTheme();
+
+    // Step-based workflow state
+    const [activeStep, setActiveStep] = useState(0);
+    const [cutoffStartDate, setCutoffStartDate] = useState("");
+    const [cutoffEndDate, setCutoffEndDate] = useState("");
+    const [payDate, setPayDate] = useState("");
+    const [timesheetData, setTimesheetData] = useState([]);
+    const [calculatedPayrolls, setCalculatedPayrolls] = useState([]);
+    const [isCalculating, setIsCalculating] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const [filter, setFilter] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +49,9 @@ export default function PayoutProcessing() {
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Tab state for switching between new payroll and existing payroll
+    const [currentTab, setCurrentTab] = useState(0); // 0 = Calculate New, 1 = Manage Existing
 
     // Filter options for status
     const statusFilterOptions = [
@@ -277,6 +295,356 @@ export default function PayoutProcessing() {
             case "Rejected": return "#F44336";
             case "Processing": return "#FF9800";
             default: return "#FFC107"; // Pending
+        }
+    };
+
+    // Step navigation
+    const handleNext = () => {
+        if (activeStep === 0 && (!cutoffStartDate || !cutoffEndDate || !payDate)) {
+            setSnackbar({ open: true, message: 'Please fill in all date fields', severity: 'warning' });
+            return;
+        }
+        if (activeStep === 1 && timesheetData.length === 0) {
+            setSnackbar({ open: true, message: 'No timesheets found for the selected period', severity: 'warning' });
+            return;
+        }
+        setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
+    };
+
+    const handleBack = () => {
+        setActiveStep((prev) => Math.max(prev - 1, 0));
+    };
+
+    // Fetch timesheets for selected period
+    const fetchTimesheets = async () => {
+        if (!cutoffStartDate || !cutoffEndDate) return;
+        
+        try {
+            setLoading(true);
+            const response = await fetch(
+                `http://localhost:8080/api/payroll/timesheets-for-payroll?startDate=${cutoffStartDate}&endDate=${cutoffEndDate}`
+            );
+            if (!response.ok) throw new Error('Failed to fetch timesheets');
+            
+            const data = await response.json();
+            setTimesheetData(data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching timesheets:', err);
+            setSnackbar({ open: true, message: 'Failed to fetch timesheets', severity: 'error' });
+            setLoading(false);
+        }
+    };
+
+    // Calculate payroll for all employees
+    const handleCalculatePayroll = async () => {
+        if (timesheetData.length === 0) {
+            setSnackbar({ open: true, message: 'No timesheet data to calculate', severity: 'warning' });
+            return;
+        }
+        
+        try {
+            setIsCalculating(true);
+            const response = await fetch('http://localhost:8080/api/payroll/calculate-payroll', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    employees: timesheetData,
+                    cutoffStartDate,
+                    cutoffEndDate,
+                    payDate
+                })
+            });
+            
+            if (!response.ok) throw new Error('Failed to calculate payroll');
+            
+            const data = await response.json();
+            setCalculatedPayrolls(data);
+            setIsCalculating(false);
+            setSnackbar({ open: true, message: `Payroll calculated for ${data.length} employees`, severity: 'success' });
+            handleNext();
+        } catch (err) {
+            console.error('Error calculating payroll:', err);
+            setSnackbar({ open: true, message: 'Failed to calculate payroll', severity: 'error' });
+            setIsCalculating(false);
+        }
+    };
+
+    // Save calculated payroll to database
+    const handleSavePayroll = async () => {
+        if (calculatedPayrolls.length === 0) {
+            setSnackbar({ open: true, message: 'No payroll data to save', severity: 'warning' });
+            return;
+        }
+        
+        try {
+            setIsSaving(true);
+            const response = await fetch('http://localhost:8080/api/payroll/save-payroll-batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    payrolls: calculatedPayrolls,
+                    preparedBy: 4 // TODO: Get from auth context
+                })
+            });
+            
+            if (!response.ok) throw new Error('Failed to save payroll');
+            
+            const data = await response.json();
+            setIsSaving(false);
+            setSnackbar({ open: true, message: `${data.savedPayrolls.length} payroll records saved successfully`, severity: 'success' });
+            
+            // Reset and go back to existing payroll view
+            setActiveStep(0);
+            setCutoffStartDate("");
+            setCutoffEndDate("");
+            setPayDate("");
+            setTimesheetData([]);
+            setCalculatedPayrolls([]);
+            await fetchPayrollProcess();
+        } catch (err) {
+            console.error('Error saving payroll:', err);
+            setSnackbar({ open: true, message: 'Failed to save payroll', severity: 'error' });
+            setIsSaving(false);
+        }
+    };
+
+    // Format currency
+    const formatCurrency = (amount) => {
+        return `₱${parseFloat(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    };
+
+    // Render step content
+    const renderStepContent = (step) => {
+        switch (step) {
+            case 0:
+                return (
+                    <Box sx={{ p: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 3, color: theme.palette.text.primary, fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                            Select Pay Period
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
+                            <Box>
+                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
+                                    Cutoff Start Date
+                                </Typography>
+                                <TextField
+                                    type="date"
+                                    value={cutoffStartDate}
+                                    onChange={(e) => setCutoffStartDate(e.target.value)}
+                                    fullWidth
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "12px",
+                                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#fff",
+                                        }
+                                    }}
+                                />
+                            </Box>
+                            <Box>
+                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
+                                    Cutoff End Date
+                                </Typography>
+                                <TextField
+                                    type="date"
+                                    value={cutoffEndDate}
+                                    onChange={(e) => setCutoffEndDate(e.target.value)}
+                                    fullWidth
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "12px",
+                                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#fff",
+                                        }
+                                    }}
+                                />
+                            </Box>
+                            <Box>
+                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
+                                    Pay Date
+                                </Typography>
+                                <TextField
+                                    type="date"
+                                    value={payDate}
+                                    onChange={(e) => setPayDate(e.target.value)}
+                                    fullWidth
+                                    sx={{
+                                        "& .MuiOutlinedInput-root": {
+                                            borderRadius: "12px",
+                                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#fff",
+                                        }
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                            <ActionButton
+                                text="Fetch Timesheets"
+                                onClick={() => {
+                                    fetchTimesheets();
+                                    handleNext();
+                                }}
+                                disabled={!cutoffStartDate || !cutoffEndDate || !payDate}
+                            />
+                        </Box>
+                    </Box>
+                );
+
+            case 1:
+                return (
+                    <Box sx={{ p: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 2, color: theme.palette.text.primary, fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                            Review Timesheets ({timesheetData.length} employees)
+                        </Typography>
+                        {loading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <TableContainer component={Paper} sx={{ borderRadius: '12px', maxHeight: '400px' }}>
+                                <Table stickyHeader size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Employee</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Department</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }} align="center">Days Worked</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }} align="center">Regular Hours</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }} align="center">Overtime Hours</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }} align="right">Basic Rate</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {timesheetData.map((emp) => (
+                                            <TableRow key={emp.employeeId} hover>
+                                                <TableCell>
+                                                    <Box>
+                                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{emp.employeeName}</Typography>
+                                                        <Typography variant="caption" color="text.secondary">{emp.employeeNumber}</Typography>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell>{emp.department}</TableCell>
+                                                <TableCell align="center">{emp.daysWorked}</TableCell>
+                                                <TableCell align="center">{emp.totalRegularHours} hrs</TableCell>
+                                                <TableCell align="center">{emp.totalOvertimeHours} hrs</TableCell>
+                                                <TableCell align="right">{formatCurrency(emp.basicRate)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
+                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
+                            <ActionButton text="Back" onClick={handleBack} />
+                            <ActionButton
+                                text={isCalculating ? "Calculating..." : "Calculate Payroll"}
+                                onClick={handleCalculatePayroll}
+                                disabled={isCalculating || timesheetData.length === 0}
+                            />
+                        </Box>
+                    </Box>
+                );
+
+            case 2:
+                return (
+                    <Box sx={{ p: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 2, color: theme.palette.text.primary, fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
+                            Calculated Payroll ({calculatedPayrolls.length} employees)
+                        </Typography>
+                        <TableContainer component={Paper} sx={{ borderRadius: '12px', maxHeight: '350px' }}>
+                            <Table stickyHeader size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Employee</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Basic Pay</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">OT Pay</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Gross</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">SSS</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">PhilHealth</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Pag-IBIG</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Tax</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Net Pay</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {calculatedPayrolls.map((payroll) => (
+                                        <TableRow key={payroll.employeeId} hover>
+                                            <TableCell>
+                                                <Box>
+                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{payroll.employeeName}</Typography>
+                                                    <Typography variant="caption" color="text.secondary">{payroll.department}</Typography>
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.basicPay)}</TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.overtimePay)}</TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.grossPay)}</TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.deductions.sss)}</TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.deductions.philhealth)}</TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.deductions.pagibig)}</TableCell>
+                                            <TableCell align="right">{formatCurrency(payroll.deductions.tax)}</TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 'bold', color: '#4CAF50' }}>
+                                                {formatCurrency(payroll.netPay)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        
+                        {/* Summary */}
+                        <Box sx={{ mt: 2, p: 2, backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#f5f5f5", borderRadius: '12px' }}>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, textAlign: 'center' }}>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">Total Gross</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                        {formatCurrency(calculatedPayrolls.reduce((sum, p) => sum + p.grossPay, 0))}
+                                    </Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">Total Deductions</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#F44336' }}>
+                                        {formatCurrency(calculatedPayrolls.reduce((sum, p) => sum + p.deductions.total, 0))}
+                                    </Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">Total Net Pay</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#4CAF50' }}>
+                                        {formatCurrency(calculatedPayrolls.reduce((sum, p) => sum + p.netPay, 0))}
+                                    </Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">Employees</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                        {calculatedPayrolls.length}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Box>
+                        
+                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
+                            <ActionButton text="Back" onClick={handleBack} />
+                            <ActionButton
+                                text={isSaving ? "Saving..." : "Save & Create Payroll Records"}
+                                onClick={handleSavePayroll}
+                                disabled={isSaving || calculatedPayrolls.length === 0}
+                            />
+                        </Box>
+                    </Box>
+                );
+
+            case 3:
+                return (
+                    <Box sx={{ p: 3, textAlign: 'center' }}>
+                        <Typography variant="h5" sx={{ mb: 2, color: '#4CAF50', fontWeight: 'bold' }}>
+                            ✓ Payroll Processing Complete
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 3, color: theme.palette.text.secondary }}>
+                            All payroll records have been saved successfully.
+                        </Typography>
+                        <ActionButton text="Process New Payroll" onClick={() => setActiveStep(0)} />
+                    </Box>
+                );
+
+            default:
+                return null;
         }
     };
 
@@ -593,31 +961,129 @@ export default function PayoutProcessing() {
         <Box
             sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}
         >
-            <Box
-                sx={{
-                    alignItems: "center",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    mb: 3,
-                }}
-            >
+            {/* Header with Tabs */}
+            <Box sx={{ mb: 3 }}>
                 <Typography
                     variant="h5"
                     sx={{
                         fontSize: "20px",
                         fontFamily: "'TTHoves-Bold', sans-serif",
                         color: theme.palette.text.primary,
+                        mb: 2,
                     }}
                 >
-                    Payout Processing
+                    Payroll Processing
                 </Typography>
+                
+                {/* Tab Buttons */}
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    <Box
+                        onClick={() => setCurrentTab(0)}
+                        sx={{
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            backgroundColor: currentTab === 0 
+                                ? (theme.palette.mode === 'dark' ? '#1F2829' : '#172224')
+                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                            color: currentTab === 0 ? '#fff' : theme.palette.text.primary,
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            }
+                        }}
+                    >
+                        <RiCalculatorLine size={18} />
+                        Calculate New Payroll
+                    </Box>
+                    <Box
+                        onClick={() => setCurrentTab(1)}
+                        sx={{
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            backgroundColor: currentTab === 1 
+                                ? (theme.palette.mode === 'dark' ? '#1F2829' : '#172224')
+                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                            color: currentTab === 1 ? '#fff' : theme.palette.text.primary,
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            }
+                        }}
+                    >
+                        <RiEyeFill size={18} />
+                        Manage Existing Payroll
+                    </Box>
+                </Box>
+            </Box>
 
+            {/* Tab Content */}
+            {currentTab === 0 ? (
+                /* Calculate New Payroll Tab */
                 <Box
                     sx={{
-                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.8)",
+                        border: `1px solid ${theme.palette.divider}`,
+                        borderRadius: "15px",
+                        backdropFilter: "blur(12px)",
+                        p: 3,
+                        minHeight: '500px',
                     }}
                 >
+                    {/* Stepper */}
+                    <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+                        {steps.map((label, index) => (
+                            <Step key={label}>
+                                <StepLabel
+                                    sx={{
+                                        '& .MuiStepLabel-label': {
+                                            color: theme.palette.text.primary,
+                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        },
+                                        '& .MuiStepIcon-root.Mui-active': {
+                                            color: '#4CAF50',
+                                        },
+                                        '& .MuiStepIcon-root.Mui-completed': {
+                                            color: '#4CAF50',
+                                        },
+                                    }}
+                                >
+                                    {label}
+                                </StepLabel>
+                            </Step>
+                        ))}
+                    </Stepper>
+
+                    {/* Step Content */}
+                    {renderStepContent(activeStep)}
+                </Box>
+            ) : (
+                /* Manage Existing Payroll Tab */
+                <>
+                    <Box
+                        sx={{
+                            alignItems: "center",
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            width: "100%",
+                            mb: 2,
+                            gap: 2,
+                            flexWrap: "wrap",
+                        }}
+                    >
                     <SearchBar 
                         placeholder="Search employee..." 
                         width="300px"
@@ -709,7 +1175,6 @@ export default function PayoutProcessing() {
                         />
                     )}
                 </Box>
-            </Box>
 
             <Box
                 sx={{
@@ -1013,6 +1478,8 @@ export default function PayoutProcessing() {
                     width="200px"
                 />
             </Box>
+            </>
+            )}
 
             <BoxModal
                 open={open}

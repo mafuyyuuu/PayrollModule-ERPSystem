@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import payrollRoutes from './routes/payrollRoutes.js';
+import managerRoutes from './routes/managerRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js'
 
 dotenv.config();
@@ -54,9 +55,10 @@ const __dirname = path.dirname(__filename);
 
 // ==================== API ROUTES (MUST BE BEFORE STATIC FILES) ====================
 
-// Import payroll and employee routes
+// Import routes
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/employee', employeeRoutes);
+app.use('/api/manager', managerRoutes);
 
 // LOGIN ROUTE
 app.post('/api/login', async (req, res) => {
@@ -308,7 +310,7 @@ app.get('/api/positions', async (req, res) => {
     }
 });
 
-// Note: Dashboard stats, payroll, cutoffs, pending-requests, tax-contributions, etc.
+// Note: Dashboard stats, payroll, cutoffs, pending-requests, tax-contributions, etc. 
 // are now handled by payrollRoutes.js mounted at /api/payroll
 // See: Backend/routes/payrollRoutes.js
 
