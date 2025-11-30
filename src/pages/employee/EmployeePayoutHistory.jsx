@@ -200,7 +200,7 @@ export default function EmployeePayoutHistory() {
                 sx={{
                     height: "90. 9%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
-                    border: `1px solid ${theme. palette.divider}`,
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",

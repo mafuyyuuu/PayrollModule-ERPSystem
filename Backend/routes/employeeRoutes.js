@@ -4,19 +4,19 @@ import mysql from 'mysql2/promise';
 const router = express.Router();
 
 // ✅ Employee Management System DB
-const employeePool = mysql. createPool({
+const employeePool = mysql.createPool({
     host: process.env.EMP_DB_HOST || 'localhost',
     user: process.env.EMP_DB_USER || 'payroll_vpn',
-    password: process.env. EMP_DB_PASSWORD || 'vpn_payroll_2025',
+    password: process.env.EMP_DB_PASSWORD || 'vpn_payroll_2025',
     database: process.env.EMP_DB_NAME || 'employeemanagementsystem',
-    port: process.env. EMP_DB_PORT || 3306
+    port: process.env.EMP_DB_PORT || 3306
 });
 
 // ✅ Payroll Management System DB
 const payrollPool = mysql.createPool({
-    host: process.env. DB_HOST || 'localhost',
-    user: process.env. DB_USER || 'payrollsystem',
-    password: process.env. DB_PASSWORD || 'payroll',
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'payrollsystem',
+    password: process. env.DB_PASSWORD || 'payroll',
     database: process.env.DB_NAME || 'payrollmanagementsystem',
     port: process.env.DB_PORT || 3306
 });
@@ -28,7 +28,7 @@ const payrollPool = mysql.createPool({
         console.log('✅ employeeRoutes: Connected to Employee Management System');
         conn1.release();
     } catch (err) {
-        console.error('❌ employeeRoutes: Employee DB failed:', err. message);
+        console.error('❌ employeeRoutes: Employee DB failed:', err.message);
     }
 
     try {
@@ -36,7 +36,7 @@ const payrollPool = mysql.createPool({
         console.log('✅ employeeRoutes: Connected to Payroll Management System');
         conn2.release();
     } catch (err) {
-        console. error('❌ employeeRoutes: Payroll DB failed:', err.message);
+        console.error('❌ employeeRoutes: Payroll DB failed:', err.message);
     }
 })();
 
@@ -73,7 +73,7 @@ router.get('/profile/:employeeId', async (req, res) => {
                 );
                 positionTitle = positions[0]?.position_title || "—";
             } catch (e) {
-                console.log('⚠️ Could not fetch position:', e.  message);
+                console.log('⚠️ Could not fetch position:', e.message);
             }
         }
 
@@ -87,7 +87,7 @@ router.get('/profile/:employeeId', async (req, res) => {
                 );
                 departmentName = departments[0]?.department_name || "—";
             } catch (e) {
-                console.log('⚠️ Could not fetch position:', e.  message);
+                console. log('⚠️ Could not fetch department:', e.message);
             }
         }
 
@@ -137,7 +137,7 @@ router.get('/profile/:employeeId', async (req, res) => {
             emp.province,
             emp.postal_code,
             emp.country
-        ].filter(Boolean). join(', ') || "—";
+        ].filter(Boolean).join(', ') || "—";
 
         // ✅ Map to frontend fields
         const profileData = {
@@ -147,23 +147,23 @@ router.get('/profile/:employeeId', async (req, res) => {
             firstName: emp.first_name,
             middleName: emp.middle_name,
             lastName: emp.last_name,
-            suffix: emp.suffix,
-            name: `${emp.first_name || ''} ${emp.middle_name || ''} ${emp.last_name || ''} ${emp.suffix || ''}`. trim().replace(/\s+/g, ' '),
-            email: emp.email_address,
+            suffix: emp. suffix,
+            name: `${emp.first_name || ''} ${emp.middle_name || ''} ${emp.last_name || ''} ${emp.suffix || ''}`.trim(). replace(/\s+/g, ' '),
+            email: emp. email_address,
 
             // Personal info
             address: fullAddress,
             streetAddress: emp.street_address,
             city: emp.city,
             province: emp.province,
-            postalCode: emp. postal_code,
+            postalCode: emp.postal_code,
             country: emp.country,
             birthday: emp.date_of_birth,
             age: age,
             sex: emp.sex,
             maritalStatus: emp.civil_status,
-            nationality: emp. nationality,
-            religion: emp. religion,
+            nationality: emp.nationality,
+            religion: emp.religion,
             contactNumber: emp.mobile_number || "—",
             phoneNumber: emp.phone_number || "—",
 
@@ -180,22 +180,22 @@ router.get('/profile/:employeeId', async (req, res) => {
             positionId: emp.position_id,
             employmentType: emp.employment_type || "—",
             employmentStatus: emp.employment_status || "—",
-            dateHired: emp. date_hired,
+            dateHired: emp.date_hired,
             dateRegularized: emp.date_regularized,
             dateSeparated: emp.date_separated,
 
             // Government IDs
             sssNumber: emp.sss_number || "—",
-            philhealthNumber: emp. philhealth_number || "—",
+            philhealthNumber: emp.philhealth_number || "—",
             pagibigNumber: emp.pagibig_number || "—",
             tinNumber: emp.tin_number || "—"
         };
 
-        console. log('✅ Profile data ready for employee:', emp.first_name, emp.last_name);
+        console.log('✅ Profile data ready for employee:', emp.first_name, emp.last_name);
         res.json(profileData);
     } catch (error) {
-        console.error('❌ Error fetching profile:', error. message);
-        res.status(500).json({ error: 'Failed to fetch profile', details: error.message });
+        console.error('❌ Error fetching profile:', error.message);
+        res.status(500). json({ error: 'Failed to fetch profile', details: error.message });
     }
 });
 
@@ -236,19 +236,19 @@ router.get('/leave-balances/:employeeId', async (req, res) => {
         const [balances] = await employeePool.query(
             `SELECT 
                 lb.balance_id,
-                lb. employee_id,
+                lb.employee_id,
                 lb.leave_type_id,
                 lt.leave_type_name,
                 lt.description as leave_description,
-                lb. year,
-                lb. total_days,
-                lb. used_days,
+                lb.year,
+                lb.total_days,
+                lb.used_days,
                 lb.remaining_days,
-                lb. updated_at
+                lb.updated_at
              FROM LeaveBalances lb
              JOIN LeaveTypes lt ON lb.leave_type_id = lt.leave_type_id
-             WHERE lb.employee_id = ?  AND lb.year = ? 
-             ORDER BY lb. leave_type_id`,
+             WHERE lb.employee_id = ? AND lb.year = ? 
+             ORDER BY lb.leave_type_id`,
             [employeeId, currentYear]
         );
 
@@ -256,7 +256,7 @@ router.get('/leave-balances/:employeeId', async (req, res) => {
         res.json(balances);
     } catch (error) {
         console. error('❌ Error fetching leave balances:', error.message);
-        res.status(500).json({ error: 'Failed to fetch leave balances' });
+        res.status(500). json({ error: 'Failed to fetch leave balances' });
     }
 });
 
@@ -274,15 +274,15 @@ router.get('/leave-requests/:employeeId', async (req, res) => {
                 lt.leave_type_name,
                 lr.start_date,
                 lr.end_date,
-                lr. total_days,
+                lr.total_days,
                 lr.reason,
-                lr. status,
+                lr.status,
                 lr.approved_by,
                 lr.approved_at,
-                lr. remarks,
+                lr.remarks,
                 lr.created_at
              FROM LeaveRequests lr
-             JOIN LeaveTypes lt ON lr.leave_type_id = lt.leave_type_id
+             JOIN LeaveTypes lt ON lr. leave_type_id = lt. leave_type_id
              WHERE lr.employee_id = ? 
         `;
 
@@ -294,13 +294,13 @@ router.get('/leave-requests/:employeeId', async (req, res) => {
         }
 
         if (year) {
-            query += ` AND YEAR(lr.start_date) = ? `;
-            params. push(year);
+            query += ` AND YEAR(lr.start_date) = ?`;
+            params.push(year);
         }
 
         query += ` ORDER BY lr.created_at DESC`;
 
-        const [requests] = await employeePool.query(query, params);
+        const [requests] = await employeePool. query(query, params);
 
         res.json(requests);
     } catch (error) {
@@ -311,18 +311,18 @@ router.get('/leave-requests/:employeeId', async (req, res) => {
 
 // CREATE NEW LEAVE REQUEST
 router.post('/leave-requests', async (req, res) => {
-    const { employee_id, leave_type_id, start_date, end_date, total_days, reason } = req.body;
+    const { employee_id, leave_type_id, start_date, end_date, total_days, reason } = req. body;
 
     try {
         if (!employee_id || !leave_type_id || !start_date || !end_date || !total_days) {
-            return res.status(400). json({ error: 'Missing required fields' });
+            return res.status(400).json({ error: 'Missing required fields' });
         }
 
         // Check leave balance
         const currentYear = new Date(start_date).getFullYear();
         const [balances] = await employeePool.query(
             `SELECT remaining_days FROM LeaveBalances 
-             WHERE employee_id = ? AND leave_type_id = ? AND year = ? `,
+             WHERE employee_id = ?  AND leave_type_id = ?  AND year = ?`,
             [employee_id, leave_type_id, currentYear]
         );
 
@@ -331,7 +331,7 @@ router.post('/leave-requests', async (req, res) => {
         }
 
         if (balances[0].remaining_days < total_days) {
-            return res. status(400).json({
+            return res.status(400). json({
                 error: 'Insufficient leave balance',
                 remaining_days: balances[0].remaining_days,
                 requested_days: total_days
@@ -341,11 +341,11 @@ router.post('/leave-requests', async (req, res) => {
         // Check for overlapping requests
         const [overlapping] = await employeePool.query(
             `SELECT request_id FROM LeaveRequests 
-             WHERE employee_id = ? 
+             WHERE employee_id = ?  
              AND status IN ('Pending', 'Approved')
              AND ((start_date <= ? AND end_date >= ?) 
                   OR (start_date <= ? AND end_date >= ?)
-                  OR (start_date >= ? AND end_date <= ? ))`,
+                  OR (start_date >= ? AND end_date <= ?))`,
             [employee_id, start_date, start_date, end_date, end_date, start_date, end_date]
         );
 
@@ -361,20 +361,39 @@ router.post('/leave-requests', async (req, res) => {
             [employee_id, leave_type_id, start_date, end_date, total_days, reason]
         );
 
+        // ✅ Also insert into requests table for tracking
+        try {
+            const [leaveTypes] = await employeePool.query(
+                `SELECT leave_type_name FROM LeaveTypes WHERE leave_type_id = ?`,
+                [leave_type_id]
+            );
+            const leaveTypeName = leaveTypes[0]?.leave_type_name || 'Leave';
+            const description = `${leaveTypeName}: ${start_date} to ${end_date} (${total_days} days) - ${reason || 'No reason provided'}`;
+
+            await payrollPool.query(
+                `INSERT INTO requests 
+                 (employee_id, request_type, request_description, date_filed, status)
+                 VALUES (?, 'Leave', ?, CURDATE(), 'Pending')`,
+                [employee_id, description]
+            );
+        } catch (e) {
+            console.log('⚠️ Could not insert into requests table:', e.message);
+        }
+
         res.status(201).json({
             success: true,
             message: 'Leave request submitted successfully',
-            request_id: result. insertId
+            request_id: result.insertId
         });
     } catch (error) {
-        console.error('Error creating leave request:', error. message);
+        console.error('Error creating leave request:', error.message);
         res.status(500). json({ error: 'Failed to create leave request' });
     }
 });
 
 // CANCEL LEAVE REQUEST
 router.put('/leave-requests/:requestId/cancel', async (req, res) => {
-    const { requestId } = req. params;
+    const { requestId } = req.params;
     const { employee_id } = req.body;
 
     try {
@@ -384,22 +403,252 @@ router.put('/leave-requests/:requestId/cancel', async (req, res) => {
         );
 
         if (requests.length === 0) {
-            return res. status(404).json({ error: 'Leave request not found' });
+            return res.status(404).json({ error: 'Leave request not found' });
         }
 
-        if (requests[0]. status !== 'Pending') {
+        if (requests[0].status !== 'Pending') {
             return res.status(400).json({ error: 'Only pending requests can be cancelled' });
         }
 
         await employeePool.query(
-            `UPDATE LeaveRequests SET status = 'Cancelled' WHERE request_id = ? `,
+            `UPDATE LeaveRequests SET status = 'Cancelled' WHERE request_id = ?`,
             [requestId]
         );
 
         res.json({ success: true, message: 'Leave request cancelled successfully' });
     } catch (error) {
-        console. error('Error cancelling leave request:', error. message);
-        res.status(500). json({ error: 'Failed to cancel leave request' });
+        console.error('Error cancelling leave request:', error.message);
+        res.status(500).json({ error: 'Failed to cancel leave request' });
+    }
+});
+
+// =====================================================
+// OVERTIME REQUEST ROUTES - Using 'requests' & 'timesheets' tables
+// =====================================================
+
+// CREATE OVERTIME REQUEST
+router.post('/overtime-request', async (req, res) => {
+    const { employeeId, date, startTime, endTime, hours, reason } = req.body;
+
+    console.log('⏰ Overtime request from employee:', employeeId);
+
+    // Validation
+    if (!employeeId || !date || !startTime || ! endTime || !reason) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        // ✅ Insert into requests table
+        const description = `Overtime Request: ${date} from ${startTime} to ${endTime} (${hours} hours) - ${reason}`;
+
+        const [result] = await payrollPool.query(
+            `INSERT INTO requests 
+            (employee_id, request_type, request_description, date_filed, status)
+            VALUES (?, 'Overtime', ?, CURDATE(), 'Pending')`,
+            [employeeId, description]
+        );
+
+        // ✅ Also insert into timesheets table for record
+        await payrollPool.query(
+            `INSERT INTO timesheets 
+            (employee_id, date, time_in, time_out, overtime_hours, remarks)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [employeeId, date, startTime, endTime, hours, `Pending Approval - ${reason}`]
+        );
+
+        console.log('✅ Overtime request created with ID:', result.insertId);
+        res.json({
+            success: true,
+            message: 'Overtime request submitted successfully',
+            requestId: result.insertId
+        });
+    } catch (error) {
+        console.error('❌ Error creating overtime request:', error.message);
+        res.status(500).json({ message: 'Failed to submit overtime request', details: error.message });
+    }
+});
+
+// GET OVERTIME REQUESTS FOR EMPLOYEE
+router.get('/overtime-requests/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { status } = req.query;
+
+    console.log('📋 Fetching overtime requests for employee:', employeeId);
+
+    try {
+        let query = `
+            SELECT 
+                request_id,
+                employee_id,
+                request_type,
+                request_description,
+                date_filed,
+                status,
+                approved_by,
+                remarks
+            FROM requests
+            WHERE employee_id = ? AND request_type = 'Overtime'
+        `;
+
+        const params = [employeeId];
+
+        if (status) {
+            query += ` AND status = ?`;
+            params.push(status);
+        }
+
+        query += ` ORDER BY date_filed DESC`;
+
+        const [requests] = await payrollPool.query(query, params);
+
+        console.log('✅ Found', requests.length, 'overtime requests');
+        res.json(requests);
+    } catch (error) {
+        console.error('❌ Error fetching overtime requests:', error.message);
+        res. status(500).json({ error: 'Failed to fetch overtime requests', details: error.message });
+    }
+});
+
+// =====================================================
+// MANUAL TIME IN/OUT ROUTES - Using 'timesheets' table
+// =====================================================
+
+// CREATE MANUAL TIME ENTRY
+router.post('/manual-time', async (req, res) => {
+    const { employeeId, date, timeIn, timeOut, remarks } = req.body;
+
+    console. log('🕐 Manual time entry from employee:', employeeId);
+
+    // Validation
+    if (!employeeId || !date || !timeIn || !timeOut) {
+        return res.status(400). json({ message: 'All fields are required' });
+    }
+
+    try {
+        // Calculate overtime if any (assuming 8 hour workday)
+        const start = new Date(`2000-01-01T${timeIn}`);
+        const end = new Date(`2000-01-01T${timeOut}`);
+        const diffHours = (end - start) / (1000 * 60 * 60);
+        const overtimeHours = Math.max(0, diffHours - 8). toFixed(2);
+
+        // ✅ Insert into timesheets table
+        const [result] = await payrollPool.query(
+            `INSERT INTO timesheets 
+            (employee_id, date, time_in, time_out, overtime_hours, remarks)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [employeeId, date, timeIn, timeOut, overtimeHours, remarks || 'Manual Entry - Pending Approval']
+        );
+
+        // ✅ Also create a request for approval
+        const description = `Manual Time Entry: ${date} - In: ${timeIn}, Out: ${timeOut}${remarks ? ` - ${remarks}` : ''}`;
+
+        await payrollPool.query(
+            `INSERT INTO requests 
+            (employee_id, request_type, request_description, date_filed, status)
+            VALUES (?, 'Manual Time Entry', ?, CURDATE(), 'Pending')`,
+            [employeeId, description]
+        );
+
+        console.log('✅ Manual time entry created with ID:', result.insertId);
+        res.json({
+            success: true,
+            message: 'Manual time entry submitted successfully',
+            timesheetId: result.insertId
+        });
+    } catch (error) {
+        console.error('❌ Error creating manual time entry:', error.message);
+        res.status(500).json({ message: 'Failed to submit manual time entry', details: error.message });
+    }
+});
+
+// GET TIMESHEETS FOR EMPLOYEE
+router. get('/timesheets/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { startDate, endDate } = req. query;
+
+    console.log('⏰ Fetching timesheets for employee:', employeeId);
+
+    try {
+        let query = `
+            SELECT 
+                timesheet_id,
+                employee_id,
+                date,
+                time_in,
+                time_out,
+                break_duration,
+                overtime_hours,
+                remarks,
+                approved_by
+            FROM timesheets
+            WHERE employee_id = ? 
+        `;
+        const params = [employeeId];
+
+        // Optional date filter
+        if (startDate && endDate) {
+            query += ` AND date BETWEEN ? AND ?`;
+            params.push(startDate, endDate);
+        }
+
+        query += ` ORDER BY date DESC`;
+
+        const [timesheets] = await payrollPool.query(query, params);
+
+        console.log('✅ Found', timesheets.length, 'timesheets');
+        res.json(timesheets);
+    } catch (error) {
+        console.error('❌ Error fetching timesheets:', error.message);
+        res.status(500).json({ error: 'Failed to fetch timesheets', details: error.message });
+    }
+});
+
+// =====================================================
+// GET ALL REQUESTS FOR AN EMPLOYEE
+// =====================================================
+
+router.get('/requests/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { type, status } = req.query;
+
+    console.log('📋 Fetching all requests for employee:', employeeId);
+
+    try {
+        let query = `
+            SELECT 
+                request_id,
+                employee_id,
+                request_type,
+                request_description,
+                date_filed,
+                status,
+                approved_by,
+                remarks
+            FROM requests
+            WHERE employee_id = ?
+        `;
+
+        const params = [employeeId];
+
+        if (type) {
+            query += ` AND request_type = ?`;
+            params.push(type);
+        }
+
+        if (status) {
+            query += ` AND status = ?`;
+            params.push(status);
+        }
+
+        query += ` ORDER BY date_filed DESC`;
+
+        const [requests] = await payrollPool.query(query, params);
+
+        console. log('✅ Found', requests.length, 'requests');
+        res.json(requests);
+    } catch (error) {
+        console.error('❌ Error fetching requests:', error.message);
+        res.status(500).json({ error: 'Failed to fetch requests', details: error. message });
     }
 });
 
@@ -408,7 +657,7 @@ router.put('/leave-requests/:requestId/cancel', async (req, res) => {
 // =====================================================
 
 // GET EMPLOYEE PAYROLL HISTORY
-router. get('/payroll-history/:employeeId', async (req, res) => {
+router.get('/payroll-history/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
     const { year, limit } = req.query;
 
@@ -433,13 +682,13 @@ router. get('/payroll-history/:employeeId', async (req, res) => {
                 net_pay,
                 payslip_reference_number
             FROM Payroll
-            WHERE employee_id = ? 
+            WHERE employee_id = ?
         `;
 
         const params = [employeeId];
 
         if (year) {
-            query += ` AND YEAR(pay_date) = ? `;
+            query += ` AND YEAR(pay_date) = ?`;
             params.push(year);
         }
 
@@ -452,7 +701,7 @@ router. get('/payroll-history/:employeeId', async (req, res) => {
 
         const [payrolls] = await payrollPool.query(query, params);
 
-        console.log('✅ Found', payrolls. length, 'payroll records');
+        console.log('✅ Found', payrolls.length, 'payroll records');
         res.json(payrolls);
     } catch (error) {
         console. error('❌ Error fetching payroll history:', error.message);
@@ -462,8 +711,8 @@ router. get('/payroll-history/:employeeId', async (req, res) => {
 
 // GET SINGLE PAYSLIP DETAILS
 router.get('/payslip/:payrollId', async (req, res) => {
-    const { payrollId } = req. params;
-    const { employeeId } = req. query;
+    const { payrollId } = req.params;
+    const { employeeId } = req.query;
 
     try {
         let query = `
@@ -504,17 +753,17 @@ router.get('/payslip/:payrollId', async (req, res) => {
                  e.employee_id,
                  e.employee_number,
                  CONCAT(e.first_name, ' ', e.last_name) as full_name,
-                 e.sss_number,
-                 e. philhealth_number,
+                 e. sss_number,
+                 e.philhealth_number,
                  e.pagibig_number,
                  e.tin_number,
                  p.position_title,
                  d.department_name
              FROM Employees e
-                      LEFT JOIN Positions p ON e.position_id = p.position_id
+                      LEFT JOIN Positions p ON e. position_id = p.position_id
                       LEFT JOIN Departments d ON e.department_id = d.department_id
              WHERE e.employee_id = ?`,
-            [payroll[0].employee_id]
+            [payroll[0]. employee_id]
         );
 
         res.json({
@@ -522,8 +771,8 @@ router.get('/payslip/:payrollId', async (req, res) => {
             employee: employee[0] || null
         });
     } catch (error) {
-        console.error('Error fetching payslip:', error. message);
-        res.status(500).json({ error: 'Failed to fetch payslip' });
+        console.error('Error fetching payslip:', error.message);
+        res. status(500).json({ error: 'Failed to fetch payslip' });
     }
 });
 
@@ -533,18 +782,18 @@ router.get('/payslip/:payrollId', async (req, res) => {
 
 // GET EMPLOYEE ATTENDANCE RECORDS
 router.get('/attendance/:employeeId', async (req, res) => {
-    const { employeeId } = req. params;
-    const { start_date, end_date, month, year } = req. query;
+    const { employeeId } = req.params;
+    const { start_date, end_date, month, year } = req.query;
 
     try {
-        let query = `SELECT * FROM Timesheets WHERE employee_id = ?`;
+        let query = `SELECT * FROM timesheets WHERE employee_id = ? `;
         const params = [employeeId];
 
         if (start_date && end_date) {
             query += ` AND date BETWEEN ? AND ?`;
             params.push(start_date, end_date);
         } else if (month && year) {
-            query += ` AND MONTH(date) = ?  AND YEAR(date) = ?`;
+            query += ` AND MONTH(date) = ? AND YEAR(date) = ?`;
             params.push(month, year);
         }
 
@@ -555,35 +804,35 @@ router.get('/attendance/:employeeId', async (req, res) => {
         res.json(timesheets);
     } catch (error) {
         console.error('Error fetching attendance:', error.message);
-        res.status(500).json({ error: 'Failed to fetch attendance records' });
+        res. status(500).json({ error: 'Failed to fetch attendance records' });
     }
 });
 
 // GET EMPLOYEE ATTENDANCE SUMMARY
 router.get('/attendance-summary/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
-    const { month, year } = req. query;
+    const { month, year } = req.query;
     const currentMonth = month || new Date().getMonth() + 1;
-    const currentYear = year || new Date(). getFullYear();
+    const currentYear = year || new Date().getFullYear();
 
     try {
-        const [summary] = await payrollPool.query(
+        const [summary] = await payrollPool. query(
             `SELECT 
                 COUNT(*) as total_days,
-                SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present_days,
-                SUM(CASE WHEN status = 'Absent' THEN 1 ELSE 0 END) as absent_days,
-                SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late_days,
-                SUM(CASE WHEN status = 'On Leave' THEN 1 ELSE 0 END) as leave_days,
+                SUM(CASE WHEN remarks LIKE '%Approved%' OR remarks = 'Regular' THEN 1 ELSE 0 END) as present_days,
+                SUM(CASE WHEN remarks LIKE '%Absent%' THEN 1 ELSE 0 END) as absent_days,
+                SUM(CASE WHEN remarks LIKE '%Late%' THEN 1 ELSE 0 END) as late_days,
+                SUM(CASE WHEN remarks LIKE '%Leave%' THEN 1 ELSE 0 END) as leave_days,
                 SUM(TIMESTAMPDIFF(HOUR, time_in, time_out)) as total_hours,
                 SUM(overtime_hours) as total_overtime
-             FROM Timesheets 
-             WHERE employee_id = ? 
-             AND MONTH(date) = ?  
+             FROM timesheets 
+             WHERE employee_id = ?  
+             AND MONTH(date) = ? 
              AND YEAR(date) = ?`,
             [employeeId, currentMonth, currentYear]
         );
 
-        res. json(summary[0] || {
+        res.json(summary[0] || {
             total_days: 0,
             present_days: 0,
             absent_days: 0,
@@ -604,42 +853,59 @@ router.get('/attendance-summary/:employeeId', async (req, res) => {
 
 // GET EMPLOYEE DASHBOARD DATA
 router.get('/dashboard/:employeeId', async (req, res) => {
-    const { employeeId } = req. params;
-    const currentYear = new Date(). getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
+    const { employeeId } = req.params;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date(). getMonth() + 1;
 
     try {
         // Get leave balances summary
-        const [leaveBalances] = await employeePool. query(
+        const [leaveBalances] = await employeePool.query(
             `SELECT 
                 lt.leave_type_name,
                 lb.remaining_days
              FROM LeaveBalances lb
-             JOIN LeaveTypes lt ON lb.leave_type_id = lt. leave_type_id
-             WHERE lb. employee_id = ?  AND lb.year = ?`,
+             JOIN LeaveTypes lt ON lb. leave_type_id = lt. leave_type_id
+             WHERE lb.employee_id = ? AND lb.year = ? `,
             [employeeId, currentYear]
         );
 
         // Get pending leave requests count
         const [pendingLeaves] = await employeePool.query(
             `SELECT COUNT(*) as count FROM LeaveRequests 
-             WHERE employee_id = ? AND status = 'Pending'`,
+             WHERE employee_id = ?  AND status = 'Pending'`,
             [employeeId]
         );
 
-        // In the dashboard route, update the payslip query:
+        // ✅ Get pending requests count from requests table (all types)
+        let pendingRequests = { total_pending: 0, pending_overtime: 0, pending_manual_time: 0 };
+        try {
+            const [requests] = await payrollPool.query(
+                `SELECT 
+                    COUNT(*) as total_pending,
+                    SUM(CASE WHEN request_type = 'Overtime' THEN 1 ELSE 0 END) as pending_overtime,
+                    SUM(CASE WHEN request_type = 'Manual Time Entry' THEN 1 ELSE 0 END) as pending_manual_time
+                 FROM requests 
+                 WHERE employee_id = ? AND status = 'Pending'`,
+                [employeeId]
+            );
+            pendingRequests = requests[0] || pendingRequests;
+        } catch (err) {
+            console.log('⚠️ Could not fetch pending requests:', err.message);
+        }
+
+        // Get latest payslip
         let latestPayslip = null;
         try {
             const [payslips] = await payrollPool.query(
                 `SELECT payroll_id, pay_date, net_pay, status
                  FROM Payroll
-                 WHERE employee_id = ?
+                 WHERE employee_id = ? 
                  ORDER BY pay_date DESC LIMIT 1`,
                 [employeeId]
             );
             latestPayslip = payslips[0] || null;
         } catch (err) {
-            console.log('⚠️ Could not fetch position:', err.message);
+            console.log('⚠️ Could not fetch payslip:', err.message);
         }
 
         // Get attendance summary for current month
@@ -648,22 +914,26 @@ router.get('/dashboard/:employeeId', async (req, res) => {
             const [attendance] = await payrollPool.query(
                 `SELECT 
                     COUNT(*) as total_days,
-                    SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present_days,
-                    SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late_days
-                 FROM Timesheets 
-                 WHERE employee_id = ? 
+                    SUM(CASE WHEN remarks = 'Regular' OR remarks LIKE '%Approved%' THEN 1 ELSE 0 END) as present_days,
+                    SUM(CASE WHEN remarks LIKE '%Late%' THEN 1 ELSE 0 END) as late_days,
+                    SUM(overtime_hours) as total_overtime
+                 FROM timesheets 
+                 WHERE employee_id = ?  
                  AND MONTH(date) = ? 
-                 AND YEAR(date) = ?`,
+                 AND YEAR(date) = ? `,
                 [employeeId, currentMonth, currentYear]
             );
             attendanceSummary = attendance[0] || null;
         } catch (err) {
-            console.log('⚠️ Could not fetch position:', err.message);
+            console.log('⚠️ Could not fetch attendance:', err.message);
         }
 
-        res. json({
+        res.json({
             leaveBalances,
             pendingLeaveRequests: pendingLeaves[0]?.count || 0,
+            pendingOvertimeRequests: pendingRequests.pending_overtime || 0,
+            pendingManualTimeRequests: pendingRequests.pending_manual_time || 0,
+            totalPendingRequests: pendingRequests.total_pending || 0,
             latestPayslip,
             attendanceSummary
         });
@@ -674,25 +944,80 @@ router.get('/dashboard/:employeeId', async (req, res) => {
 });
 
 // =====================================================
+// EARNINGS OVERVIEW (For Dashboard Chart)
+// =====================================================
+
+router.get('/earnings-overview/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { months = 6 } = req.query;
+
+    console.log('📊 Fetching earnings overview for employee:', employeeId, 'months:', months);
+
+    try {
+        const [earnings] = await payrollPool.query(
+            `SELECT
+                 DATE_FORMAT(pay_date, '%b') as month,
+                DATE_FORMAT(pay_date, '%Y-%m') as yearMonth,
+                MONTH(pay_date) as monthNum,
+                YEAR(pay_date) as year,
+                net_pay as earnings,
+                basic_pay,
+                overtime_pay,
+                bonuses,
+                deductions,
+                cutoff_start_date,
+                cutoff_end_date,
+                pay_date,
+                payroll_frequency
+             FROM Payroll
+             WHERE employee_id = ? 
+               AND pay_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+             ORDER BY pay_date ASC`,
+            [employeeId, parseInt(months)]
+        );
+
+        if (earnings.length === 0) {
+            console.log('⚠️ No earnings data found for employee:', employeeId);
+            return res.json([]);
+        }
+
+        const chartData = earnings.map(item => ({
+            month: item. month,
+            earnings: parseFloat(item.earnings) || 0,
+            basicPay: parseFloat(item. basic_pay) || 0,
+            overtimePay: parseFloat(item.overtime_pay) || 0,
+            bonuses: parseFloat(item.bonuses) || 0,
+            deductions: parseFloat(item.deductions) || 0,
+            payDate: item.pay_date
+        }));
+
+        console.log('✅ Found', chartData.length, 'months of earnings data');
+        res.json(chartData);
+    } catch (error) {
+        console.error('❌ Error fetching earnings overview:', error.message);
+        res. status(500).json({ error: 'Failed to fetch earnings overview', details: error.message });
+    }
+});
+
+// =====================================================
 // TAX CONTRIBUTIONS ROUTES
 // =====================================================
 
 // GET EMPLOYEE TAX CONTRIBUTIONS
 router.get('/tax-contributions/:employeeId', async (req, res) => {
-    const { employeeId } = req. params;
+    const { employeeId } = req.params;
     const { year } = req.query;
     const currentYear = year || new Date().getFullYear();
 
     console.log('📋 Fetching tax contributions for employee:', employeeId, 'year:', currentYear);
 
     try {
-        // ✅ Using TaxContributions table (correct case!)
-        const [contributionRecords] = await payrollPool.query(
+        const [contributionRecords] = await payrollPool. query(
             `SELECT 
                 tc.contribution_id as id,
                 tc.payroll_id,
-                tc.employee_id,
-                tc.sss_contribution as sss,
+                tc. employee_id,
+                tc. sss_contribution as sss,
                 tc.philhealth_contribution as philhealth,
                 tc.pagibig_contribution as pagibig,
                 tc.withholding_tax as wtax,
@@ -709,7 +1034,6 @@ router.get('/tax-contributions/:employeeId', async (req, res) => {
 
         console.log('🔍 Found records:', contributionRecords.length);
 
-        // Format contributions with duration string
         const contributions = contributionRecords.map(record => ({
             id: record.id,
             payroll_id: record.payroll_id,
@@ -722,7 +1046,6 @@ router.get('/tax-contributions/:employeeId', async (req, res) => {
             total: Number(record. total) || 0
         }));
 
-        // Calculate totals
         const totals = contributions.reduce((acc, curr) => {
             acc. sss += curr.sss;
             acc.philhealth += curr.philhealth;
@@ -732,7 +1055,6 @@ router.get('/tax-contributions/:employeeId', async (req, res) => {
             return acc;
         }, { sss: 0, philhealth: 0, pagibig: 0, wtax: 0, total: 0 });
 
-        // Get unique payroll periods for dropdown
         const payrollPeriods = contributions.map(c => ({
             duration: c.duration
         }));
@@ -746,7 +1068,7 @@ router.get('/tax-contributions/:employeeId', async (req, res) => {
             payrollPeriods
         });
     } catch (error) {
-        console.error('❌ Error fetching tax contributions:', error. message);
+        console.error('❌ Error fetching tax contributions:', error.message);
         res.status(500).json({ error: 'Failed to fetch tax contributions', details: error.message });
     }
 });
@@ -767,16 +1089,16 @@ function formatPayrollDuration(startDate, endDate) {
     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 }
 
-// GET EMPLOYEE TAX CONTRIBUTIONS SUMMARY (simpler endpoint)
+// GET EMPLOYEE TAX CONTRIBUTIONS SUMMARY
 router.get('/tax-summary/:employeeId', async (req, res) => {
     const { employeeId } = req. params;
     const { year } = req.query;
-    const currentYear = year || new Date().getFullYear();
+    const currentYear = year || new Date(). getFullYear();
 
-    console.log('📋 Fetching tax summary for employee:', employeeId);
+    console. log('📋 Fetching tax summary for employee:', employeeId);
 
     try {
-        const [summary] = await payrollPool.query(
+        const [summary] = await payrollPool. query(
             `SELECT 
                 YEAR(pay_date) as year,
                 SUM(deductions) as total_deductions,
@@ -784,7 +1106,7 @@ router.get('/tax-summary/:employeeId', async (req, res) => {
                 SUM(net_pay) as total_net_pay,
                 COUNT(*) as total_payrolls
             FROM Payroll
-            WHERE employee_id = ? AND YEAR(pay_date) = ?
+            WHERE employee_id = ? AND YEAR(pay_date) = ? 
             GROUP BY YEAR(pay_date)`,
             [employeeId, currentYear]
         );

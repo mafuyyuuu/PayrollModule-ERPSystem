@@ -44,7 +44,8 @@ function ManualLogin() {
             // Set user data from database response
             setUser({
                 id: data.id,
-                employeeId: data. employeeId,
+                employee_id: data.employeeId,  // Use employee_id for consistency
+                employeeId: data.employeeId,   // Keep both for backward compatibility
                 name: data.name || data.username,
                 username: data.username,
                 email: data.email,
@@ -52,16 +53,16 @@ function ManualLogin() {
                 status: data.status,
                 // Employee details from database
                 firstName: data.firstName,
-                middleName: data. middleName,
-                lastName: data. lastName,
+                middleName: data.middleName,
+                lastName: data.lastName,
                 position: data.position,
                 department: data.department,
-                employmentType: data. employmentType,
+                employmentType: data.employmentType,
                 dateHired: data.dateHired,
                 birthday: data.birthday,
                 sex: data.sex,
                 nationality: data.nationality,
-                maritalStatus: data. maritalStatus,
+                maritalStatus: data.maritalStatus,
                 address: data.address,
                 contactNumber: data.contactNumber,
                 emergencyContactName: data.emergencyContactName,
