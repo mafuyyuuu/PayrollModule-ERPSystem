@@ -4,6 +4,19 @@ import { payrollDB, hrDB } from '../db.js';
 
 const router = express.Router();
 
+// Helper function to log activity
+const logActivity = async (actionType, entityType, entityId, description, processedBy = null) => {
+    try {
+        await payrollDB.query(
+            `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, description, processed_by, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())`,
+            [actionType, entityType, entityId, description, processedBy]
+        );
+    } catch (error) {
+        console.error('Error logging activity:', error);
+    }
+};
+
 // 1. GET PAYROLL DASHBOARD STATS
 router.get('/dashboard-stats', async (req, res) => {
     try {
@@ -19,8 +32,9 @@ router.get('/dashboard-stats', async (req, res) => {
             "SELECT COUNT(*) as count FROM Payroll WHERE status IN ('Pending', 'Processing')"
         );
 
+        // Get upcoming schedule from PayrollCutoffs
         const [upcomingSchedule] = await payrollDB.query(
-            "SELECT pay_date FROM Payroll WHERE status = 'Scheduled' AND pay_date > NOW() ORDER BY pay_date ASC LIMIT 1"
+            "SELECT pay_date FROM PayrollCutoffs WHERE pay_date >= CURDATE() ORDER BY pay_date ASC LIMIT 1"
         );
 
         res.json({
@@ -615,16 +629,16 @@ router.get('/cutoffs', async (req, res) => {
             SELECT 
                 cutoff_id,
                 period_name,
-                cutoff_start_date,
-                cutoff_end_date,
+                start_date,
+                end_date,
                 pay_date,
                 frequency,
                 status,
                 (SELECT SUM(net_pay) FROM Payroll 
-                 WHERE cutoff_start_date = pc.cutoff_start_date 
-                 AND cutoff_end_date = pc.cutoff_end_date) as total_amount
+                 WHERE cutoff_start_date = pc.start_date 
+                 AND cutoff_end_date = pc.end_date) as total_amount
             FROM PayrollCutoffs pc
-            ORDER BY cutoff_start_date DESC
+            ORDER BY start_date DESC
         `);
 
         res.json(cutoffs);
@@ -1020,56 +1034,69 @@ router.get('/payroll/:id', async (req, res) => {
 // =====================================================
 
 // Helper function: Calculate SSS contribution based on 2024 table
+// Helper function: Calculate SSS contribution (2024)
+// Employee share: 4.5% of Monthly Salary Credit (MSC)
+// MSC ranges from ₱4,000 to ₱30,000
 function calculateSSS(monthlySalary) {
+    // 2024 SSS Contribution Table - Employee Share (4.5% of MSC)
     const sssTable = [
-        { min: 0, max: 4249.99, ee: 180 },
-        { min: 4250, max: 4749.99, ee: 202.50 },
-        { min: 4750, max: 5249.99, ee: 225 },
-        { min: 5250, max: 5749.99, ee: 247.50 },
-        { min: 5750, max: 6249.99, ee: 270 },
-        { min: 6250, max: 6749.99, ee: 292.50 },
-        { min: 6750, max: 7249.99, ee: 315 },
-        { min: 7250, max: 7749.99, ee: 337.50 },
-        { min: 7750, max: 8249.99, ee: 360 },
-        { min: 8250, max: 8749.99, ee: 382.50 },
-        { min: 8750, max: 9249.99, ee: 405 },
-        { min: 9250, max: 9749.99, ee: 427.50 },
-        { min: 9750, max: 10249.99, ee: 450 },
-        { min: 10250, max: 10749.99, ee: 472.50 },
-        { min: 10750, max: 11249.99, ee: 495 },
-        { min: 11250, max: 11749.99, ee: 517.50 },
-        { min: 11750, max: 12249.99, ee: 540 },
-        { min: 12250, max: 12749.99, ee: 562.50 },
-        { min: 12750, max: 13249.99, ee: 585 },
-        { min: 13250, max: 13749.99, ee: 607.50 },
-        { min: 13750, max: 14249.99, ee: 630 },
-        { min: 14250, max: 14749.99, ee: 652.50 },
-        { min: 14750, max: 15249.99, ee: 675 },
-        { min: 15250, max: 15749.99, ee: 697.50 },
-        { min: 15750, max: 16249.99, ee: 720 },
-        { min: 16250, max: 16749.99, ee: 742.50 },
-        { min: 16750, max: 17249.99, ee: 765 },
-        { min: 17250, max: 17749.99, ee: 787.50 },
-        { min: 17750, max: 18249.99, ee: 810 },
-        { min: 18250, max: 18749.99, ee: 832.50 },
-        { min: 18750, max: 19249.99, ee: 855 },
-        { min: 19250, max: 19749.99, ee: 877.50 },
-        { min: 19750, max: 20249.99, ee: 900 },
-        { min: 20250, max: 20749.99, ee: 922.50 },
-        { min: 20750, max: 21249.99, ee: 945 },
-        { min: 21250, max: 21749.99, ee: 967.50 },
-        { min: 21750, max: 22249.99, ee: 990 },
-        { min: 22250, max: 22749.99, ee: 1012.50 },
-        { min: 22750, max: 23249.99, ee: 1035 },
-        { min: 23250, max: 23749.99, ee: 1057.50 },
-        { min: 23750, max: 24249.99, ee: 1080 },
-        { min: 24250, max: 24749.99, ee: 1102.50 },
-        { min: 24750, max: 29999.99, ee: 1125 },
-        { min: 30000, max: Infinity, ee: 1350 }
+        { min: 0, max: 4249.99, msc: 4000, ee: 180 },
+        { min: 4250, max: 4749.99, msc: 4500, ee: 202.50 },
+        { min: 4750, max: 5249.99, msc: 5000, ee: 225 },
+        { min: 5250, max: 5749.99, msc: 5500, ee: 247.50 },
+        { min: 5750, max: 6249.99, msc: 6000, ee: 270 },
+        { min: 6250, max: 6749.99, msc: 6500, ee: 292.50 },
+        { min: 6750, max: 7249.99, msc: 7000, ee: 315 },
+        { min: 7250, max: 7749.99, msc: 7500, ee: 337.50 },
+        { min: 7750, max: 8249.99, msc: 8000, ee: 360 },
+        { min: 8250, max: 8749.99, msc: 8500, ee: 382.50 },
+        { min: 8750, max: 9249.99, msc: 9000, ee: 405 },
+        { min: 9250, max: 9749.99, msc: 9500, ee: 427.50 },
+        { min: 9750, max: 10249.99, msc: 10000, ee: 450 },
+        { min: 10250, max: 10749.99, msc: 10500, ee: 472.50 },
+        { min: 10750, max: 11249.99, msc: 11000, ee: 495 },
+        { min: 11250, max: 11749.99, msc: 11500, ee: 517.50 },
+        { min: 11750, max: 12249.99, msc: 12000, ee: 540 },
+        { min: 12250, max: 12749.99, msc: 12500, ee: 562.50 },
+        { min: 12750, max: 13249.99, msc: 13000, ee: 585 },
+        { min: 13250, max: 13749.99, msc: 13500, ee: 607.50 },
+        { min: 13750, max: 14249.99, msc: 14000, ee: 630 },
+        { min: 14250, max: 14749.99, msc: 14500, ee: 652.50 },
+        { min: 14750, max: 15249.99, msc: 15000, ee: 675 },
+        { min: 15250, max: 15749.99, msc: 15500, ee: 697.50 },
+        { min: 15750, max: 16249.99, msc: 16000, ee: 720 },
+        { min: 16250, max: 16749.99, msc: 16500, ee: 742.50 },
+        { min: 16750, max: 17249.99, msc: 17000, ee: 765 },
+        { min: 17250, max: 17749.99, msc: 17500, ee: 787.50 },
+        { min: 17750, max: 18249.99, msc: 18000, ee: 810 },
+        { min: 18250, max: 18749.99, msc: 18500, ee: 832.50 },
+        { min: 18750, max: 19249.99, msc: 19000, ee: 855 },
+        { min: 19250, max: 19749.99, msc: 19500, ee: 877.50 },
+        { min: 19750, max: 20249.99, msc: 20000, ee: 900 },
+        { min: 20250, max: 20749.99, msc: 20500, ee: 922.50 },
+        { min: 20750, max: 21249.99, msc: 21000, ee: 945 },
+        { min: 21250, max: 21749.99, msc: 21500, ee: 967.50 },
+        { min: 21750, max: 22249.99, msc: 22000, ee: 990 },
+        { min: 22250, max: 22749.99, msc: 22500, ee: 1012.50 },
+        { min: 22750, max: 23249.99, msc: 23000, ee: 1035 },
+        { min: 23250, max: 23749.99, msc: 23500, ee: 1057.50 },
+        { min: 23750, max: 24249.99, msc: 24000, ee: 1080 },
+        { min: 24250, max: 24749.99, msc: 24500, ee: 1102.50 },
+        { min: 24750, max: 25249.99, msc: 25000, ee: 1125 },
+        { min: 25250, max: 25749.99, msc: 25500, ee: 1147.50 },
+        { min: 25750, max: 26249.99, msc: 26000, ee: 1170 },
+        { min: 26250, max: 26749.99, msc: 26500, ee: 1192.50 },
+        { min: 26750, max: 27249.99, msc: 27000, ee: 1215 },
+        { min: 27250, max: 27749.99, msc: 27500, ee: 1237.50 },
+        { min: 27750, max: 28249.99, msc: 28000, ee: 1260 },
+        { min: 28250, max: 28749.99, msc: 28500, ee: 1282.50 },
+        { min: 28750, max: 29249.99, msc: 29000, ee: 1305 },
+        { min: 29250, max: 29749.99, msc: 29500, ee: 1327.50 },
+        { min: 29750, max: Infinity, msc: 30000, ee: 1350 }  // Maximum MSC: ₱30,000
     ];
     
     const bracket = sssTable.find(b => monthlySalary >= b.min && monthlySalary <= b.max);
-    return bracket ? bracket.ee : 1350; // Max contribution
+    return bracket ? bracket.ee : 1350; // Max contribution (₱30,000 MSC × 4.5%)
 }
 
 // Helper function: Calculate PhilHealth contribution (2024 rate: 5% of salary, employee pays half)
@@ -1085,14 +1112,16 @@ function calculatePhilHealth(monthlySalary) {
     return Math.min(Math.max(employeeShare, minContribution), maxContribution);
 }
 
-// Helper function: Calculate Pag-IBIG contribution
+// Helper function: Calculate Pag-IBIG contribution (2024)
+// Employee share: 2% of basic salary, max ₱100
+// For salary ≤ ₱1,500: Employee pays 1%
+// For salary > ₱1,500: Employee pays 2% (capped at ₱100)
 function calculatePagIBIG(monthlySalary) {
     if (monthlySalary <= 1500) {
         return monthlySalary * 0.01; // 1% for salaries <= 1500
-    } else if (monthlySalary > 1500 && monthlySalary <= 5000) {
-        return monthlySalary * 0.02; // 2% for salaries 1501-5000
     } else {
-        return 200; // Max contribution is 200 for salaries > 5000
+        // 2% for salaries > 1500, capped at ₱100
+        return Math.min(monthlySalary * 0.02, 100);
     }
 }
 
@@ -1254,6 +1283,35 @@ router.post('/calculate-payroll', async (req, res) => {
     try {
         console.log(`💰 Calculating payroll for ${employees.length} employees`);
         
+        // Get active payroll rules
+        const [payrollRules] = await payrollDB.query(`
+            SELECT rule_id, rule_name, rule_type, formula, fixed_amount, applies_to
+            FROM PayrollRules
+            WHERE is_active = 1
+            ORDER BY rule_type, rule_name
+        `);
+        
+        // Find specific rules
+        const overtimeRule = payrollRules.find(r => 
+            r.rule_name.toLowerCase().includes('overtime') && r.rule_type === 'earning'
+        );
+        const sssRule = payrollRules.find(r => 
+            r.rule_name.toLowerCase().includes('sss') && r.rule_type === 'deduction'
+        );
+        const philhealthRule = payrollRules.find(r => 
+            r.rule_name.toLowerCase().includes('philhealth') && r.rule_type === 'deduction'
+        );
+        const pagibigRule = payrollRules.find(r => 
+            (r.rule_name.toLowerCase().includes('pagibig') || 
+             r.rule_name.toLowerCase().includes('pag-ibig') || 
+             r.rule_name.toLowerCase().includes('hdmf')) && r.rule_type === 'deduction'
+        );
+        
+        // Get overtime multiplier from rule or use default
+        const overtimeMultiplier = overtimeRule && overtimeRule.formula 
+            ? 1 + (parseFloat(overtimeRule.formula) / 100)
+            : 1.25; // Default 25% OT premium
+        
         const calculatedPayrolls = [];
         
         for (const emp of employees) {
@@ -1264,27 +1322,93 @@ router.post('/calculate-payroll', async (req, res) => {
             const hourlyRate = basicRate / 22 / 8;
             const basicPay = totalRegularHours * hourlyRate;
             
-            // Calculate overtime pay (1.25x for regular overtime)
-            const overtimePay = totalOvertimeHours * (overtimeRate || hourlyRate * 1.25);
+            // Calculate overtime pay using rule multiplier
+            const overtimePay = totalOvertimeHours * hourlyRate * overtimeMultiplier;
+            
+            // Calculate additional earnings from rules
+            let additionalEarnings = 0;
+            payrollRules.filter(r => r.rule_type === 'earning' && !r.rule_name.toLowerCase().includes('overtime'))
+                .forEach(rule => {
+                    if (rule.fixed_amount) {
+                        additionalEarnings += parseFloat(rule.fixed_amount);
+                    } else if (rule.formula) {
+                        additionalEarnings += basicPay * (parseFloat(rule.formula) / 100);
+                    }
+                });
             
             // Gross pay
-            const grossPay = basicPay + overtimePay;
+            const grossPay = basicPay + overtimePay + additionalEarnings;
             
             // Calculate deductions based on monthly equivalent
             // For bi-monthly, we calculate based on half-month
             const monthlyEquivalent = grossPay * 2; // Estimate monthly for deduction calculation
             
-            const sssContribution = calculateSSS(monthlyEquivalent) / 2; // Half for bi-monthly
-            const philhealthContribution = calculatePhilHealth(monthlyEquivalent) / 2;
-            const pagibigContribution = calculatePagIBIG(monthlyEquivalent) / 2;
+            // Calculate SSS - use rule if exists, otherwise use table
+            let sssContribution;
+            if (sssRule) {
+                if (sssRule.fixed_amount) {
+                    sssContribution = parseFloat(sssRule.fixed_amount) / 2;
+                } else if (sssRule.formula) {
+                    sssContribution = (monthlyEquivalent * (parseFloat(sssRule.formula) / 100)) / 2;
+                } else {
+                    sssContribution = calculateSSS(monthlyEquivalent) / 2;
+                }
+            } else {
+                sssContribution = calculateSSS(monthlyEquivalent) / 2;
+            }
+            
+            // Calculate PhilHealth - use rule if exists
+            let philhealthContribution;
+            if (philhealthRule) {
+                if (philhealthRule.fixed_amount) {
+                    philhealthContribution = parseFloat(philhealthRule.fixed_amount) / 2;
+                } else if (philhealthRule.formula) {
+                    philhealthContribution = (monthlyEquivalent * (parseFloat(philhealthRule.formula) / 100)) / 2;
+                } else {
+                    philhealthContribution = calculatePhilHealth(monthlyEquivalent) / 2;
+                }
+            } else {
+                philhealthContribution = calculatePhilHealth(monthlyEquivalent) / 2;
+            }
+            
+            // Calculate Pag-IBIG - use rule if exists
+            let pagibigContribution;
+            if (pagibigRule) {
+                if (pagibigRule.fixed_amount) {
+                    pagibigContribution = parseFloat(pagibigRule.fixed_amount) / 2;
+                } else if (pagibigRule.formula) {
+                    pagibigContribution = Math.min((monthlyEquivalent * (parseFloat(pagibigRule.formula) / 100)) / 2, 100);
+                } else {
+                    pagibigContribution = calculatePagIBIG(monthlyEquivalent) / 2;
+                }
+            } else {
+                pagibigContribution = calculatePagIBIG(monthlyEquivalent) / 2;
+            }
+            
+            // Calculate other deductions from rules
+            let otherDeductions = 0;
+            payrollRules.filter(r => 
+                r.rule_type === 'deduction' && 
+                !r.rule_name.toLowerCase().includes('sss') &&
+                !r.rule_name.toLowerCase().includes('philhealth') &&
+                !r.rule_name.toLowerCase().includes('pagibig') &&
+                !r.rule_name.toLowerCase().includes('pag-ibig') &&
+                !r.rule_name.toLowerCase().includes('hdmf')
+            ).forEach(rule => {
+                if (rule.fixed_amount) {
+                    otherDeductions += parseFloat(rule.fixed_amount);
+                } else if (rule.formula) {
+                    otherDeductions += grossPay * (parseFloat(rule.formula) / 100);
+                }
+            });
             
             // Calculate taxable income (gross - mandatory contributions)
             const mandatoryDeductions = sssContribution + philhealthContribution + pagibigContribution;
             const taxableIncome = (grossPay - mandatoryDeductions) * 2; // Monthly equivalent for tax
             const withholdingTax = calculateWithholdingTax(taxableIncome) / 2; // Half for bi-monthly
             
-            // Total deductions
-            const totalDeductions = mandatoryDeductions + withholdingTax;
+            // Total deductions (include other deductions from rules)
+            const totalDeductions = mandatoryDeductions + withholdingTax + otherDeductions;
             
             // Net pay
             const netPay = grossPay - totalDeductions;
@@ -1301,12 +1425,14 @@ router.post('/calculate-payroll', async (req, res) => {
                 overtimeHours: totalOvertimeHours,
                 basicPay: Math.round(basicPay * 100) / 100,
                 overtimePay: Math.round(overtimePay * 100) / 100,
+                additionalEarnings: Math.round(additionalEarnings * 100) / 100,
                 grossPay: Math.round(grossPay * 100) / 100,
                 deductions: {
                     sss: Math.round(sssContribution * 100) / 100,
                     philhealth: Math.round(philhealthContribution * 100) / 100,
                     pagibig: Math.round(pagibigContribution * 100) / 100,
                     tax: Math.round(withholdingTax * 100) / 100,
+                    other: Math.round(otherDeductions * 100) / 100,
                     total: Math.round(totalDeductions * 100) / 100
                 },
                 netPay: Math.round(netPay * 100) / 100,
@@ -1623,11 +1749,225 @@ router.get('/detailed-activity-logs', async (req, res) => {
                 })
             };
         }));
-        
+
         res.json(enrichedActivities);
     } catch (error) {
         console.error('Error fetching detailed activity logs:', error);
         res.status(500).json({ error: 'Failed to fetch activity logs', details: error.message });
+    }
+});
+
+// POST activity log (for frontend logging)
+router.post('/detailed-activity-logs', async (req, res) => {
+    try {
+        const { action_type, entity_type, entity_id, description, employee_id, processed_by } = req.body;
+        
+        const [result] = await payrollDB.query(
+            `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, description, employee_id, processed_by, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+            [action_type, entity_type || 'System', entity_id || null, description, employee_id || null, processed_by || null]
+        );
+        
+        res.json({ success: true, logId: result.insertId });
+    } catch (error) {
+        console.error('Error creating activity log:', error);
+        res.status(500).json({ error: 'Failed to create activity log' });
+    }
+});
+
+// =====================================================
+// PAYROLL RULES ENDPOINTS
+// =====================================================
+
+// GET all payroll rules
+router.get('/rules', async (req, res) => {
+    try {
+        // Get from PayrollRules table - return empty array if no rules exist
+        const [rules] = await payrollDB.query(`
+            SELECT 
+                rule_id as id,
+                rule_name as type,
+                rule_type,
+                formula,
+                fixed_amount,
+                description,
+                is_active as active,
+                applies_to,
+                created_at,
+                updated_at
+            FROM PayrollRules
+            ORDER BY rule_id
+        `);
+
+        res.json(rules);
+    } catch (error) {
+        console.error('Error fetching payroll rules:', error);
+        res.status(500).json({ error: 'Failed to fetch payroll rules' });
+    }
+});
+
+// CREATE payroll rule
+router.post('/rules', async (req, res) => {
+    const { type, rule_type, formula, fixed_amount, description, applies_to } = req.body;
+
+    try {
+        const [result] = await payrollDB.query(
+            `INSERT INTO PayrollRules (rule_name, rule_type, formula, fixed_amount, description, applies_to, is_active)
+             VALUES (?, ?, ?, ?, ?, ?, 1)`,
+            [type, rule_type || 'earning', formula || null, fixed_amount || null, description || null, applies_to || 'all']
+        );
+
+        await logActivity('CREATE', 'PayrollRule', result.insertId, `Created payroll rule: ${type}`);
+        res.status(201).json({ 
+            success: true, 
+            id: result.insertId,
+            message: 'Payroll rule created successfully' 
+        });
+    } catch (error) {
+        console.error('Error creating payroll rule:', error);
+        res.status(500).json({ error: 'Failed to create payroll rule' });
+    }
+});
+
+// UPDATE payroll rule
+router.put('/rules/:id', async (req, res) => {
+    const { id } = req.params;
+    const { type, rule_type, formula, fixed_amount, description, active, applies_to } = req.body;
+
+    try {
+        await payrollDB.query(
+            `UPDATE PayrollRules 
+             SET rule_name = COALESCE(?, rule_name),
+                 rule_type = COALESCE(?, rule_type),
+                 formula = COALESCE(?, formula),
+                 fixed_amount = COALESCE(?, fixed_amount),
+                 description = COALESCE(?, description),
+                 is_active = COALESCE(?, is_active),
+                 applies_to = COALESCE(?, applies_to),
+                 updated_at = NOW()
+             WHERE rule_id = ?`,
+            [type, rule_type, formula, fixed_amount, description, active, applies_to, id]
+        );
+
+        await logActivity('UPDATE', 'PayrollRule', id, `Updated payroll rule: ${type || 'Unknown'}`);
+        res.json({ success: true, message: 'Payroll rule updated successfully' });
+    } catch (error) {
+        console.error('Error updating payroll rule:', error);
+        res.status(500).json({ error: 'Failed to update payroll rule' });
+    }
+});
+
+// DELETE payroll rule
+router.delete('/rules/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        console.log(`Attempting to delete payroll rule with id: ${id}`);
+        const [result] = await payrollDB.query(`DELETE FROM PayrollRules WHERE rule_id = ?`, [id]);
+        console.log('Delete result:', result);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Payroll rule not found' });
+        }
+        
+        await logActivity('DELETE', 'PayrollRule', id, `Deleted payroll rule #${id}`);
+        res.json({ success: true, message: 'Payroll rule deleted successfully', affectedRows: result.affectedRows });
+    } catch (error) {
+        console.error('Error deleting payroll rule:', error);
+        res.status(500).json({ error: 'Failed to delete payroll rule', details: error.message });
+    }
+});
+
+// TOGGLE payroll rule active status
+router.patch('/rules/:id/toggle', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await payrollDB.query(
+            `UPDATE PayrollRules SET is_active = NOT is_active, updated_at = NOW() WHERE rule_id = ?`,
+            [id]
+        );
+        await logActivity('UPDATE', 'PayrollRule', id, `Toggled payroll rule #${id} active status`);
+        res.json({ success: true, message: 'Payroll rule toggled successfully' });
+    } catch (error) {
+        console.error('Error toggling payroll rule:', error);
+        res.status(500).json({ error: 'Failed to toggle payroll rule' });
+    }
+});
+
+// =====================================================
+// CUTOFF DATES ENDPOINTS
+// =====================================================
+
+// Note: GET /cutoffs is defined earlier at line 612 using PayrollCutoffs table
+
+// CREATE cutoff period
+router.post('/cutoffs', async (req, res) => {
+    const { period_name, start_date, end_date, pay_date, frequency } = req.body;
+
+    try {
+        const [result] = await payrollDB.query(
+            `INSERT INTO PayrollCutoffs (period_name, start_date, end_date, pay_date, frequency, status)
+             VALUES (?, ?, ?, ?, ?, 'Active')`,
+            [period_name, start_date, end_date, pay_date, frequency || 'Semi-Monthly']
+        );
+
+        await logActivity('CREATE', 'PayrollCutoff', result.insertId, `Created cutoff period: ${period_name}`);
+        res.status(201).json({ 
+            success: true, 
+            cutoff_id: result.insertId,
+            message: 'Cutoff period created successfully' 
+        });
+    } catch (error) {
+        console.error('Error creating cutoff:', error);
+        res.status(500).json({ error: 'Failed to create cutoff period' });
+    }
+});
+
+// UPDATE cutoff period
+router.put('/cutoffs/:id', async (req, res) => {
+    const { id } = req.params;
+    const { period_name, start_date, end_date, pay_date, frequency, status } = req.body;
+
+    try {
+        await payrollDB.query(
+            `UPDATE PayrollCutoffs 
+             SET period_name = COALESCE(?, period_name),
+                 start_date = COALESCE(?, start_date),
+                 end_date = COALESCE(?, end_date),
+                 pay_date = COALESCE(?, pay_date),
+                 frequency = COALESCE(?, frequency),
+                 status = COALESCE(?, status)
+             WHERE cutoff_id = ?`,
+            [period_name, start_date, end_date, pay_date, frequency, status, id]
+        );
+
+        await logActivity('UPDATE', 'PayrollCutoff', id, `Updated cutoff period: ${period_name || 'Unknown'}`);
+        res.json({ success: true, message: 'Cutoff period updated successfully' });
+    } catch (error) {
+        console.error('Error updating cutoff:', error);
+        res.status(500).json({ error: 'Failed to update cutoff period' });
+    }
+});
+
+// DELETE cutoff period
+router.delete('/cutoffs/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        console.log(`Attempting to delete cutoff period with id: ${id}`);
+        const [result] = await payrollDB.query(`DELETE FROM PayrollCutoffs WHERE cutoff_id = ?`, [id]);
+        console.log('Delete result:', result);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cutoff period not found' });
+        }
+        
+        await logActivity('DELETE', 'PayrollCutoff', id, `Deleted cutoff period #${id}`);
+        res.json({ success: true, message: 'Cutoff period deleted successfully', affectedRows: result.affectedRows });
+    } catch (error) {
+        console.error('Error deleting cutoff:', error);
+        res.status(500).json({ error: 'Failed to delete cutoff period', details: error.message });
     }
 });
 

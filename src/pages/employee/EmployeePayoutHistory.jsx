@@ -11,6 +11,9 @@ export default function EmployeePayoutHistory() {
     const theme = useTheme();
     const { user } = useUser();
 
+    // Get employee ID from either property name (supports both login methods)
+    const employeeId = user?.employee_id || user?.employeeId;
+
     const [selectedPayroll, setSelectedPayroll] = useState("");
     const [payoutHistory, setPayoutHistory] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,24 +26,24 @@ export default function EmployeePayoutHistory() {
     // Fetch payout history on component mount
     useEffect(() => {
         fetchPayoutHistory();
-    }, [user?. employeeId]);
+    }, [employeeId]);
 
     const fetchPayoutHistory = async () => {
-        if (!user?.employeeId) {
+        if (!employeeId) {
             setLoading(false);
             return;
         }
 
         try {
             const response = await fetch(
-                `http://localhost:8080/api/employee/payroll-history/${user.employeeId}`
+                `http://localhost:8080/api/employee/payroll-history/${employeeId}`
             );
 
-            if (!response. ok) {
+            if (!response.ok) {
                 throw new Error('Failed to fetch payout history');
             }
 
-            const data = await response. json();
+            const data = await response.json();
             console.log('✅ Payout history:', data);
             setPayoutHistory(data);
         } catch (err) {
@@ -93,7 +96,7 @@ export default function EmployeePayoutHistory() {
         setSelectedPayslip({
             id: payout.payroll_id,
             name: user?.name || 'Employee',
-            employeeId: user?.employeeId,
+            employeeId: employeeId,
             department: user?.department || 'N/A',
             position: user?.position || 'N/A',
             period: getPayrollDuration(payout),
@@ -139,7 +142,7 @@ export default function EmployeePayoutHistory() {
                             transform: "scale(1.02)",
                             boxShadow:
                                 theme.palette.mode === "light"
-                                    ? "0 4px 20px rgba(0,0,0,0. 15)"
+                                    ? "0 4px 20px rgba(0,0,0,0.15)"
                                     : "0 4px 20px rgba(0,0,0,0.3)",
                         },
                     }}
@@ -163,18 +166,18 @@ export default function EmployeePayoutHistory() {
                             "& .MuiOutlinedInput-notchedOutline": {
                                 borderColor: theme.palette.divider,
                             },
-                            "&:hover . MuiOutlinedInput-notchedOutline": {
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
                                 borderColor: theme.palette.divider,
                             },
                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                                 border: "none",
                             },
                             "& .MuiSvgIcon-root": {
-                                color: theme.palette. text.primary,
+                                color: theme.palette.text.primary,
                             },
                         }}
                         renderValue={(selected) => {
-                            if (! selected)
+                            if (!selected)
                                 return (
                                     <span style={{ fontSize: "16px", color: "#bdbdbd" }}>
                                         Select Payroll Duration
@@ -198,9 +201,9 @@ export default function EmployeePayoutHistory() {
 
             <Box
                 sx={{
-                    height: "90. 9%",
+                    height: "90.9%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
-                    border: `1px solid ${theme. palette.divider}`,
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",
@@ -237,7 +240,7 @@ export default function EmployeePayoutHistory() {
                 </Box>
 
                 {/* Loading State */}
-                {loading ?  (
+                {loading ? (
                     <Box display="flex" justifyContent="center" alignItems="center" height="200px">
                         <CircularProgress />
                     </Box>
@@ -279,14 +282,14 @@ export default function EmployeePayoutHistory() {
                                     transition: "all 0.3s ease",
                                     "&:hover": {
                                         transform: "translateY(-2px)",
-                                        boxShadow: "0 4px 15px rgba(0,0,0,0. 1)",
+                                        boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                     },
                                     textAlign: "center",
                                 }}
                             >
                                 {/* ✅ Use correct database field names */}
                                 <span>{getPayrollDuration(item)}</span>
-                                <span>{formatCurrency(item. net_pay)}</span>
+                                <span>{formatCurrency(item.net_pay)}</span>
                                 <span>{item.payslip_reference_number || 'N/A'}</span>
                                 <Box sx={{ display: "flex", justifyContent: "center", gap: "8px" }}>
                                     <IconButton

@@ -16,6 +16,9 @@ export default function EmployeeProfileLayout() {
     const { user } = useUser();
     const [activeTab, setActiveTab] = useState("personal");
 
+    // Get employee ID from either property name (supports both login methods)
+    const employeeId = user?.employee_id || user?.employeeId;
+
     // State for profile data from API
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -23,14 +26,14 @@ export default function EmployeeProfileLayout() {
     // Fetch profile data from employeeRoutes API
     useEffect(() => {
         const fetchProfile = async () => {
-            if (! user?. employeeId) {
+            if (!employeeId) {
                 setLoading(false);
                 return;
             }
 
             try {
                 const response = await fetch(
-                    `http://localhost:8080/api/employee/profile/${user.employeeId}`
+                    `http://localhost:8080/api/employee/profile/${employeeId}`
                 );
                 if (response.ok) {
                     const data = await response.json();
@@ -45,7 +48,7 @@ export default function EmployeeProfileLayout() {
         };
 
         fetchProfile();
-    }, [user?.employeeId]);
+    }, [employeeId]);
 
     // Show loading
     if (loading) {
@@ -58,6 +61,25 @@ export default function EmployeeProfileLayout() {
 
     // Use profile from API, fallback to user context
     const displayData = profile || user || {};
+
+    // Get display name - prioritize firstName + lastName over username-like names
+    const getDisplayName = () => {
+        if (displayData.firstName && displayData.lastName) {
+            return `${displayData.firstName} ${displayData.lastName}`;
+        }
+        if (displayData.name) {
+            // Check if name looks like a username (contains . or _)
+            if (displayData.name.includes('.') || displayData.name.includes('_')) {
+                // Try to parse and format it
+                const parts = displayData.name.split(/[._]/);
+                return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+            }
+            return displayData.name;
+        }
+        if (displayData.firstName) return displayData.firstName;
+        if (displayData.lastName) return displayData.lastName;
+        return "User";
+    };
 
     return (
         <Box
@@ -85,7 +107,7 @@ export default function EmployeeProfileLayout() {
                     flexDirection: "column",
                     alignItems: "center",
                     textAlign: "center",
-                    border: `1px solid ${theme.palette. divider}`,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
@@ -127,7 +149,7 @@ export default function EmployeeProfileLayout() {
                             objectFit: "cover",
                             border: `6px solid ${
                                 theme.palette.mode === "dark"
-                                    ?  "rgb(35,45,47)"
+                                    ? "rgb(35,45,47)"
                                     : "rgb(218,219,219)"
                             }`,
                             position: "relative",
@@ -138,7 +160,7 @@ export default function EmployeeProfileLayout() {
 
                 <Box display="flex" flexDirection="column" marginTop="-30px">
                     <Typography variant="h4" sx={{ fontWeight: 600, fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                        {displayData.name || `${displayData.firstName || ''} ${displayData.lastName || ''}`}
+                        {getDisplayName()}
                     </Typography>
                     <Typography
                         variant="body2"
@@ -190,7 +212,7 @@ export default function EmployeeProfileLayout() {
                                 activeTab === "employment"
                                     ? "rgb(166,170,178, 0.3)"
                                     : "transparent",
-                            color: theme.palette.text. primary,
+                            color: theme.palette.text.primary,
                             paddingLeft: "43px",
                             justifyContent: "flex-start",
                             textTransform: "none",
@@ -216,15 +238,15 @@ export default function EmployeeProfileLayout() {
                     backdropFilter: "blur(18px)",
                     borderRadius: "20px",
                     padding: "35px",
-                    border: `1px solid ${theme.palette. divider}`,
+                    border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": {
                         transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0. 15)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                     },
                 }}
             >
-                {activeTab === "personal" ?  (
+                {activeTab === "personal" ? (
                     <PersonalInformationForm profile={displayData} />
                 ) : (
                     <EmploymentDetailsForm profile={displayData} />
@@ -250,7 +272,7 @@ function PersonalInformationForm({ profile }) {
     };
 
     const personalInfoData = {
-        address: profile?. address || "—",
+        address: profile?.address || "—",
         birthdate: formatDate(profile?.birthday),
         age: profile?.age || "—",
         sex: profile?.sex || "—",
@@ -335,7 +357,7 @@ function PersonalInformationForm({ profile }) {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Contact Name
                     </Typography>
-                    <ViewTextField value={profile?. emergencyContactName || "—"} />
+                    <ViewTextField value={profile?.emergencyContactName || "—"} />
                 </Box>
 
                 <Box>
@@ -356,7 +378,7 @@ function EmploymentDetailsForm({ profile }) {
 
     // Format date for display
     const formatDate = (date) => {
-        if (! date) return "—";
+        if (!date) return "—";
         return new Date(date).toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
@@ -404,7 +426,7 @@ function EmploymentDetailsForm({ profile }) {
                     <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, fontFamily: "'TTHoves-Bold', sans-serif" }}>
                         Position
                     </Typography>
-                    <ViewTextField value={employmentDetails. position} />
+                    <ViewTextField value={employmentDetails.position} />
                 </Box>
 
                 <Box>

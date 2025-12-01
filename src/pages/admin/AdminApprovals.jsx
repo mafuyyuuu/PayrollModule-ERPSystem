@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {
-    Box, Button, IconButton, Typography, useTheme, Checkbox, Tooltip, Switch, Select, MenuItem, TextField
+    Box, Button, IconButton, Typography, useTheme, Checkbox, Tooltip, Switch, Select, MenuItem, TextField, CircularProgress
 } from "@mui/material";
 import {styled} from "@mui/material/styles";
 import {RiSettings3Fill, RiEyeFill, RiCheckFill, RiCloseFill} from "react-icons/ri";
@@ -17,6 +17,13 @@ export default function AdminApproval() {
     const [selectedWorkflow, setSelectedWorkflow] = useState(null);
     const [selectedException, setSelectedException] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    
+    // Confirmation modals
+    const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
+    const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
 
     const handleOpenModal = (workflow = null) => {
         if (workflow) {
@@ -36,44 +43,175 @@ export default function AdminApproval() {
         setSelectedItem(null);
     };
 
-    const [workflowData, setWorkflowData] = useState([{
-        name: "Payroll Flow",
-        type: "Payroll",
-        approver: "Manager",
-        status: "Active"
-    }, {name: "Overtime Flow", type: "Overtime", approver: "Head", status: "Active"}, {
-        name: "Leave Flow",
-        type: "Leave",
-        approver: "Supervisor",
-        status: "Inactive"
-    },]);
+    const [workflowData, setWorkflowData] = useState([]);
+    const [exceptionsData, setExceptionsData] = useState([]);
 
-    const [exceptionsData] = useState([
-        {
-            id: "EX001",
-            name: "Jhervin Jimenez",
-            type: "Overtime",
-            period: "Aug. 1 - Aug. 11, 2025",
-            dateFiled: "Aug. 11, 2025",
-            status: "Approved"
-        },
-        {
-            id: "EX002",
-            name: "Symon Banana",
-            type: "Leave",
-            period: "Sept. 1 - Sept. 12, 2025",
-            dateFiled: "Sept. 12, 2025",
-            status: "Pending"
-        },
-    ]);
+    // Fetch data from database
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            // Fetch workflows
+            const workflowResponse = await fetch('http://localhost:8080/api/admin/workflows');
+            if (workflowResponse.ok) {
+                const workflows = await workflowResponse.json();
+                setWorkflowData(workflows);
+            }
+
+            // Fetch exceptions/requests
+            const exceptionsResponse = await fetch('http://localhost:8080/api/admin/exceptions');
+            if (exceptionsResponse.ok) {
+                const exceptions = await exceptionsResponse.json();
+                setExceptionsData(exceptions);
+            }
+        } catch (error) {
+            console.error('Error fetching approval data:', error);
+            // No fallback data - show empty state instead
+            setWorkflowData([]);
+            setExceptionsData([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Approve exception request
+    const handleApproveException = async (requestId) => {
+        setSaving(true);
+        try {
+            const response = await fetch(`http://localhost:8080/api/payroll/pending-requests/${requestId}/approve`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved_by: null, remarks: 'Approved by admin' })
+            });
+            if (response.ok) {
+                // Refresh data
+                fetchData();
+            } else {
+                alert('Failed to approve request');
+            }
+        } catch (error) {
+            console.error('Error approving exception:', error);
+            alert('Error approving request');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Reject exception request
+    const handleRejectException = async (requestId) => {
+        const reason = prompt('Enter rejection reason:');
+        if (!reason) return;
+        
+        setSaving(true);
+        try {
+            const response = await fetch(`http://localhost:8080/api/payroll/pending-requests/${requestId}/reject`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved_by: null, remarks: reason })
+            });
+            if (response.ok) {
+                // Refresh data
+                fetchData();
+            } else {
+                alert('Failed to reject request');
+            }
+        } catch (error) {
+            console.error('Error rejecting exception:', error);
+            alert('Error rejecting request');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const [checkedWorkflows, setCheckedWorkflows] = useState([]);
     const hasCheckedRules = checkedWorkflows.length > 0;
 
-    const handleDeleteSelectedWorkflows = () => {
-        const remaining = workflowData.filter((workflow) => !checkedWorkflows.includes(workflow.name));
-        setWorkflowData(remaining);
-        setCheckedWorkflows([]);
+    // Show delete confirmation modal
+    const showDeleteConfirmation = () => {
+        setPendingAction('delete');
+        setDeleteConfirmModalOpen(true);
+    };
+
+    // Confirm and execute delete
+    const confirmDeleteWorkflows = async () => {
+        setDeleteConfirmModalOpen(false);
+        setSaving(true);
+        
+        try {
+            // Get the IDs of workflows to delete
+            const workflowsToDelete = workflowData.filter(w => checkedWorkflows.includes(w.name));
+            const idsToDelete = workflowsToDelete.map(w => w.id).filter(id => id);
+            
+            if (idsToDelete.length > 0) {
+                const response = await fetch('http://localhost:8080/api/admin/workflows/delete-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: idsToDelete })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete workflows');
+                }
+            }
+            
+            // Refresh data from server
+            await fetchData();
+            setCheckedWorkflows([]);
+        } catch (error) {
+            console.error('Error deleting workflows:', error);
+            alert('Error deleting workflows');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Show save confirmation modal
+    const showSaveConfirmation = () => {
+        if (!selectedWorkflow?.name || !selectedWorkflow?.type || !selectedWorkflow?.approver) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        setPendingAction('save');
+        setSaveConfirmModalOpen(true);
+    };
+
+    // Confirm and execute save
+    const confirmSaveWorkflow = async () => {
+        setSaveConfirmModalOpen(false);
+        setSaving(true);
+        try {
+            const url = isEditing 
+                ? `http://localhost:8080/api/admin/workflows/${selectedWorkflow.id}`
+                : 'http://localhost:8080/api/admin/workflows';
+            
+            const method = isEditing ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: selectedWorkflow.name,
+                    type: selectedWorkflow.type,
+                    approver: selectedWorkflow.approver,
+                    status: selectedWorkflow.status || 'Active'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save workflow');
+            }
+            
+            // Refresh data from server
+            await fetchData();
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error saving workflow:', error);
+            alert('Error saving workflow');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const ModernSwitch = styled(Switch)({
@@ -206,7 +344,12 @@ export default function AdminApproval() {
                     fontFamily: "'TTHoves-DemiBold', sans-serif",
                 }}
             >
-                {data.map((item) => (<Box
+                {data.length === 0 ? (
+                    <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                        {isWorkflow ? 'No workflows configured. Click "New Workflow" to create one.' : 'No exception requests found.'}
+                    </Box>
+                ) : (
+                data.map((item) => (<Box
                     key={isWorkflow ? item.name : item.id}
                     sx={{
                         marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
@@ -326,6 +469,8 @@ export default function AdminApproval() {
                                 <>
                                     {/* Accept Button */}
                                     <IconButton
+                                        onClick={() => handleApproveException(item.requestId)}
+                                        disabled={saving}
                                         disableRipple
                                         sx={{
                                             backgroundColor: "#172224",
@@ -347,6 +492,8 @@ export default function AdminApproval() {
 
                                     {/* Reject Button */}
                                     <IconButton
+                                        onClick={() => handleRejectException(item.requestId)}
+                                        disabled={saving}
                                         disableRipple
                                         sx={{
                                             backgroundColor: "#172224",
@@ -394,7 +541,8 @@ export default function AdminApproval() {
                             )}
                         </Box>
                     </Box>)}
-                </Box>))}
+                </Box>))
+                )}
             </Box>
         </Box>);
     };
@@ -512,7 +660,7 @@ export default function AdminApproval() {
                                     return selected;
                                 }}
                             >
-                                {["Payroll", "Overtime", "Leave"].map((option) => (
+                                {["Payroll", "Overtime", "Leave", "Salary Adjustment", "Bonus", "Deduction"].map((option) => (
                                     <MenuItem key={option} value={option}>
                                         {option}
                                     </MenuItem>
@@ -566,7 +714,7 @@ export default function AdminApproval() {
                                     return selected;
                                 }}
                             >
-                                {["Manager", "Head", "Supervisor"].map((option) => (
+                                {["Admin", "Manager", "Payroll", "Department Head", "Supervisor", "HR"].map((option) => (
                                     <MenuItem key={option} value={option}>
                                         {option}
                                     </MenuItem>
@@ -607,26 +755,28 @@ export default function AdminApproval() {
                             )}
                             <Box
                                 component="button"
+                                onClick={showSaveConfirmation}
+                                disabled={saving}
                                 sx={{
                                     display: "flex-end",
                                     fontSize: "16px",
-                                    backgroundColor: "#172224",
+                                    backgroundColor: saving ? "#666" : "#172224",
                                     color: "#fff",
                                     padding: "10px 0",
                                     borderRadius: "15px",
-                                    cursor: "pointer",
+                                    cursor: saving ? "not-allowed" : "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
                                     width: "200px",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
-                                        backgroundColor: "#1f2f31",
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                        backgroundColor: saving ? "#666" : "#1f2f31",
+                                        transform: saving ? "none" : "translateY(-2px)",
+                                        boxShadow: saving ? "none" : "0 3px 10px rgba(0,0,0,0.2)",
                                     },
                                 }}
                             >
-                                Save
+                                {saving ? "Saving..." : "Save"}
                             </Box>
                         </Box>
                     </Box>
@@ -1003,7 +1153,7 @@ export default function AdminApproval() {
                             {activeTab === "workflow" && hasCheckedRules && (<ActionButton
                                 text="Delete Selected"
                                 width="200px"
-                                onClick={handleDeleteSelectedWorkflows}
+                                onClick={showDeleteConfirmation}
                             />)}
                         </Box>
                     </Box>
@@ -1026,6 +1176,116 @@ export default function AdminApproval() {
                     }
                 >
                     {renderModalContent()}
+                </BoxModal>
+
+                {/* Save Confirmation Modal */}
+                <BoxModal
+                    open={saveConfirmModalOpen}
+                    onClose={() => setSaveConfirmModalOpen(false)}
+                    width={400}
+                    height={200}
+                >
+                    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                        <Box>
+                            <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                                Confirm Save
+                            </Typography>
+                            <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
+                                Are you sure you want to save this workflow?
+                            </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                            <Box
+                                component="button"
+                                onClick={() => setSaveConfirmModalOpen(false)}
+                                sx={{
+                                    fontSize: "14px",
+                                    backgroundColor: "#bdbdbd",
+                                    color: "#333",
+                                    padding: "10px 24px",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": { backgroundColor: "#a0a0a0" }
+                                }}
+                            >
+                                Cancel
+                            </Box>
+                            <Box
+                                component="button"
+                                onClick={confirmSaveWorkflow}
+                                sx={{
+                                    fontSize: "14px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 24px",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": { backgroundColor: "#1f2f31" }
+                                }}
+                            >
+                                Confirm
+                            </Box>
+                        </Box>
+                    </Box>
+                </BoxModal>
+
+                {/* Delete Confirmation Modal */}
+                <BoxModal
+                    open={deleteConfirmModalOpen}
+                    onClose={() => setDeleteConfirmModalOpen(false)}
+                    width={400}
+                    height={200}
+                >
+                    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                        <Box>
+                            <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                                Confirm Delete
+                            </Typography>
+                            <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
+                                Are you sure you want to delete {checkedWorkflows.length} selected workflow(s)? This action cannot be undone.
+                            </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                            <Box
+                                component="button"
+                                onClick={() => setDeleteConfirmModalOpen(false)}
+                                sx={{
+                                    fontSize: "14px",
+                                    backgroundColor: "#bdbdbd",
+                                    color: "#333",
+                                    padding: "10px 24px",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": { backgroundColor: "#a0a0a0" }
+                                }}
+                            >
+                                Cancel
+                            </Box>
+                            <Box
+                                component="button"
+                                onClick={confirmDeleteWorkflows}
+                                sx={{
+                                    fontSize: "14px",
+                                    backgroundColor: "#c42b2b",
+                                    color: "#fff",
+                                    padding: "10px 24px",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": { backgroundColor: "#a32020" }
+                                }}
+                            >
+                                Delete
+                            </Box>
+                        </Box>
+                    </Box>
                 </BoxModal>
             </Box>
         </Box>

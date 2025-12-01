@@ -1,22 +1,48 @@
-import React from "react";
-import {Box, Typography} from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {Box, Typography, CircularProgress} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import SearchBar from "../../components/SearchBar.jsx";
 
 export default function AdminAuditLogs() {
     const theme = useTheme();
+    const [logs, setLogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
 
-    const logs = [{
-        date: "2025XXXX",
-        user: "Jhervin Jimenez",
-        action: "Dropbox",
-        description: "Pending"
-    }, {date: "2025XXXX", user: "Symon Banaag", action: "Dropbox", description: "Pending"}, {
-        date: "2025XXXX",
-        user: "Jumiah Zamora",
-        action: "Dropbox",
-        description: "Pending"
-    },];
+    useEffect(() => {
+        fetchAuditLogs();
+    }, []);
+
+    const fetchAuditLogs = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/admin/audit-logs');
+            if (response.ok) {
+                const data = await response.json();
+                setLogs(data);
+            }
+        } catch (error) {
+            console.error('Error fetching audit logs:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const filteredLogs = logs.filter(log =>
+        log.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (<Box
         width="100%"
@@ -46,7 +72,12 @@ export default function AdminAuditLogs() {
             </Typography>
 
             <Box sx={{display: "flex"}}>
-                <SearchBar placeholder="Enter Username" width="350px"/>
+                <SearchBar 
+                    placeholder="Search logs..." 
+                    width="350px"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </Box>
         </Box>
 
@@ -98,30 +129,40 @@ export default function AdminAuditLogs() {
                     fontFamily: "'TTHoves-DemiBold', sans-serif",
                 }}
             >
-                {logs.map((log, index) => (<Box
-                    key={index}
-                    sx={{
-                        marginTop: "10px",
-                        display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
-                        alignItems: "center",
-                        bgcolor: "#fff",
-                        color: "#1b2223",
-                        borderRadius: "8px",
-                        width: "100%",
-                        minHeight: "83px",
-                        transition: "all 0.3s ease",
-                        "&:hover": {
-                            transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                        },
-                        textAlign: "center",
-                    }}
-                >
-                    <span>{log.date}</span>
-                    <span>{log.user}</span>
-                    <span>{log.action}</span>
-                    <span>{log.description}</span>
-                </Box>))}
+                {loading ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+                        <CircularProgress />
+                    </Box>
+                ) : filteredLogs.length === 0 ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+                        <Typography sx={{ color: theme.palette.text.secondary }}>No logs found</Typography>
+                    </Box>
+                ) : (
+                    filteredLogs.map((log, index) => (<Box
+                        key={log.id || index}
+                        sx={{
+                            marginTop: "10px",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(4, 1fr)",
+                            alignItems: "center",
+                            bgcolor: "#fff",
+                            color: "#1b2223",
+                            borderRadius: "8px",
+                            width: "100%",
+                            minHeight: "83px",
+                            transition: "all 0.3s ease",
+                            "&:hover": {
+                                transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                            },
+                            textAlign: "center",
+                        }}
+                    >
+                        <span>{formatDate(log.date)}</span>
+                        <span>{log.user}</span>
+                        <span>{log.action}</span>
+                        <span>{log.description}</span>
+                    </Box>))
+                )}
             </Box>
         </Box>
     </Box>);

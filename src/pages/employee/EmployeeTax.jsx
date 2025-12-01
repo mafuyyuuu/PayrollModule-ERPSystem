@@ -7,6 +7,9 @@ export default function EmployeeTax() {
     const theme = useTheme();
     const { user } = useUser();
 
+    // Get employee ID from either property name (supports both login methods)
+    const employeeId = user?.employee_id || user?.employeeId;
+
     const [selectedPayroll, setSelectedPayroll] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -25,10 +28,10 @@ export default function EmployeeTax() {
     // Fetch tax contributions on component mount
     useEffect(() => {
         fetchTaxContributions();
-    }, [user?. employeeId]);
+    }, [employeeId]);
 
     const fetchTaxContributions = async () => {
-        if (!user?.employeeId) {
+        if (!employeeId) {
             setLoading(false);
             return;
         }
@@ -36,7 +39,7 @@ export default function EmployeeTax() {
         try {
             // ✅ Fixed URL to match employeeRoutes.js
             const response = await fetch(
-                `http://localhost:8080/api/employee/tax-contributions/${user.employeeId}`
+                `http://localhost:8080/api/employee/tax-contributions/${employeeId}`
             );
 
             if (!response.ok) {
@@ -48,10 +51,10 @@ export default function EmployeeTax() {
 
             setTotals(data.totals || { sss: 0, philhealth: 0, pagibig: 0, wtax: 0, total: 0 });
             setContributions(data.contributions || []);
-            setPayrollPeriods(data. payrollPeriods || []);
+            setPayrollPeriods(data.payrollPeriods || []);
         } catch (err) {
             console.error('❌ Error fetching tax contributions:', err);
-            setError(err. message);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -73,11 +76,11 @@ export default function EmployeeTax() {
 
     // Calculate filtered totals (when a specific period is selected)
     const displayTotals = selectedPayroll
-        ? filteredContributions. reduce((acc, curr) => {
+        ? filteredContributions.reduce((acc, curr) => {
             acc.sss += curr.sss;
             acc.philhealth += curr.philhealth;
-            acc.pagibig += curr. pagibig;
-            acc. wtax += curr.wtax;
+            acc.pagibig += curr.pagibig;
+            acc.wtax += curr.wtax;
             return acc;
         }, { sss: 0, philhealth: 0, pagibig: 0, wtax: 0 })
         : totals;
@@ -155,8 +158,8 @@ export default function EmployeeTax() {
                             transform: "scale(1.02)",
                             boxShadow:
                                 theme.palette.mode === "light"
-                                    ? "0 4px 20px rgba(0,0,0,0. 15)"
-                                    : "0 4px 20px rgba(0,0,0,0. 3)",
+                                    ? "0 4px 20px rgba(0,0,0,0.15)"
+                                    : "0 4px 20px rgba(0,0,0,0.3)",
                         },
                     }}
                 >
@@ -179,7 +182,7 @@ export default function EmployeeTax() {
                             "& .MuiOutlinedInput-notchedOutline": {
                                 borderColor: theme.palette.divider,
                             },
-                            "&:hover . MuiOutlinedInput-notchedOutline": {
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
                                 borderColor: theme.palette.divider,
                             },
                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -190,7 +193,7 @@ export default function EmployeeTax() {
                             },
                         }}
                         renderValue={(selected) => {
-                            if (! selected)
+                            if (!selected)
                                 return (
                                     <span style={{ fontSize: "16px", color: "#bdbdbd" }}>
                                         Select Payroll Duration
@@ -214,9 +217,9 @@ export default function EmployeeTax() {
             {/* Contribution Table */}
             <Box
                 sx={{
-                    height: "68. 7%",
+                    height: "68.7%",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
-                    border: `1px solid ${theme. palette.divider}`,
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",
@@ -302,7 +305,7 @@ export default function EmployeeTax() {
                             >
                                 <span>{formatCurrency(item.sss)}</span>
                                 <span>{formatCurrency(item.philhealth)}</span>
-                                <span>{formatCurrency(item. pagibig)}</span>
+                                <span>{formatCurrency(item.pagibig)}</span>
                                 <span>{formatCurrency(item.wtax)}</span>
                                 <span style={{ fontWeight: 'bold' }}>{formatCurrency(item.total)}</span>
                             </Box>
@@ -331,7 +334,7 @@ export default function EmployeeTax() {
                                 <span>{formatCurrency(displayTotals.wtax)}</span>
                                 <span>
                                     {formatCurrency(
-                                        displayTotals. sss +
+                                        displayTotals.sss +
                                         displayTotals.philhealth +
                                         displayTotals.pagibig +
                                         displayTotals.wtax

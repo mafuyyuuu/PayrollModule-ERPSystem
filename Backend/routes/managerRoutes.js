@@ -854,7 +854,8 @@ router.post('/calculate-salary', async (req, res) => {
                 e.employee_id,
                 CONCAT(e.first_name, ' ', e.last_name) as name,
                 e.salary,
-                p.position_name
+                p.position_name,
+                e.department_id
             FROM employees e
             LEFT JOIN positions p ON e.position_id = p.position_id
             WHERE e.employee_id = ?
@@ -866,6 +867,14 @@ router.post('/calculate-salary', async (req, res) => {
 
         const employee = empInfo[0];
         const monthlySalary = parseFloat(employee.salary) || 25000;
+
+        // Get active payroll rules from PayrollRules table
+        const [payrollRules] = await payrollDB.query(`
+            SELECT rule_id, rule_name, rule_type, formula, fixed_amount, applies_to
+            FROM PayrollRules
+            WHERE is_active = 1
+            ORDER BY rule_type, rule_name
+        `);
 
         // Get timesheets for the cutoff period
         const [timesheets] = await payrollDB.query(`
@@ -908,23 +917,100 @@ router.post('/calculate-salary', async (req, res) => {
         const dailyRate = monthlySalary / workingDaysPerMonth;
         const hourlyRate = dailyRate / regularHoursPerDay;
         
-        // Earnings
+        // Base Earnings
         const basicPay = daysWorked * dailyRate;
-        const overtimePay = totalOvertimeHours * hourlyRate * 1.25; // 25% OT premium
-        const grossPay = basicPay + overtimePay;
+        
+        // Apply earning rules from PayrollRules
+        let overtimePay = 0;
+        let additionalEarnings = 0;
+        let earningsBreakdown = [];
 
-        // Government Deductions (Philippine rates)
-        // SSS Contribution (employee share approximately 4.5% of salary)
-        const sssContribution = Math.min(monthlySalary * 0.045, 1350); // Max SSS contribution
+        // Find overtime rule or use default 25%
+        const overtimeRule = payrollRules.find(r => 
+            r.rule_name.toLowerCase().includes('overtime') && r.rule_type === 'earning'
+        );
+        const overtimeMultiplier = overtimeRule && overtimeRule.formula 
+            ? 1 + (parseFloat(overtimeRule.formula) / 100)
+            : 1.25; // Default 25% OT premium
         
-        // PhilHealth (5% shared, employee pays 2.5%)
-        const philhealthContribution = monthlySalary * 0.025;
+        overtimePay = totalOvertimeHours * hourlyRate * overtimeMultiplier;
         
-        // Pag-IBIG (2% up to 100 max for employee)
-        const pagibigContribution = Math.min(monthlySalary * 0.02, 100);
-        
-        // Withholding Tax (simplified progressive tax)
+        // Apply other earning rules
+        payrollRules.filter(r => r.rule_type === 'earning' && !r.rule_name.toLowerCase().includes('overtime'))
+            .forEach(rule => {
+                let amount = 0;
+                if (rule.fixed_amount) {
+                    amount = parseFloat(rule.fixed_amount);
+                } else if (rule.formula) {
+                    // Formula is percentage of basic pay
+                    amount = basicPay * (parseFloat(rule.formula) / 100);
+                }
+                if (amount > 0) {
+                    additionalEarnings += amount;
+                    earningsBreakdown.push({ name: rule.rule_name, amount: amount.toFixed(2) });
+                }
+            });
+
+        const grossPay = basicPay + overtimePay + additionalEarnings;
+
+        // Apply deduction rules from PayrollRules
+        let sssContribution = 0;
+        let philhealthContribution = 0;
+        let pagibigContribution = 0;
         let withholdingTax = 0;
+        let otherDeductions = 0;
+        let deductionsBreakdown = [];
+
+        // Check for SSS rule
+        const sssRule = payrollRules.find(r => 
+            r.rule_name.toLowerCase().includes('sss') && r.rule_type === 'deduction'
+        );
+        if (sssRule) {
+            if (sssRule.fixed_amount) {
+                sssContribution = parseFloat(sssRule.fixed_amount);
+            } else if (sssRule.formula) {
+                sssContribution = Math.min(monthlySalary * (parseFloat(sssRule.formula) / 100), 1350);
+            }
+        } else {
+            // Default SSS: 4.5% of salary, max 1350
+            sssContribution = Math.min(monthlySalary * 0.045, 1350);
+        }
+        deductionsBreakdown.push({ name: 'SSS', amount: sssContribution.toFixed(2) });
+
+        // Check for PhilHealth rule
+        const philhealthRule = payrollRules.find(r => 
+            r.rule_name.toLowerCase().includes('philhealth') && r.rule_type === 'deduction'
+        );
+        if (philhealthRule) {
+            if (philhealthRule.fixed_amount) {
+                philhealthContribution = parseFloat(philhealthRule.fixed_amount);
+            } else if (philhealthRule.formula) {
+                philhealthContribution = monthlySalary * (parseFloat(philhealthRule.formula) / 100);
+            }
+        } else {
+            // Default PhilHealth: 2.5% employee share
+            philhealthContribution = monthlySalary * 0.025;
+        }
+        deductionsBreakdown.push({ name: 'PhilHealth', amount: philhealthContribution.toFixed(2) });
+
+        // Check for Pag-IBIG rule
+        const pagibigRule = payrollRules.find(r => 
+            (r.rule_name.toLowerCase().includes('pagibig') || r.rule_name.toLowerCase().includes('pag-ibig') || r.rule_name.toLowerCase().includes('hdmf')) 
+            && r.rule_type === 'deduction'
+        );
+        if (pagibigRule) {
+            if (pagibigRule.fixed_amount) {
+                pagibigContribution = parseFloat(pagibigRule.fixed_amount);
+            } else if (pagibigRule.formula) {
+                pagibigContribution = Math.min(monthlySalary * (parseFloat(pagibigRule.formula) / 100), 100);
+            }
+        } else {
+            // Default Pag-IBIG: 2% up to 100 max
+            pagibigContribution = Math.min(monthlySalary * 0.02, 100);
+        }
+        deductionsBreakdown.push({ name: 'Pag-IBIG', amount: pagibigContribution.toFixed(2) });
+
+        // Withholding Tax (progressive tax - usually not in rules, computed based on taxable income)
         const taxableIncome = grossPay - sssContribution - philhealthContribution - pagibigContribution;
         
         if (taxableIncome > 20833) { // Above 250k annual
@@ -940,8 +1026,30 @@ router.post('/calculate-salary', async (req, res) => {
                 withholdingTax = 183541.67 + (taxableIncome - 666667) * 0.35;
             }
         }
+        deductionsBreakdown.push({ name: 'Withholding Tax', amount: withholdingTax.toFixed(2) });
 
-        const totalDeductions = sssContribution + philhealthContribution + pagibigContribution + withholdingTax;
+        // Apply other deduction rules
+        payrollRules.filter(r => 
+            r.rule_type === 'deduction' && 
+            !r.rule_name.toLowerCase().includes('sss') &&
+            !r.rule_name.toLowerCase().includes('philhealth') &&
+            !r.rule_name.toLowerCase().includes('pagibig') &&
+            !r.rule_name.toLowerCase().includes('pag-ibig') &&
+            !r.rule_name.toLowerCase().includes('hdmf')
+        ).forEach(rule => {
+            let amount = 0;
+            if (rule.fixed_amount) {
+                amount = parseFloat(rule.fixed_amount);
+            } else if (rule.formula) {
+                amount = grossPay * (parseFloat(rule.formula) / 100);
+            }
+            if (amount > 0) {
+                otherDeductions += amount;
+                deductionsBreakdown.push({ name: rule.rule_name, amount: amount.toFixed(2) });
+            }
+        });
+
+        const totalDeductions = sssContribution + philhealthContribution + pagibigContribution + withholdingTax + otherDeductions;
         const netPay = grossPay - totalDeductions;
 
         res.json({
@@ -963,21 +1071,26 @@ router.post('/calculate-salary', async (req, res) => {
             rates: {
                 dailyRate: dailyRate.toFixed(2),
                 hourlyRate: hourlyRate.toFixed(2),
-                overtimeRate: (hourlyRate * 1.25).toFixed(2)
+                overtimeRate: (hourlyRate * overtimeMultiplier).toFixed(2)
             },
             earnings: {
                 basicPay: basicPay.toFixed(2),
                 overtimePay: overtimePay.toFixed(2),
-                grossPay: grossPay.toFixed(2)
+                additionalEarnings: additionalEarnings.toFixed(2),
+                grossPay: grossPay.toFixed(2),
+                breakdown: earningsBreakdown
             },
             deductions: {
                 sss: sssContribution.toFixed(2),
                 philhealth: philhealthContribution.toFixed(2),
                 pagibig: pagibigContribution.toFixed(2),
                 withholdingTax: withholdingTax.toFixed(2),
-                totalDeductions: totalDeductions.toFixed(2)
+                otherDeductions: otherDeductions.toFixed(2),
+                totalDeductions: totalDeductions.toFixed(2),
+                breakdown: deductionsBreakdown
             },
-            netPay: netPay.toFixed(2)
+            netPay: netPay.toFixed(2),
+            appliedRules: payrollRules.map(r => ({ id: r.rule_id, name: r.rule_name, type: r.rule_type }))
         });
     } catch (error) {
         console.error('Error calculating salary:', error);

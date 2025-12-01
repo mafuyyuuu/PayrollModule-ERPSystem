@@ -48,6 +48,9 @@ export default function PayoutProcessing() {
     const [employeesProcess, setEmployeesProcess] = useState([]);
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Confirmation modal state
+    const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
     const [error, setError] = useState(null);
 
     // Tab state for switching between new payroll and existing payroll
@@ -370,12 +373,18 @@ export default function PayoutProcessing() {
         }
     };
 
-    // Save calculated payroll to database
-    const handleSavePayroll = async () => {
+    // Show save confirmation modal
+    const showSaveConfirmation = () => {
         if (calculatedPayrolls.length === 0) {
             setSnackbar({ open: true, message: 'No payroll data to save', severity: 'warning' });
             return;
         }
+        setSaveConfirmModalOpen(true);
+    };
+
+    // Save calculated payroll to database
+    const handleSavePayroll = async () => {
+        setSaveConfirmModalOpen(false);
         
         try {
             setIsSaving(true);
@@ -623,7 +632,7 @@ export default function PayoutProcessing() {
                             <ActionButton text="Back" onClick={handleBack} />
                             <ActionButton
                                 text={isSaving ? "Saving..." : "Save & Create Payroll Records"}
-                                onClick={handleSavePayroll}
+                                onClick={showSaveConfirmation}
                                 disabled={isSaving || calculatedPayrolls.length === 0}
                             />
                         </Box>
@@ -1486,6 +1495,61 @@ export default function PayoutProcessing() {
                 onClose={handleClose}
             >
                 {renderModalCards()}
+            </BoxModal>
+
+            {/* Save Confirmation Modal */}
+            <BoxModal
+                open={saveConfirmModalOpen}
+                onClose={() => setSaveConfirmModalOpen(false)}
+                width={450}
+                height={220}
+            >
+                <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                    <Box>
+                        <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                            Confirm Save Payroll
+                        </Typography>
+                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
+                            Are you sure you want to save {calculatedPayrolls.length} payroll record(s)? This action will create official payroll entries in the system.
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                        <Box
+                            component="button"
+                            onClick={() => setSaveConfirmModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            component="button"
+                            onClick={handleSavePayroll}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            Confirm Save
+                        </Box>
+                    </Box>
+                </Box>
             </BoxModal>
 
             {/* Snackbar for notifications */}

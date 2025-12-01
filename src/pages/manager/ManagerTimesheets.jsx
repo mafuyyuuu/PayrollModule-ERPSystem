@@ -48,6 +48,10 @@ const ManagerTimesheets = () => {
         overtime_hours: 0,
         remarks: 'Manual Entry'
     });
+    
+    // Save confirmation modal state
+    const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
+    const [pendingSaveAction, setPendingSaveAction] = useState(null); // 'edit' or 'add'
 
     // Calculate total hours and overtime automatically
     const calculateHours = (timeIn, timeOut, breakDuration = 1) => {
@@ -194,7 +198,23 @@ const ManagerTimesheets = () => {
         }
     };
 
-    const handleSaveEdit = async () => {
+    // Show save confirmation modal
+    const showSaveConfirmation = (actionType) => {
+        setPendingSaveAction(actionType);
+        setSaveConfirmModalOpen(true);
+    };
+
+    // Confirm save action
+    const confirmSave = () => {
+        setSaveConfirmModalOpen(false);
+        if (pendingSaveAction === 'edit') {
+            executeSaveEdit();
+        } else if (pendingSaveAction === 'add') {
+            executeAddManualEntry();
+        }
+    };
+
+    const executeSaveEdit = async () => {
         const { totalHours, overtime } = calculateHours(editedRow.timeIn, editedRow.timeOut, editedRow.break_duration);
         
         try {
@@ -221,7 +241,7 @@ const ManagerTimesheets = () => {
         }
     };
 
-    const handleAddManualEntry = async () => {
+    const executeAddManualEntry = async () => {
         if (!newEntry.employee_id || !newEntry.date || !newEntry.time_in || !newEntry.time_out) {
             alert('Please fill in all required fields');
             return;
@@ -765,7 +785,7 @@ const ManagerTimesheets = () => {
                                 </IconButton>
                             ) : (
                                 <IconButton
-                                    onClick={handleSaveEdit}
+                                    onClick={() => showSaveConfirmation('edit')}
                                     sx={{
                                         backgroundColor: "#388E3C",
                                         color: "#fff",
@@ -1074,7 +1094,7 @@ const ManagerTimesheets = () => {
                         {/* Save Button when editing */}
                         {isEditing && (
                             <Box display="flex" justifyContent="center" mt={3}>
-                                <ActionButton text="Save Changes" width="200px" onClick={handleSaveEdit} />
+                                <ActionButton text="Save Changes" width="200px" onClick={() => showSaveConfirmation('edit')} />
                             </Box>
                         )}
                     </>
@@ -1265,7 +1285,7 @@ const ManagerTimesheets = () => {
                 </Box>
 
                 <Box display="flex" justifyContent="center" mt={3}>
-                    <ActionButton text="Add Entry" width="200px" onClick={handleAddManualEntry} />
+                    <ActionButton text="Add Entry" width="200px" onClick={() => showSaveConfirmation('add')} />
                 </Box>
             </BoxModal>
 
@@ -1347,6 +1367,58 @@ const ManagerTimesheets = () => {
             {/* EXPORT MODAL */}
             <BoxModal open={isExportModalOpen} onClose={() => setIsExportModalOpen(false)}>
                 {renderExportModalContent()}
+            </BoxModal>
+
+            {/* SAVE CONFIRMATION MODAL */}
+            <BoxModal open={saveConfirmModalOpen} onClose={() => setSaveConfirmModalOpen(false)} width={400} height={200}>
+                <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                    <Box>
+                        <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                            Confirm Save
+                        </Typography>
+                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
+                            {pendingSaveAction === 'edit' 
+                                ? "Are you sure you want to save the changes to this timesheet entry?"
+                                : "Are you sure you want to add this new timesheet entry?"}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                        <Box
+                            component="button"
+                            onClick={() => setSaveConfirmModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            component="button"
+                            onClick={confirmSave}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            Confirm
+                        </Box>
+                    </Box>
+                </Box>
             </BoxModal>
         </Box>
     );

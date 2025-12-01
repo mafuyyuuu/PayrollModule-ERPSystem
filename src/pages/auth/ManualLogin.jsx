@@ -33,9 +33,9 @@ function ManualLogin() {
                 body: JSON.stringify({ username, password }),
             });
 
-            const data = await response. json();
+            const data = await response.json();
 
-            if (! response.ok) {
+            if (!response.ok) {
                 setError(data.message || 'Login failed');
                 setLoading(false);
                 return;
@@ -44,7 +44,7 @@ function ManualLogin() {
             // Set user data from database response
             setUser({
                 id: data.id,
-                employeeId: data. employeeId,
+                employeeId: data.employeeId,
                 name: data.name || data.username,
                 username: data.username,
                 email: data.email,
@@ -52,16 +52,16 @@ function ManualLogin() {
                 status: data.status,
                 // Employee details from database
                 firstName: data.firstName,
-                middleName: data. middleName,
-                lastName: data. lastName,
+                middleName: data.middleName,
+                lastName: data.lastName,
                 position: data.position,
                 department: data.department,
-                employmentType: data. employmentType,
+                employmentType: data.employmentType,
                 dateHired: data.dateHired,
                 birthday: data.birthday,
                 sex: data.sex,
                 nationality: data.nationality,
-                maritalStatus: data. maritalStatus,
+                maritalStatus: data.maritalStatus,
                 address: data.address,
                 contactNumber: data.contactNumber,
                 emergencyContactName: data.emergencyContactName,
@@ -135,11 +135,11 @@ function ManualLogin() {
                             <input
                                 type="checkbox"
                                 checked={showPassword}
-                                onChange={() => setShowPassword(! showPassword)}
+                                onChange={() => setShowPassword(!showPassword)}
                             />
                             Show Password
                         </label>
-                        <a href="#">Forgot Password? </a>
+                        <a href="#">Forgot Password?</a>
                     </div>
 
                     <button type="submit" className="login-btn" disabled={loading}>

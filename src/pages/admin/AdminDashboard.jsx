@@ -1,29 +1,76 @@
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme, CircularProgress } from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { BarChart3 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const AdminDashboard = () => {
     const theme = useTheme();
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        totalEmployees: 0,
+        processedPayouts: 0,
+        pendingPayouts: 0,
+        upcomingSchedule: null
+    });
+    const [notifications, setNotifications] = useState([]);
 
-    const notifications = [
-        {
-            title: "Payroll Updated",
-            message: "The payroll for October 2025 has been successfully processed.",
-        },
-        {
-            title: "System Maintenance",
-            message:
-                "Scheduled maintenance will occur on November 15, 2025, from 12 AM to 2 AM.",
-        },
-        {
-            title: "New Employee Added",
-            message: "A new employee has been successfully added to the HR database.",
-        },
-        {
-            title: "Policy Reminder",
-            message: "Please review the updated attendance policy by November 20, 2025.",
-        },
-    ];
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                // Fetch dashboard stats
+                const statsResponse = await fetch('http://localhost:8080/api/admin/dashboard-stats');
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    setStats(statsData);
+                }
+
+                // Fetch notifications
+                const notifResponse = await fetch('http://localhost:8080/api/admin/notifications');
+                if (notifResponse.ok) {
+                    const notifData = await notifResponse.json();
+                    setNotifications(notifData);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                // No fallback data - show empty state
+                setNotifications([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    const formatCurrency = (value) => {
+        return `₱${Number(value || 0).toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "No upcoming schedule";
+        return new Date(dateString).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
+    const handleClearNotifications = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/admin/activity-logs', {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                setNotifications([]);
+            }
+        } catch (error) {
+            console.error('Error clearing activity logs:', error);
+            setNotifications([]);
+        }
+    };
 
     return (
         <Box
@@ -41,23 +88,27 @@ const AdminDashboard = () => {
                 gridTemplateColumns={{ xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
                 gap={2}
             >
-                <DashboardCard icon="ri-group-line" title="Total Employees" value="55" />
+                <DashboardCard 
+                    icon="ri-group-line" 
+                    title="Total Employees" 
+                    value={loading ? "..." : stats.totalEmployees.toString()} 
+                />
                 <DashboardCard
                     icon="ri-refund-2-line"
                     title="Processed Payouts"
-                    value="₱120,000.00"
+                    value={loading ? "..." : formatCurrency(stats.processedPayouts)}
                     showHideButton
                 />
                 <DashboardCard
                     icon="ri-timer-line"
                     title="Pending Payouts"
-                    value="₱30,000.00"
+                    value={loading ? "..." : formatCurrency(stats.pendingPayouts)}
                     showHideButton
                 />
                 <DashboardCard
                     icon="ri-calendar-schedule-line"
                     title="Upcoming Schedules"
-                    value="October 31, 2025"
+                    value={loading ? "..." : formatDate(stats.upcomingSchedule)}
                 />
             </Box>
             <Box
@@ -74,7 +125,10 @@ const AdminDashboard = () => {
                     border: `1px solid ${theme.palette.divider}`,
                     transition: "all 0.3s ease",
                     "&:hover": { transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" },
-                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "300px",
+                    maxHeight: "500px",
                 }}
             >
                 <Box
@@ -94,10 +148,11 @@ const AdminDashboard = () => {
                                 color: theme.palette.text.primary,
                             }}
                         >
-                            System Alerts and Notifications
+                            System Activity Logs
                         </span>
                     </Box>
                     <button
+                        onClick={handleClearNotifications}
                         style={{
                             background: "transparent",
                             color: theme.palette.text.primary,
@@ -120,51 +175,84 @@ const AdminDashboard = () => {
                         gap: 2,
                         overflowY: "auto",
                         pr: 1,
-                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        "&::-webkit-scrollbar": { display: "none" },
                         scrollbarWidth: "none",
                         msOverflowStyle: "none",
                     }}
                 >
-                    {notifications.map((notif, index) => (
-                        <Box
-                            key={index}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                width: "100%",
-                                bgcolor: "#fff",
-                                p: 2,
-                                borderRadius: "10px",
-                                border: `1px solid ${theme.palette.divider}`,
-                                backdropFilter: "blur(12px)",
-                                transition: "all 0.3s ease",
-                                "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" },
-                            }}
-                        >
-                            <h3
-                                style={{
-                                    fontSize: "20px",
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#1b2223",
-                                    margin: "0 0 5px 0",
-                                    paddingLeft: "8px",
-                                }}
-                            >
-                                {notif.title}
-                            </h3>
-                            <p
-                                style={{
-                                    fontSize: "16px",
-                                    lineHeight: 1.4,
-                                    color: "#333",
-                                    margin: 0,
-                                    paddingLeft: "8px",
-                                }}
-                            >
-                                {notif.message}
-                            </p>
+                    {notifications.length === 0 ? (
+                        <Box sx={{ 
+                            display: "flex", 
+                            justifyContent: "center", 
+                            alignItems: "center", 
+                            flex: 1,
+                            color: theme.palette.text.secondary 
+                        }}>
+                            No activity logs to display
                         </Box>
-                    ))}
+                    ) : (
+                        notifications.map((notif, index) => (
+                            <Box
+                                key={notif.id || index}
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    width: "100%",
+                                    bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "#fff",
+                                    p: 2,
+                                    borderRadius: "10px",
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    backdropFilter: "blur(12px)",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" },
+                                }}
+                            >
+                                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                    <h3
+                                        style={{
+                                            fontSize: "16px",
+                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                            color: theme.palette.mode === "dark" ? "#fff" : "#1b2223",
+                                            margin: "0 0 5px 0",
+                                            paddingLeft: "8px",
+                                        }}
+                                    >
+                                        {notif.title}
+                                    </h3>
+                                    {notif.date && (
+                                        <span style={{ 
+                                            fontSize: "12px", 
+                                            color: theme.palette.text.secondary,
+                                            whiteSpace: "nowrap"
+                                        }}>
+                                            {new Date(notif.date).toLocaleString()}
+                                        </span>
+                                    )}
+                                </Box>
+                                <p
+                                    style={{
+                                        fontSize: "14px",
+                                        lineHeight: 1.4,
+                                        color: theme.palette.mode === "dark" ? "#ccc" : "#333",
+                                        margin: 0,
+                                        paddingLeft: "8px",
+                                    }}
+                                >
+                                    {notif.message}
+                                </p>
+                                {notif.user && (
+                                    <span style={{ 
+                                        fontSize: "12px", 
+                                        color: theme.palette.text.secondary,
+                                        paddingLeft: "8px",
+                                        marginTop: "4px"
+                                    }}>
+                                        By: {notif.user}
+                                    </span>
+                                )}
+                            </Box>
+                        ))
+                    )}
                 </Box>
             </Box>
         </Box>
