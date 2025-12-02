@@ -1,8 +1,14 @@
 /* eslint-disable no-unused-vars */
 import express from 'express';
 import { payrollDB, hrDB } from '../db.js';
+import multer from 'multer';
+import FormData from 'form-data';
+import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
 // Helper function to log activity
 const logActivity = async (actionType, entityType, entityId, description, processedBy = null) => {
@@ -97,14 +103,23 @@ router.get('/users', async (req, res) => {
 
         // Enrich with employee names
         const enrichedUsers = await Promise.all(users.map(async (user) => {
+            let firstName = null;
+            let middleName = null;
+            let lastName = null;
             let employeeName = null;
+            
             if (user.employee_id) {
                 try {
                     const [empRows] = await hrDB.query(
-                        `SELECT CONCAT(first_name, ' ', last_name) as name FROM employees WHERE employee_id = ?`,
+                        `SELECT first_name, middle_name, last_name FROM employees WHERE employee_id = ?`,
                         [user.employee_id]
                     );
-                    employeeName = empRows[0]?.name || null;
+                    if (empRows[0]) {
+                        firstName = empRows[0].first_name;
+                        middleName = empRows[0].middle_name;
+                        lastName = empRows[0].last_name;
+                        employeeName = `${firstName} ${lastName}`;
+                    }
                 } catch (e) {
                     console.log('Could not fetch employee name');
                 }
@@ -115,6 +130,9 @@ router.get('/users', async (req, res) => {
             return {
                 id: user.user_id,
                 name: employeeName || user.username,
+                firstName: firstName,
+                middleName: middleName,
+                lastName: lastName,
                 username: user.username,
                 email: user.email_address,
                 role: user.role_name || roleMap[user.role_id] || 'Unknown',
@@ -132,6 +150,44 @@ router.get('/users', async (req, res) => {
 });
 
 // =====================================================
+// 2b. USER MANAGEMENT - GET AVAILABLE EMPLOYEES (without accounts)
+// =====================================================
+router.get('/available-employees', async (req, res) => {
+    try {
+        // Get all employees from HR DB
+        const [allEmployees] = await hrDB.query(`
+            SELECT 
+                e.employee_id,
+                e.first_name,
+                e.middle_name,
+                e.last_name,
+                e.email,
+                d.department_name as department
+            FROM employees e
+            LEFT JOIN departments d ON e.department_id = d.department_id
+            ORDER BY e.last_name, e.first_name
+        `);
+
+        // Get employees who already have accounts
+        const [existingAccounts] = await payrollDB.query(`
+            SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL
+        `);
+
+        const existingEmployeeIds = existingAccounts.map(a => a.employee_id);
+
+        // Filter out employees who already have accounts
+        const availableEmployees = allEmployees.filter(
+            emp => !existingEmployeeIds.includes(emp.employee_id)
+        );
+
+        res.json(availableEmployees);
+    } catch (error) {
+        console.error('Error fetching available employees:', error);
+        res.status(500).json({ error: 'Failed to fetch available employees' });
+    }
+});
+
+// =====================================================
 // 3. USER MANAGEMENT - CREATE USER
 // =====================================================
 router.post('/users', async (req, res) => {
@@ -145,7 +201,29 @@ router.post('/users', async (req, res) => {
         );
 
         if (existing.length > 0) {
-            return res.status(400).json({ error: 'Username already exists' });
+            return res.status(400).json({ message: 'Username already exists' });
+        }
+
+        // Check if email already exists
+        const [existingEmail] = await payrollDB.query(
+            `SELECT user_id FROM UserAccounts WHERE email_address = ?`,
+            [email]
+        );
+
+        if (existingEmail.length > 0) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
+
+        // Check if employee already has an account
+        if (employee_id) {
+            const [existingEmp] = await payrollDB.query(
+                `SELECT user_id FROM UserAccounts WHERE employee_id = ?`,
+                [employee_id]
+            );
+
+            if (existingEmp.length > 0) {
+                return res.status(400).json({ message: 'This employee already has a user account' });
+            }
         }
 
         const [result] = await payrollDB.query(
@@ -164,7 +242,7 @@ router.post('/users', async (req, res) => {
         res.status(201).json({ success: true, userId: result.insertId, message: 'User created successfully' });
     } catch (error) {
         console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Failed to create user' });
+        res.status(500).json({ message: 'Failed to create user: ' + error.message });
     }
 });
 
@@ -327,6 +405,9 @@ router.get('/audit-logs', async (req, res) => {
 // =====================================================
 router.get('/notifications', async (req, res) => {
     try {
+        const { limit = 50 } = req.query;
+        const queryLimit = Math.min(parseInt(limit) || 50, 100);
+        
         // Get all recent activity logs from the system
         const [activities] = await payrollDB.query(`
             SELECT 
@@ -360,8 +441,8 @@ router.get('/notifications', async (req, res) => {
                 created_at as date
             FROM ActivityLogs
             ORDER BY created_at DESC
-            LIMIT 50
-        `);
+            LIMIT ?
+        `, [queryLimit]);
 
         // Get user names for processed_by
         const userIds = [...new Set(activities.filter(a => a.processed_by).map(a => a.processed_by))];
@@ -737,17 +818,70 @@ router.get('/employee-types', async (req, res) => {
 });
 
 // =====================================================
-// 15. UPLOAD USER PHOTOS
+// 15. UPLOAD USER PHOTOS - Forward to FastAPI face recognition
 // =====================================================
-router.post('/users/photos', async (req, res) => {
-    // Photo uploads would typically be handled with multer middleware
-    // For now, just log the attempt
+router.post('/users/photos', upload.array('photos'), async (req, res) => {
     try {
-        await logActivity('UPLOAD', 'UserPhoto', null, 'User photos uploaded');
-        res.json({ success: true, message: 'Photos uploaded successfully' });
+        const { employee_id, name, role_id } = req.body;
+        const files = req.files;
+
+        if (!files || files.length === 0) {
+            return res.status(400).json({ error: 'No photos provided' });
+        }
+
+        if (!employee_id) {
+            return res.status(400).json({ error: 'Employee ID is required' });
+        }
+
+        // Get employee name from HR DB if not provided
+        let employeeName = name;
+        if (!employeeName) {
+            const [empRows] = await hrDB.query(
+                `SELECT CONCAT(first_name, ' ', last_name) as full_name FROM employees WHERE employee_id = ?`,
+                [employee_id]
+            );
+            employeeName = empRows[0]?.full_name || `Employee ${employee_id}`;
+        }
+
+        // Create form data for FastAPI
+        const formData = new FormData();
+        formData.append('employee_id', employee_id);
+        formData.append('name', employeeName);
+        formData.append('role_id', role_id || 4);
+
+        // Append files
+        files.forEach((file) => {
+            formData.append('files', fs.createReadStream(file.path), {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+        });
+
+        // Forward to FastAPI face recognition service
+        const fastApiResponse = await fetch('http://localhost:8001/register', {
+            method: 'POST',
+            body: formData,
+            headers: formData.getHeaders()
+        });
+
+        const result = await fastApiResponse.json();
+
+        // Clean up temp files
+        files.forEach((file) => {
+            fs.unlink(file.path, (err) => {
+                if (err) console.error('Error deleting temp file:', err);
+            });
+        });
+
+        if (result.success) {
+            await logActivity('UPLOAD', 'UserPhoto', employee_id, `Photos registered for employee ${employeeName}`);
+            res.json({ success: true, message: result.message });
+        } else {
+            res.status(400).json({ success: false, error: result.error });
+        }
     } catch (error) {
         console.error('Error uploading photos:', error);
-        res.status(500).json({ error: 'Failed to upload photos' });
+        res.status(500).json({ error: 'Failed to upload photos: ' + error.message });
     }
 });
 

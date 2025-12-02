@@ -28,7 +28,6 @@ export default function Sidebar() {
             { name: "Dashboard", path: "dashboard", icon: "ri-home-5-fill" },
             { name: "Configuration", path: "configuration", icon: "ri-tools-fill" },
             { name: "User Management", path: "user", icon: "ri-user-settings-fill" },
-            { name: "Approvals", path: "approvals", icon: "ri-checkbox-multiple-fill" },
             { name: "Reports and Analytics", path: "reports", icon: "ri-bar-chart-2-fill" },
             { name: "Payroll Setup", path: "setup", icon: "ri-hand-coin-fill" },
             { name: "Audit Logs", path: "audit", icon: "ri-chat-history-fill" },

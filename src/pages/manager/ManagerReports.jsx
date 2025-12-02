@@ -1,277 +1,252 @@
 import React, {useState, useEffect} from "react";
-import {Box, Typography, useTheme} from "@mui/material";
+import {Box, Typography, useTheme, CircularProgress, Button} from "@mui/material";
 import ActionButton from "../../components/ActionButton.jsx";
-import FilterSelect from "../../components/FilterSelect.jsx";
-import BoxModal from "../../components/BoxModal.jsx";
-import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend} from "recharts";
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    PieChart, Pie, Cell, LineChart, Line
+} from "recharts";
 
 export default function ManagerReports() {
     const theme = useTheme();
-
     const [filter, setFilter] = useState("all");
-    const [deductionData, setDeductionData] = useState([]);
-    const [departmentData, setDepartmentData] = useState([]);
-    const [taxData, setTaxData] = useState([]);
     const [loading, setLoading] = useState(true);
-    
-    // Export modal states
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const [exportModalType, setExportModalType] = useState(''); // 'deductions-pdf', 'deductions-csv', 'department-pdf', 'full'
+    const [deductionData, setDeductionData] = useState([]);
+    const [reportsSummary, setReportsSummary] = useState(null);
+    const [generating, setGenerating] = useState(false);
+    const [chartData, setChartData] = useState([]);
+    const [departmentData, setDepartmentData] = useState([]);
+    const [timesheetData, setTimesheetData] = useState([]);
 
-    const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4'];
+    const COLORS = ['#1b2223', '#3a4f50', '#5a7f80', '#7ab0b0', '#9ad0d0', '#bae0e0'];
 
-    // Fetch all report data
     useEffect(() => {
-        const fetchReportData = async () => {
-            try {
-                // Fetch deductions
-                const deductionsResponse = await fetch('http://localhost:8080/api/manager/reports/deductions');
-                if (deductionsResponse.ok) {
-                    const data = await deductionsResponse.json();
-                    setDeductionData(data);
-                }
-
-                // Fetch department summary
-                const deptResponse = await fetch('http://localhost:8080/api/manager/reports/department-summary');
-                if (deptResponse.ok) {
-                    const data = await deptResponse.json();
-                    setDepartmentData(data);
-                }
-
-                // Fetch tax summary
-                const taxResponse = await fetch('http://localhost:8080/api/manager/reports/tax-summary');
-                if (taxResponse.ok) {
-                    const data = await taxResponse.json();
-                    setTaxData(data);
-                }
-            } catch (error) {
-                console.error('Error fetching report data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchReportData();
+        fetchReportsData();
     }, []);
 
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PH', {
-            style: 'currency',
-            currency: 'PHP',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(value);
-    };
+    const fetchReportsData = async () => {
+        try {
+            // Fetch deduction data
+            const deductionsResponse = await fetch('http://localhost:8080/api/manager/reports/deductions');
+            if (deductionsResponse.ok) {
+                const deductions = await deductionsResponse.json();
+                const tableData = deductions.map(d => ({
+                    name: d.employee_name,
+                    tax: d.tax || 0,
+                    sss: d.sss || 0,
+                    philhealth: d.philhealth || 0,
+                    pagibig: d.pagibig || 0,
+                    total: d.total || 0
+                }));
+                setDeductionData(tableData);
+                
+                // Prepare chart data (top 10 by total deductions)
+                const chartData = tableData
+                    .sort((a, b) => b.total - a.total)
+                    .slice(0, 10)
+                    .map(d => ({
+                        name: d.name?.split(' ')[0] || 'Unknown',
+                        Tax: d.tax,
+                        SSS: d.sss,
+                        PhilHealth: d.philhealth,
+                        'Pag-IBIG': d.pagibig
+                    }));
+                setChartData(chartData);
+            }
 
-    // Filter deduction data
-    const filteredDeductionData = filter === 'all' 
-        ? deductionData 
-        : deductionData.filter(item => {
-            if (filter === 'high') return (item.total || 0) > 10000;
-            if (filter === 'low') return (item.total || 0) <= 10000;
-            return true;
-        });
+            // Fetch department summary
+            const deptResponse = await fetch('http://localhost:8080/api/manager/reports/department-summary');
+            if (deptResponse.ok) {
+                const data = await deptResponse.json();
+                setDepartmentData(data.map(d => ({
+                    name: d.name || d.department_name || 'Unknown',
+                    value: d.employees || d.employee_count || 0,
+                    totalPay: d.totalPay || 0
+                })));
+            }
 
-    // Export functions
-    const exportToPDF = (title, data) => {
-        // Create a simple printable HTML
-        const printContent = `
-            <html>
-            <head>
-                <title>${title}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    h1 { color: #333; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                    th { background-color: #4CAF50; color: white; }
-                    tr:nth-child(even) { background-color: #f2f2f2; }
-                    .footer { margin-top: 20px; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <h1>${title}</h1>
-                <p>Generated on: ${new Date().toLocaleString()}</p>
-                <table>
-                    <thead>
-                        <tr>
-                            ${Object.keys(data[0] || {}).map(key => `<th>${key}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.map(row => `
-                            <tr>
-                                ${Object.values(row).map(val => `<td>${typeof val === 'number' ? formatCurrency(val) : val}</td>`).join('')}
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="footer">Payroll Management System - Manager Reports</div>
-            </body>
-            </html>
-        `;
-        
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.print();
-    };
+            // Fetch timesheet summary for trend
+            const timesheetResponse = await fetch('http://localhost:8080/api/manager/timesheets');
+            if (timesheetResponse.ok) {
+                const data = await timesheetResponse.json();
+                // Group by status for pie chart
+                const statusCounts = data.reduce((acc, ts) => {
+                    const status = ts.status || 'Pending';
+                    acc[status] = (acc[status] || 0) + 1;
+                    return acc;
+                }, {});
+                setTimesheetData(Object.entries(statusCounts).map(([name, value]) => ({ name, value })));
+            }
 
-    const exportToCSV = (filename, data) => {
-        if (!data || data.length === 0) {
-            alert('No data to export');
-            return;
+            // Fetch reports summary
+            const summaryResponse = await fetch('http://localhost:8080/api/admin/reports-summary');
+            if (summaryResponse.ok) {
+                const summary = await summaryResponse.json();
+                setReportsSummary(summary);
+            }
+        } catch (error) {
+            console.error('Error fetching reports data:', error);
+            setDeductionData([]);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const formatCurrency = (value) => {
+        if (value === null || value === undefined) return "₱0.00";
+        return `₱${Number(value).toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+    };
+
+    // Filter data based on selection
+    const getFilteredData = () => {
+        if (filter === "all" || !filter) return deductionData;
         
-        const headers = Object.keys(data[0]);
-        const csvContent = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => {
-                const val = row[header];
-                return typeof val === 'string' && val.includes(',') ? `"${val}"` : val;
-            }).join(','))
-        ].join('\n');
-        
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+        return deductionData.filter(d => {
+            const total = d.total;
+            switch(filter) {
+                case "high": return total >= 5000;
+                case "medium": return total >= 2000 && total < 5000;
+                case "low": return total < 2000;
+                default: return true;
+            }
+        });
+    };
+
+    // Generate and export PDF report
+    const handleExportPDF = async (reportType) => {
+        setGenerating(true);
+        try {
+            const reportDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+            
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${reportType} Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        h1 { color: #1b2223; border-bottom: 2px solid #1b2223; padding-bottom: 10px; }
+                        h2 { color: #3a4f50; margin-top: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                        th { background-color: #1b2223; color: white; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        .date { color: #666; font-size: 14px; }
+                        .summary { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                        .summary-item { display: inline-block; margin-right: 40px; }
+                        .summary-value { font-size: 24px; font-weight: bold; color: #1b2223; }
+                        .summary-label { color: #666; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Payroll Management System</h1>
+                        <p class="date">Generated on: ${reportDate}</p>
+                    </div>
+            `;
+
+            if (reportType === 'Employee Deductions') {
+                const filteredData = getFilteredData();
+                htmlContent += `
+                    <h2>Employee Deductions Report</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Tax</th>
+                                <th>SSS</th>
+                                <th>PhilHealth</th>
+                                <th>Pag-IBIG</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredData.map(row => `
+                                <tr>
+                                    <td>${row.name}</td>
+                                    <td>${formatCurrency(row.tax)}</td>
+                                    <td>${formatCurrency(row.sss)}</td>
+                                    <td>${formatCurrency(row.philhealth)}</td>
+                                    <td>${formatCurrency(row.pagibig)}</td>
+                                    <td>${formatCurrency(row.total)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else if (reportType === 'Department Summary') {
+                htmlContent += `
+                    <h2>Department Summary Report</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Employee Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${departmentData.map(dept => `
+                                <tr>
+                                    <td>${dept.name}</td>
+                                    <td>${dept.value}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else if (reportType === 'Timesheet Summary') {
+                htmlContent += `
+                    <h2>Timesheet Summary Report</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${timesheetData.map(row => `
+                                <tr>
+                                    <td>${row.name}</td>
+                                    <td>${row.value}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            htmlContent += `
+                </body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating report');
+        } finally {
+            setGenerating(false);
+        }
     };
 
     const handleGenerateReport = () => {
-        setExportModalType('full');
-        setIsExportModalOpen(true);
+        handleExportPDF('Employee Deductions');
     };
 
-    const handleOpenExportModal = (type) => {
-        setExportModalType(type);
-        setIsExportModalOpen(true);
-    };
-
-    const handleConfirmExport = () => {
-        if (exportModalType === 'deductions-pdf') {
-            exportToPDF('Payroll Deductions Report', filteredDeductionData.map(d => ({
-                Employee: d.employee_name,
-                Tax: formatCurrency(d.tax || 0),
-                SSS: formatCurrency(d.sss || 0),
-                PhilHealth: formatCurrency(d.philhealth || 0),
-                'Pag-IBIG': formatCurrency(d.pagibig || 0),
-                Total: formatCurrency(d.total || 0)
-            })));
-        } else if (exportModalType === 'deductions-csv') {
-            const csvData = filteredDeductionData.map(d => ({
-                Employee: d.employee_name,
-                Tax: d.tax || 0,
-                SSS: d.sss || 0,
-                PhilHealth: d.philhealth || 0,
-                'Pag-IBIG': d.pagibig || 0,
-                Total: d.total || 0
-            }));
-            exportToCSV(csvData, `deductions_report_${new Date().toISOString().split('T')[0]}.csv`);
-        } else if (exportModalType === 'department-pdf') {
-            exportToPDF('Department Summary Report', departmentData.map(d => ({
-                Department: d.name,
-                'Total Pay': formatCurrency(d.totalPay),
-                Employees: d.employees
-            })));
-        } else if (exportModalType === 'full') {
-            exportToPDF('Complete Payroll Report', [
-                { Metric: 'Total Employees', Value: deductionData.length },
-                { Metric: 'Total Deductions', Value: formatCurrency(deductionData.reduce((sum, d) => sum + (d.total || 0), 0)) },
-                { Metric: 'Departments', Value: departmentData.length },
-                { Metric: 'Report Date', Value: new Date().toLocaleDateString() }
-            ]);
-        }
-        setIsExportModalOpen(false);
-    };
-
-    // Render export modal content
-    const renderExportModalContent = () => {
-        const getTitle = () => {
-            if (exportModalType === 'deductions-pdf') return 'Export Deductions Report';
-            if (exportModalType === 'deductions-csv') return 'Export Deductions to CSV';
-            if (exportModalType === 'department-pdf') return 'Export Department Summary';
-            if (exportModalType === 'full') return 'Generate Complete Report';
-            return 'Export Report';
-        };
-
-        const getDescription = () => {
-            if (exportModalType === 'deductions-pdf' || exportModalType === 'deductions-csv') 
-                return `${filteredDeductionData.length} employee deduction records`;
-            if (exportModalType === 'department-pdf') 
-                return `${departmentData.length} departments`;
-            if (exportModalType === 'full') 
-                return 'Complete payroll summary report';
-            return '';
-        };
-
-        return (
-            <>
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        fontSize: "24px",
-                        color: "#FFFFFF",
-                        mb: 2,
-                        textAlign: "center"
-                    }}
-                >
-                    {getTitle()}
-                </Typography>
-                <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
-                    {getDescription()}
-                </Typography>
-                
-                {exportModalType === 'full' && (
-                    <Box sx={{ 
-                        backgroundColor: "rgba(255,255,255,0.1)", 
-                        borderRadius: "12px", 
-                        p: 2, 
-                        mb: 2,
-                        textAlign: "center"
-                    }}>
-                        <Typography sx={{ color: "#fff", fontSize: "14px" }}>
-                            Total Employees: {deductionData.length}
-                        </Typography>
-                        <Typography sx={{ color: "#fff", fontSize: "14px" }}>
-                            Departments: {departmentData.length}
-                        </Typography>
-                        <Typography sx={{ color: "#4CAF50", fontSize: "14px" }}>
-                            Total Deductions: {formatCurrency(deductionData.reduce((sum, d) => sum + (d.total || 0), 0))}
-                        </Typography>
-                    </Box>
-                )}
-                
-                <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
-                    <Box
-                        onClick={handleConfirmExport}
-                        component="button"
-                        sx={{
-                            fontSize: "16px",
-                            backgroundColor: "#172224",
-                            color: "#fff",
-                            padding: "10px 0",
-                            borderRadius: "15px",
-                            cursor: "pointer",
-                            border: "none",
-                            transition: "all 0.3s ease",
-                            width: "200px",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            "&:hover": {
-                                backgroundColor: "#1f2f31",
-                                transform: "translateY(-2px)",
-                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                            },
-                        }}
-                    >
-                        {exportModalType.includes('csv') ? 'Download CSV' : 'Download PDF'}
-                    </Box>
-                </Box>
-            </>
-        );
-    };
+    const filteredData = getFilteredData();
 
     return (
         <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
@@ -281,7 +256,7 @@ export default function ManagerReports() {
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 2,
+                    mb: 3,
                 }}
             >
                 <Typography
@@ -295,22 +270,19 @@ export default function ManagerReports() {
                     Reports and Analytics
                 </Typography>
 
-                <Box
-                    sx={{
-                        display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1,
-                    }}
-                >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <ActionButton
-                        text="Generate Report"
+                        text={generating ? "Generating..." : "Generate Report"}
                         width="180px"
                         onClick={handleGenerateReport}
+                        disabled={generating}
                     />
                 </Box>
             </Box>
 
             <Box
                 sx={{
-                    height: "90.8%",
+                    height: "90.9%",
                     backgroundColor: theme.palette.mode === "dark"
                         ? "rgba(255, 255, 255, 0.05)"
                         : "rgba(255, 255, 255, 0.2)",
@@ -318,14 +290,11 @@ export default function ManagerReports() {
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: 2,
-                    transition: "all 0.3s ease",
                     overflowY: "auto",
-                    "&:hover": {
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
+                    "&::-webkit-scrollbar": { width: 6 },
+                    "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: 3 },
                 }}
             >
-                {/* Payroll Summary Section */}
                 <Box
                     sx={{
                         display: "flex",
@@ -341,28 +310,43 @@ export default function ManagerReports() {
                             color: theme.palette.text.primary,
                         }}
                     >
-                        Payroll Deductions Summary
+                        Employee Deductions Report
                     </Typography>
-                    <Box sx={{ display: "flex", gap: 1 }}>
+                    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                        {/* Filter Buttons */}
+                        <Box sx={{ display: "flex", gap: 0.5, mr: 1 }}>
+                            {[
+                                { value: "all", label: "All" },
+                                { value: "high", label: "High (≥₱5k)" },
+                                { value: "medium", label: "Medium" },
+                                { value: "low", label: "Low (<₱2k)" }
+                            ].map((btn) => (
+                                <Button
+                                    key={btn.value}
+                                    onClick={() => setFilter(btn.value)}
+                                    sx={{
+                                        fontSize: "12px",
+                                        px: 1.5,
+                                        py: 0.5,
+                                        minWidth: "auto",
+                                        borderRadius: "8px",
+                                        textTransform: "none",
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        backgroundColor: filter === btn.value ? "#1b2223" : "#e0e0e0",
+                                        color: filter === btn.value ? "#fff" : "#333",
+                                        "&:hover": {
+                                            backgroundColor: filter === btn.value ? "#2a3435" : "#d0d0d0",
+                                        },
+                                    }}
+                                >
+                                    {btn.label}
+                                </Button>
+                            ))}
+                        </Box>
                         <ActionButton
                             text="Export PDF"
-                            width="130px"
-                            onClick={() => handleOpenExportModal('deductions-pdf')}
-                        />
-                        <ActionButton
-                            text="Export CSV"
-                            width="130px"
-                            onClick={() => handleOpenExportModal('deductions-csv')}
-                        />
-                        <FilterSelect
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            width={150}
-                            options={[
-                                { value: 'all', label: 'All Employees' },
-                                { value: 'high', label: 'High Deductions' },
-                                { value: 'low', label: 'Low Deductions' },
-                            ]}
+                            width="120px"
+                            onClick={() => handleExportPDF('Employee Deductions')}
                         />
                     </Box>
                 </Box>
@@ -381,73 +365,66 @@ export default function ManagerReports() {
                         sx={{
                             flex: 1.2,
                             height: 267,
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "#fff",
                             borderRadius: "12px",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            border: `1px solid ${theme.palette.divider}`,
                             p: 2,
+                            border: `1px solid ${theme.palette.divider}`,
                         }}
                     >
-                        {loading ? (
-                            <Typography>Loading chart...</Typography>
-                        ) : filteredDeductionData.length === 0 ? (
-                            <Typography color="text.secondary">No data available</Typography>
-                        ) : (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={filteredDeductionData.slice(0, 5)}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis 
-                                        dataKey="employee_name" 
-                                        fontSize={11}
-                                        tickFormatter={(value) => value.split(' ')[0]}
-                                    />
-                                    <YAxis 
-                                        fontSize={11}
-                                        tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`}
-                                    />
+                        <Typography sx={{ fontSize: "14px", fontFamily: "'TTHoves-DemiBold', sans-serif", mb: 1, color: theme.palette.text.primary }}>
+                            Top 10 Employee Deductions
+                        </Typography>
+                        {chartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="90%">
+                                <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₱${v/1000}k`} />
                                     <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Bar dataKey="sss" fill="#4CAF50" name="SSS" />
-                                    <Bar dataKey="philhealth" fill="#2196F3" name="PhilHealth" />
-                                    <Bar dataKey="pagibig" fill="#FF9800" name="Pag-IBIG" />
-                                    <Bar dataKey="tax" fill="#9C27B0" name="Tax" />
+                                    <Legend wrapperStyle={{ fontSize: "10px" }} />
+                                    <Bar dataKey="Tax" fill="#1b2223" stackId="a" />
+                                    <Bar dataKey="SSS" fill="#3a4f50" stackId="a" />
+                                    <Bar dataKey="PhilHealth" fill="#5a7f80" stackId="a" />
+                                    <Bar dataKey="Pag-IBIG" fill="#7ab0b0" stackId="a" />
                                 </BarChart>
                             </ResponsiveContainer>
+                        ) : (
+                            <Box display="flex" justifyContent="center" alignItems="center" height="90%">
+                                <Typography sx={{ color: theme.palette.text.secondary, fontStyle: "italic" }}>
+                                    No chart data available
+                                </Typography>
+                            </Box>
                         )}
                     </Box>
 
                     {/* Deductions Table */}
                     <Box
                         sx={{
-                            height: 277,
+                            height: 278,
                             flex: 1.8,
                             display: "flex",
                             flexDirection: "column",
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.1)",
                             border: `1px solid ${theme.palette.divider}`,
                             borderRadius: "15px",
                             p: 2,
-                            position: "sticky",
-                            mb: "0",
                         }}
                     >
                         <Box
                             sx={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(6, 1fr)",
+                                gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
                                 color: theme.palette.text.primary,
                                 fontWeight: 700,
                                 p: 1,
+                                fontSize: "13px",
                             }}
                         >
-                            <span style={{ textAlign: "center" }}>Employee</span>
+                            <span style={{ textAlign: "left", paddingLeft: "8px" }}>Employee</span>
                             <span style={{ textAlign: "center" }}>Tax</span>
                             <span style={{ textAlign: "center" }}>SSS</span>
                             <span style={{ textAlign: "center" }}>PhilHealth</span>
@@ -461,55 +438,63 @@ export default function ManagerReports() {
                             flexDirection: "column",
                             gap: 1,
                             overflowY: "auto",
-                            "&::-webkit-scrollbar": { width: 0, height: 0 },
-                            scrollbarWidth: "none",
-                            msOverflowStyle: "none", }}
-                        >
+                            flex: 1,
+                            "&::-webkit-scrollbar": { width: 4 },
+                            "&::-webkit-scrollbar-thumb": { backgroundColor: "#ccc", borderRadius: 2 },
+                        }}>
                             {loading ? (
-                                <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>
-                                    Loading...
+                                <Box display="flex" justifyContent="center" alignItems="center" height="150px">
+                                    <CircularProgress size={24} />
                                 </Box>
-                            ) : filteredDeductionData.length === 0 ? (
-                                <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.secondary }}>
-                                    No data available
+                            ) : filteredData.length === 0 ? (
+                                <Box display="flex" justifyContent="center" alignItems="center" height="150px">
+                                    <Typography sx={{ color: theme.palette.text.secondary }}>No data available</Typography>
                                 </Box>
                             ) : (
-                            filteredDeductionData.map((row, i) => (
-                                <Box
-                                    key={i}
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(6, 1fr)",
-                                        borderRadius: "8px",
-                                        alignItems: "center",
-                                        minHeight: "45px",
-                                        width: "100%",
-                                        color: "#1b2223",
-                                        bgcolor: "#fff",
-                                        transition: "all 0.3s ease",
-                                        "&:hover": {
-                                            transform: "translateY(-2px)",
-                                            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                        },
-                                        p: 1,
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    <span>{row.employee_name}</span>
-                                    <span>{formatCurrency(row.tax || 0)}</span>
-                                    <span>{formatCurrency(row.sss || 0)}</span>
-                                    <span>{formatCurrency(row.philhealth || 0)}</span>
-                                    <span>{formatCurrency(row.pagibig || 0)}</span>
-                                    <span style={{ fontWeight: 700 }}>{formatCurrency(row.total || 0)}</span>
-                                </Box>
-                            ))
+                                filteredData.map((row, i) => (
+                                    <Box
+                                        key={i}
+                                        sx={{
+                                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                            display: "grid",
+                                            gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
+                                            borderRadius: "8px",
+                                            alignItems: "center",
+                                            minHeight: "45px",
+                                            width: "100%",
+                                            color: "#1b2223",
+                                            bgcolor: "#fff",
+                                            transition: "all 0.3s ease",
+                                            "&:hover": {
+                                                transform: "translateY(-2px)",
+                                                boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                            },
+                                            p: 1,
+                                            fontSize: "12px",
+                                        }}
+                                    >
+                                        <span style={{ 
+                                            textAlign: "left", 
+                                            paddingLeft: "8px",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                            maxWidth: "100%"
+                                        }} title={row.name}>
+                                            {row.name}
+                                        </span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.tax)}</span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.sss)}</span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.philhealth)}</span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.pagibig)}</span>
+                                        <span style={{ textAlign: "center", fontWeight: 700 }}>{formatCurrency(row.total)}</span>
+                                    </Box>
+                                ))
                             )}
                         </Box>
                     </Box>
                 </Box>
 
-                {/* Bottom Charts */}
                 <Box
                     sx={{
                         height: 280,
@@ -519,15 +504,14 @@ export default function ManagerReports() {
                         mt: 2,
                     }}
                 >
-                    {/* Department Summary */}
+                    {/* Department Summary - Pie Chart */}
                     <Box
                         sx={{
                             borderRadius: "12px",
                             p: 2,
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "#fff",
                             border: `1px solid ${theme.palette.divider}`,
                             minHeight: 150,
                             display: "flex",
@@ -548,45 +532,47 @@ export default function ManagerReports() {
                             <ActionButton
                                 text="Export PDF"
                                 width="120px"
-                                onClick={() => handleOpenExportModal('department-pdf')}
+                                onClick={() => handleExportPDF('Department Summary')}
                             />
                         </Box>
                         <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                            {loading ? (
-                                <Typography>Loading...</Typography>
-                            ) : departmentData.length === 0 ? (
-                                <Typography color="text.secondary">No department data</Typography>
-                            ) : (
+                            {departmentData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={departmentData}
-                                            dataKey="totalPay"
-                                            nameKey="name"
                                             cx="50%"
                                             cy="50%"
-                                            outerRadius={80}
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            innerRadius={40}
+                                            outerRadius={70}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                            labelLine={false}
                                         >
                                             {departmentData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => formatCurrency(value)} />
+                                        <Tooltip formatter={(value) => `${value} employees`} />
                                     </PieChart>
                                 </ResponsiveContainer>
+                            ) : (
+                                <Typography sx={{ color: theme.palette.text.secondary, fontStyle: "italic" }}>
+                                    No department data available
+                                </Typography>
                             )}
                         </Box>
                     </Box>
 
-                    {/* Tax and Compliance */}
+                    {/* Timesheet Summary - Pie Chart */}
                     <Box
                         sx={{
                             borderRadius: "12px",
                             p: 2,
                             backgroundColor: theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
-                                : "rgba(255, 255, 255, 0.1)",
+                                : "#fff",
                             border: `1px solid ${theme.palette.divider}`,
                             minHeight: 150,
                             display: "flex",
@@ -602,38 +588,36 @@ export default function ManagerReports() {
                                     color: theme.palette.text.primary,
                                 }}
                             >
-                                Tax and Compliance
+                                Timesheet Summary
                             </Typography>
+                            <ActionButton
+                                text="Export PDF"
+                                width="120px"
+                                onClick={() => handleExportPDF('Timesheet Summary')}
+                            />
                         </Box>
-                        <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                            {loading ? (
-                                <Typography>Loading...</Typography>
-                            ) : taxData.length === 0 ? (
-                                <Typography color="text.secondary">No tax data</Typography>
-                            ) : (
+                        <Box sx={{ flex: 1 }}>
+                            {timesheetData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={taxData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="period" fontSize={10} />
-                                        <YAxis fontSize={10} tickFormatter={(v) => `₱${(v/1000).toFixed(0)}k`} />
-                                        <Tooltip formatter={(value) => formatCurrency(value)} />
-                                        <Legend />
-                                        <Bar dataKey="sss" fill="#4CAF50" name="SSS" />
-                                        <Bar dataKey="philhealth" fill="#2196F3" name="PhilHealth" />
-                                        <Bar dataKey="pagibig" fill="#FF9800" name="Pag-IBIG" />
-                                        <Bar dataKey="tax" fill="#9C27B0" name="Tax" />
+                                    <BarChart data={timesheetData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                                        <YAxis tick={{ fontSize: 11 }} />
+                                        <Tooltip />
+                                        <Bar dataKey="value" fill="#1b2223" radius={[4, 4, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
+                            ) : (
+                                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                                    <Typography sx={{ color: theme.palette.text.secondary, fontStyle: "italic" }}>
+                                        No timesheet data available
+                                    </Typography>
+                                </Box>
                             )}
                         </Box>
                     </Box>
                 </Box>
             </Box>
-
-            {/* EXPORT MODAL */}
-            <BoxModal open={isExportModalOpen} onClose={() => setIsExportModalOpen(false)}>
-                {renderExportModalContent()}
-            </BoxModal>
         </Box>
     );
 }

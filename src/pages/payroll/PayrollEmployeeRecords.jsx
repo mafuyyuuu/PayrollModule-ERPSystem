@@ -4,6 +4,7 @@ import SearchBar from "../../components/SearchBar.jsx";
 import {RiEyeFill} from "react-icons/ri";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
+import ActionButton from "../../components/ActionButton.jsx";
 
 export default function PayrollEmployeeRecords() {
     const theme = useTheme();
@@ -16,6 +17,8 @@ export default function PayrollEmployeeRecords() {
     const [filteredRecords, setFilteredRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [exportType, setExportType] = useState("");
 
     const handleCloseModal = () => setUserModalOpen(false);
 
@@ -97,6 +100,94 @@ export default function PayrollEmployeeRecords() {
         ...positions.map(pos => ({ value: pos, label: `Pos: ${pos}` })),
     ];
 
+    const handleExportPDF = () => {
+        const reportDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+        
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Employee Records Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; }
+                    h1 { color: #1b2223; border-bottom: 2px solid #1b2223; padding-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                    th { background-color: #1b2223; color: white; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Employee Records</h1>
+                    <p>Generated on: ${reportDate}</p>
+                    <p>Total Records: ${filteredRecords.length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Position</th>
+                            <th>Employment Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredRecords.map(emp => `
+                            <tr>
+                                <td>${emp.id}</td>
+                                <td>${emp.name}</td>
+                                <td>${emp.department}</td>
+                                <td>${emp.position}</td>
+                                <td>${emp.employmentType}</td>
+                                <td>${emp.status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 250);
+    };
+
+    const handleExportCSV = () => {
+        const headers = ['ID', 'Name', 'Department', 'Position', 'Employment Type', 'Status'];
+        const csvContent = [
+            headers.join(','),
+            ...filteredRecords.map(emp => [
+                emp.id,
+                `"${emp.name}"`,
+                `"${emp.department}"`,
+                `"${emp.position}"`,
+                `"${emp.employmentType}"`,
+                emp.status
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `employee_records_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
+
+    const handleConfirmExport = () => {
+        if (exportType === 'pdf') handleExportPDF();
+        else if (exportType === 'csv') handleExportCSV();
+        setIsExportModalOpen(false);
+    };
+
     return (
         <Box
             sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}
@@ -128,17 +219,28 @@ export default function PayrollEmployeeRecords() {
                 >
                     <SearchBar
                         placeholder="Enter Employee Name"
-                        width="350px"
+                        width="250px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
                     <FilterSelect
-                        width={200}
+                        width={180}
                         placeholder="Filter by Dept/Position"
                         options={filterOptions}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
+                    />
+                    
+                    <ActionButton
+                        text="Export PDF"
+                        width="110px"
+                        onClick={() => { setExportType('pdf'); setIsExportModalOpen(true); }}
+                    />
+                    <ActionButton
+                        text="Export CSV"
+                        width="110px"
+                        onClick={() => { setExportType('csv'); setIsExportModalOpen(true); }}
                     />
                 </Box>
             </Box>
@@ -464,6 +566,65 @@ export default function PayrollEmployeeRecords() {
                             "& .MuiInputBase-input": { fontSize: "18px" },
                         }}
                     />
+                </Box>
+            </BoxModal>
+
+            {/* Export Confirmation Modal */}
+            <BoxModal
+                open={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                width="400px"
+            >
+                <Typography
+                    variant="h5"
+                    sx={{
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        fontSize: "24px",
+                        color: "#FFFFFF",
+                        mb: 2,
+                        textAlign: "center"
+                    }}
+                >
+                    Export Employee Records
+                </Typography>
+                <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                    Export {filteredRecords.length} record(s) to {exportType.toUpperCase()}?
+                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+                    <Box
+                        onClick={() => setIsExportModalOpen(false)}
+                        component="button"
+                        sx={{
+                            fontSize: "16px",
+                            backgroundColor: "#666",
+                            color: "#fff",
+                            padding: "10px 30px",
+                            borderRadius: "15px",
+                            cursor: "pointer",
+                            border: "none",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            "&:hover": { backgroundColor: "#555" },
+                        }}
+                    >
+                        Cancel
+                    </Box>
+                    <Box
+                        onClick={handleConfirmExport}
+                        component="button"
+                        sx={{
+                            fontSize: "16px",
+                            backgroundColor: "#172224",
+                            color: "#fff",
+                            padding: "10px 30px",
+                            borderRadius: "15px",
+                            cursor: "pointer",
+                            border: "none",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            "&:hover": { backgroundColor: "#1f2f31", transform: "translateY(-2px)" },
+                        }}
+                    >
+                        Export
+                    </Box>
                 </Box>
             </BoxModal>
         </Box>

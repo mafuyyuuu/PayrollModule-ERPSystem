@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import {Box, Typography, IconButton, TextField, MenuItem, Select, FormControl, InputLabel} from "@mui/material";
+import {Box, Typography, IconButton, TextField, MenuItem, Select, FormControl, InputLabel, Button} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
@@ -529,7 +529,7 @@ const ManagerTimesheets = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 3,
+                    mb: 2,
                 }}
             >
                 {/* HEADER */}
@@ -551,46 +551,110 @@ const ManagerTimesheets = () => {
                     {/* Add Manual Entry Button */}
                     <ActionButton 
                         text="Add Manual Entry" 
-                        width="180px" 
+                        width="150px" 
                         onClick={() => setOpenAddModal(true)}
-                    />
-                    
-                    <FilterSelect
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        options={[
-                            { value: 'all', label: 'All Status' },
-                            { value: 'Pending', label: 'Pending' },
-                            { value: 'Approved', label: 'Approved' },
-                            { value: 'Rejected', label: 'Rejected' },
-                        ]}
                     />
 
                     <SearchBar
                         placeholder="Enter Employee Name"
-                        width="350px"
+                        width="300px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    
+                    <ActionButton 
+                        text="Export PDF" 
+                        width="110px" 
+                        onClick={() => { setExportModalType('pdf'); setIsExportModalOpen(true); }}
+                    />
+                    <ActionButton 
+                        text="Export CSV" 
+                        width="110px" 
+                        onClick={() => { setExportModalType('csv'); setIsExportModalOpen(true); }}
                     />
                 </Box>
 
             </Box>
 
+            {/* Filter Buttons */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+                <Button
+                    onClick={() => setFilter("all")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "all" || !filter ? "#1b2223" : "#e0e0e0",
+                        color: filter === "all" || !filter ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
+                    }}
+                >
+                    All
+                </Button>
+                <Button
+                    onClick={() => setFilter("Pending")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Pending" ? "#f0ad4e" : "#e0e0e0",
+                        color: filter === "Pending" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "Pending" ? "#ec971f" : "#d0d0d0" },
+                    }}
+                >
+                    Pending
+                </Button>
+                <Button
+                    onClick={() => setFilter("Approved")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Approved" ? "#5cb85c" : "#e0e0e0",
+                        color: filter === "Approved" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "Approved" ? "#449d44" : "#d0d0d0" },
+                    }}
+                >
+                    Approved
+                </Button>
+                <Button
+                    onClick={() => setFilter("Rejected")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
+                        color: filter === "Rejected" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
+                    }}
+                >
+                    Rejected
+                </Button>
+            </Box>
+
             {/* TABLE CONTAINER */}
             <Box
                 sx={{
-                    height: "100%",
+                    height: "calc(100% - 100px)",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",
-                    transition: "all 0.3s ease",
                     display: "flex",
                     flexDirection: "column",
-                    "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
                 }}
             >
                 {/* HEADER ROW */}

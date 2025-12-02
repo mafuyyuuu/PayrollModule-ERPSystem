@@ -314,11 +314,14 @@ router.post('/timesheets', async (req, res) => {
 // =====================================================
 // 7. PENDING REQUESTS - GET ALL
 // =====================================================
+// Manager sees: Pending (new requests to approve) and Manager_Approved/Rejected (their history)
 router.get('/pending-requests', async (req, res) => {
     try {
         const { search, type, status } = req.query;
 
-        let query = `SELECT * FROM Requests WHERE 1=1`;
+        // Manager sees requests that are Pending (need first-level approval)
+        // or Manager_Approved/Rejected (their decision history)
+        let query = `SELECT * FROM Requests WHERE status IN ('Pending', 'Manager_Approved', 'Rejected')`;
         const params = [];
 
         if (status && status !== 'all') {
@@ -382,23 +385,40 @@ router.get('/pending-requests', async (req, res) => {
 });
 
 // =====================================================
-// 8. PENDING REQUESTS - APPROVE
+// 8. PENDING REQUESTS - MANAGER APPROVE (First-Level)
 // =====================================================
 router.put('/pending-requests/:id/approve', async (req, res) => {
     const { id } = req.params;
     const { approved_by, remarks } = req.body;
 
     try {
-        console.log(`📝 Approving request ID: ${id}`);
+        console.log(`[INFO] Manager approving request ID: ${id} (first-level approval)`);
+        
+        // Manager approval sets status to 'Manager_Approved' - awaits payroll processing
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Approved', approved_by = ?, remarks = ?
-             WHERE request_id = ?`,
-            [approved_by || 1, remarks || 'Approved', id]
+             SET status = 'Manager_Approved', 
+                 approved_by = ?, 
+                 remarks = ?,
+                 updated_at = NOW()
+             WHERE request_id = ? AND status = 'Pending'`,
+            [approved_by || 1, remarks || 'Manager approved - awaiting payroll processing', id]
         );
 
-        console.log(`✅ Request ${id} approved. Affected rows: ${result.affectedRows}`);
-        res.json({ success: true, message: 'Request approved successfully', affectedRows: result.affectedRows });
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ 
+                error: 'Request not found or already processed',
+                message: 'Only pending requests can be approved by manager'
+            });
+        }
+
+        console.log(`[SUCCESS] Request ${id} manager-approved. Affected rows: ${result.affectedRows}`);
+        res.json({ 
+            success: true, 
+            message: 'Request approved by manager - awaiting payroll processing', 
+            affectedRows: result.affectedRows,
+            newStatus: 'Manager_Approved'
+        });
     } catch (error) {
         console.error('Error approving request:', error);
         res.status(500).json({ error: 'Failed to approve request', details: error.message });
@@ -406,23 +426,40 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
 });
 
 // =====================================================
-// 9. PENDING REQUESTS - REJECT
+// 9. PENDING REQUESTS - MANAGER REJECT
 // =====================================================
 router.put('/pending-requests/:id/reject', async (req, res) => {
     const { id } = req.params;
     const { approved_by, remarks } = req.body;
 
     try {
-        console.log(`📝 Rejecting request ID: ${id}`);
+        console.log(`[INFO] Manager rejecting request ID: ${id}`);
+        
+        // Manager can reject pending requests - final rejection
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Rejected', approved_by = ?, remarks = ?
-             WHERE request_id = ?`,
-            [approved_by || 1, remarks || 'Rejected', id]
+             SET status = 'Rejected', 
+                 approved_by = ?, 
+                 remarks = ?,
+                 updated_at = NOW()
+             WHERE request_id = ? AND status = 'Pending'`,
+            [approved_by || 1, remarks || 'Rejected by manager', id]
         );
 
-        console.log(`✅ Request ${id} rejected. Affected rows: ${result.affectedRows}`);
-        res.json({ success: true, message: 'Request rejected successfully', affectedRows: result.affectedRows });
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ 
+                error: 'Request not found or already processed',
+                message: 'Only pending requests can be rejected by manager'
+            });
+        }
+
+        console.log(`[SUCCESS] Request ${id} rejected by manager. Affected rows: ${result.affectedRows}`);
+        res.json({ 
+            success: true, 
+            message: 'Request rejected by manager', 
+            affectedRows: result.affectedRows,
+            newStatus: 'Rejected'
+        });
     } catch (error) {
         console.error('Error rejecting request:', error);
         res.status(500).json({ error: 'Failed to reject request', details: error.message });

@@ -60,7 +60,18 @@ export default function AdminConfiguration() {
     
     // Save confirmation modal state
     const [showSaveModal, setShowSaveModal] = useState(false);
-    const [saveActionType, setSaveActionType] = useState(''); // 'rule' or 'cutoff'
+    const [saveActionType, setSaveActionType] = useState(''); // 'rule', 'cutoff', or 'workflow'
+
+    // Workflow state
+    const [workflowsFromDB, setWorkflowsFromDB] = useState([]);
+    const [checkedWorkflows, setCheckedWorkflows] = useState([]);
+    const [editingWorkflow, setEditingWorkflow] = useState(null);
+    const [workflowForm, setWorkflowForm] = useState({
+        name: '',
+        type: '',
+        approver: '',
+        status: 'Active'
+    });
 
     // Fetch data from database
     useEffect(() => {
@@ -127,12 +138,20 @@ export default function AdminConfiguration() {
                         setEmployeeGroupsFromDB(deptGroups);
                     }
                 }
+
+                // Fetch approval workflows
+                const workflowResponse = await fetch('http://localhost:8080/api/admin/workflows');
+                if (workflowResponse.ok) {
+                    const workflows = await workflowResponse.json();
+                    setWorkflowsFromDB(workflows);
+                }
             } catch (error) {
                 console.error('Error fetching configuration data:', error);
                 // No fallback data - show empty states
                 setRulesFromDB([]);
                 setCutoffsFromDB([]);
                 setEmployeeGroupsFromDB([]);
+                setWorkflowsFromDB([]);
             } finally {
                 setLoading(false);
             }
@@ -213,8 +232,10 @@ export default function AdminConfiguration() {
     const [checkedCutoffs, setCheckedCutoffs] = useState({});
     const allRulesChecked = rulesFromDB.every(rule => checkedRules[rule.id]);
     const allCutoffsChecked = cutoffsFromDB.every(cutoff => checkedCutoffs[cutoff.id]);
+    const allWorkflowsChecked = workflowsFromDB.length > 0 && workflowsFromDB.every(w => checkedWorkflows.includes(w.name));
     const hasCheckedRules = Object.values(checkedRules).some(Boolean);
     const hasCheckedCutoffs = Object.values(checkedCutoffs).some(Boolean);
+    const hasCheckedWorkflows = checkedWorkflows.length > 0;
 
     const handleSelectAllRules = (e) => {
         const checked = e.target.checked;
@@ -258,6 +279,29 @@ export default function AdminConfiguration() {
         setShowDeleteModal(true);
     };
 
+    const handleSelectAllWorkflows = (e) => {
+        if (e.target.checked) {
+            setCheckedWorkflows(workflowsFromDB.map(w => w.name));
+        } else {
+            setCheckedWorkflows([]);
+        }
+    };
+
+    // Open delete modal for selected workflows
+    const handleDeleteSelectedWorkflows = () => {
+        if (checkedWorkflows.length === 0) return;
+        
+        const workflowsToDelete = workflowsFromDB.filter(w => checkedWorkflows.includes(w.name));
+        const idsToDelete = workflowsToDelete.map(w => w.id).filter(id => id);
+        
+        setDeleteTarget({ 
+            type: 'bulk-workflows', 
+            ids: idsToDelete, 
+            name: `${checkedWorkflows.length} workflow${checkedWorkflows.length > 1 ? 's' : ''}` 
+        });
+        setShowDeleteModal(true);
+    };
+
     const openModal = async (type, data = null) => {
         setModalType(type);
         setShowModal(true);
@@ -291,8 +335,10 @@ export default function AdminConfiguration() {
         setEmployeeSearch("");
         setEditingRule(null);
         setEditingCutoff(null);
+        setEditingWorkflow(null);
         setRuleForm({ type: '', rule_type: 'earning', formula: '', description: '', active: true });
         setCutoffForm({ period_name: '', start_date: '', end_date: '', pay_date: '', frequency: 'Semi-Monthly' });
+        setWorkflowForm({ name: '', type: '', approver: '', status: 'Active' });
     };
 
     // Show save confirmation modal
@@ -308,6 +354,8 @@ export default function AdminConfiguration() {
             await executeSaveRule();
         } else if (saveActionType === 'cutoff') {
             await executeSaveCutoff();
+        } else if (saveActionType === 'workflow') {
+            await executeSaveWorkflow();
         }
     };
 
@@ -370,6 +418,13 @@ export default function AdminConfiguration() {
                 if (response.ok) {
                     setCutoffsFromDB(prev => prev.filter(c => c.id !== deleteTarget.id));
                 }
+            } else if (deleteTarget.type === 'workflow') {
+                const response = await fetch(`http://localhost:8080/api/admin/workflows/${deleteTarget.id}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    setWorkflowsFromDB(prev => prev.filter(w => w.id !== deleteTarget.id));
+                }
             } else if (deleteTarget.type === 'bulk-rules') {
                 // Delete multiple rules
                 for (const id of deleteTarget.ids) {
@@ -388,6 +443,17 @@ export default function AdminConfiguration() {
                 }
                 setCutoffsFromDB(prev => prev.filter(c => !deleteTarget.ids.includes(c.id)));
                 setCheckedCutoffs({});
+            } else if (deleteTarget.type === 'bulk-workflows') {
+                // Delete multiple workflows
+                const response = await fetch('http://localhost:8080/api/admin/workflows/delete-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: deleteTarget.ids })
+                });
+                if (response.ok) {
+                    setWorkflowsFromDB(prev => prev.filter(w => !deleteTarget.ids.includes(w.id)));
+                    setCheckedWorkflows([]);
+                }
             }
             setShowDeleteModal(false);
             if (showModal) closeModal();
@@ -466,6 +532,51 @@ export default function AdminConfiguration() {
         }
     };
 
+    // Save or update workflow
+    const executeSaveWorkflow = async () => {
+        if (!workflowForm.name || !workflowForm.type || !workflowForm.approver) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const url = editingWorkflow 
+                ? `http://localhost:8080/api/admin/workflows/${editingWorkflow.id}`
+                : 'http://localhost:8080/api/admin/workflows';
+            
+            const method = editingWorkflow ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: workflowForm.name,
+                    type: workflowForm.type,
+                    approver: workflowForm.approver,
+                    status: workflowForm.status || 'Active'
+                })
+            });
+
+            if (response.ok) {
+                // Refresh workflows from server
+                const workflowResponse = await fetch('http://localhost:8080/api/admin/workflows');
+                if (workflowResponse.ok) {
+                    const workflows = await workflowResponse.json();
+                    setWorkflowsFromDB(workflows);
+                }
+                closeModal();
+            } else {
+                alert('Failed to save workflow');
+            }
+        } catch (error) {
+            console.error('Error saving workflow:', error);
+            alert('Error saving workflow');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     // Open edit modal for rule
     const openEditRuleModal = (rule) => {
         setEditingRule(rule);
@@ -495,6 +606,134 @@ export default function AdminConfiguration() {
         setShowModal(true);
         setShowRemove(true);
     };
+
+    // Open edit modal for workflow
+    const openEditWorkflowModal = (workflow) => {
+        setEditingWorkflow(workflow);
+        setWorkflowForm({
+            name: workflow.name || '',
+            type: workflow.type || '',
+            approver: workflow.approver || '',
+            status: workflow.status || 'Active'
+        });
+        setModalType("workflow");
+        setShowModal(true);
+        setShowRemove(true);
+    };
+
+    // Toggle workflow status
+    const handleToggleWorkflow = async (workflow) => {
+        try {
+            const newStatus = workflow.status === 'Active' ? 'Inactive' : 'Active';
+            const response = await fetch(`http://localhost:8080/api/admin/workflows/${workflow.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...workflow, status: newStatus })
+            });
+
+            if (response.ok) {
+                setWorkflowsFromDB(prev => prev.map(w => 
+                    w.id === workflow.id ? { ...w, status: newStatus } : w
+                ));
+            }
+        } catch (error) {
+            console.error('Error toggling workflow status:', error);
+        }
+    };
+
+    // Get filter options based on active tab
+    const getFilterOptions = () => {
+        switch (activeTab) {
+            case "payrollRules":
+                const ruleTypes = [...new Set(rulesFromDB.map(r => r.rule_type).filter(Boolean))];
+                // Check if any rules exist to determine statuses
+                const hasActiveRules = rulesFromDB.some(r => r.active === true || r.active === 1);
+                const hasInactiveRules = rulesFromDB.some(r => r.active === false || r.active === 0);
+                const statusOptions = [];
+                if (hasActiveRules) statusOptions.push({ value: 'status:Active', label: 'Active' });
+                if (hasInactiveRules) statusOptions.push({ value: 'status:Inactive', label: 'Inactive' });
+                return [
+                    { value: '', label: 'All Rules' },
+                    ...ruleTypes.map(type => ({ value: `type:${type}`, label: `Type: ${type}` })),
+                    ...statusOptions,
+                ];
+            case "cutoffDates":
+                const frequencies = [...new Set(cutoffsFromDB.map(c => c.frequency).filter(Boolean))];
+                return [
+                    { value: '', label: 'All Cutoffs' },
+                    ...frequencies.map(freq => ({ value: `freq:${freq}`, label: freq })),
+                ];
+            case "employeeGroups":
+                const deptNames = [...new Set(employeeGroupsFromDB.map(g => g.department).filter(Boolean))];
+                return [
+                    { value: '', label: 'All Departments' },
+                    ...deptNames.map(dept => ({ 
+                        value: `dept:${dept}`, 
+                        label: dept 
+                    })),
+                ];
+            case "approvalWorkflows":
+                const workflowTypes = [...new Set(workflowsFromDB.map(w => w.type).filter(Boolean))];
+                const workflowStatuses = [...new Set(workflowsFromDB.map(w => w.status).filter(Boolean))];
+                return [
+                    { value: '', label: 'All Workflows' },
+                    ...workflowTypes.map(type => ({ value: `type:${type}`, label: `Type: ${type}` })),
+                    ...workflowStatuses.map(status => ({ value: `status:${status}`, label: status })),
+                ];
+            default:
+                return [{ value: '', label: 'All' }];
+        }
+    };
+
+    // Filter data based on active tab and filter value
+    const getFilteredRules = () => {
+        if (!filter) return rulesFromDB;
+        if (filter.startsWith('type:')) {
+            const type = filter.replace('type:', '');
+            return rulesFromDB.filter(r => r.rule_type === type);
+        }
+        if (filter.startsWith('status:')) {
+            const isActive = filter.replace('status:', '') === 'Active';
+            return rulesFromDB.filter(r => (r.active === true || r.active === 1) === isActive);
+        }
+        return rulesFromDB;
+    };
+
+    const getFilteredCutoffs = () => {
+        if (!filter) return cutoffsFromDB;
+        if (filter.startsWith('freq:')) {
+            const freq = filter.replace('freq:', '');
+            return cutoffsFromDB.filter(c => c.frequency === freq);
+        }
+        return cutoffsFromDB;
+    };
+
+    const getFilteredEmployeeGroups = () => {
+        if (!filter) return employeeGroupsFromDB;
+        if (filter.startsWith('dept:')) {
+            const dept = filter.replace('dept:', '');
+            return employeeGroupsFromDB.filter(g => g.department === dept);
+        }
+        return employeeGroupsFromDB;
+    };
+
+    const getFilteredWorkflows = () => {
+        if (!filter) return workflowsFromDB;
+        if (filter.startsWith('type:')) {
+            const type = filter.replace('type:', '');
+            return workflowsFromDB.filter(w => w.type === type);
+        }
+        if (filter.startsWith('status:')) {
+            const status = filter.replace('status:', '');
+            return workflowsFromDB.filter(w => w.status === status);
+        }
+        return workflowsFromDB;
+    };
+
+    // Reset filter when switching tabs
+    useEffect(() => {
+        setFilter('');
+    }, [activeTab]);
 
     const renderCards = () => {
         switch (activeTab) {
@@ -557,7 +796,7 @@ export default function AdminConfiguration() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {rulesFromDB.map((rule) => (<Box
+                        {getFilteredRules().map((rule) => (<Box
                             key={rule.id}
                             sx={{
                                 marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
@@ -708,7 +947,7 @@ export default function AdminConfiguration() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {cutoffsFromDB.map((cutoff) => (<Box
+                        {getFilteredCutoffs().map((cutoff) => (<Box
                             key={cutoff.id}
                             sx={{
                                 marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
@@ -823,12 +1062,12 @@ export default function AdminConfiguration() {
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                         }}
                     >
-                        {employeeGroupsFromDB.length === 0 ? (
+                        {getFilteredEmployeeGroups().length === 0 ? (
                             <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
-                                No departments found in the HR system.
+                                No departments found matching filter.
                             </Box>
                         ) : (
-                        employeeGroupsFromDB.map((group) => (<Box
+                        getFilteredEmployeeGroups().map((group) => (<Box
                             key={group.id}
                             sx={{
                                 marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
@@ -855,6 +1094,158 @@ export default function AdminConfiguration() {
                                 <span>{group.fullTime}</span>
                                 <span>{group.partTime}</span>
                                 <span>{group.temporary}</span>
+                            </Box>
+                        </Box>))
+                        )}
+                    </Box>
+                </Box>);
+
+            case "approvalWorkflows":
+                return (<Box
+                    sx={{
+                        paddingLeft: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                        fontFamily: "'TTHoves-Regular', sans-serif",
+                    }}
+                >
+                    {/* Workflow Header */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        }}
+                    >
+                        <Checkbox
+                            checked={allWorkflowsChecked}
+                            indeterminate={checkedWorkflows.length > 0 && checkedWorkflows.length < workflowsFromDB.length}
+                            onChange={handleSelectAllWorkflows}
+                            sx={{
+                                p: 0,
+                                mr: "10px",
+                                color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                borderRadius: "5px",
+                                "&.Mui-checked": {
+                                    color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                },
+                                "& .MuiSvgIcon-root": {fontSize: 25},
+                            }}
+                        />
+                        <Box
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(5, 1fr)",
+                                color: theme.palette.text.primary,
+                                fontWeight: 700,
+                                p: "8px 0",
+                                borderRadius: "15px",
+                                width: "100%",
+                                alignItems: "center",
+                            }}
+                        >
+                            <span style={{marginLeft: "7px", textAlign: "left"}}>Workflow Name</span>
+                            <span style={{textAlign: "center"}}>Type</span>
+                            <span style={{textAlign: "center"}}>Approval Role</span>
+                            <span style={{textAlign: "center"}}>Status</span>
+                            <span style={{textAlign: "center"}}>Actions</span>
+                        </Box>
+                    </Box>
+                    <Box
+                        sx={{
+                            maxHeight: "400px",
+                            overflowY: "auto",
+                            "&::-webkit-scrollbar": {width: 0, height: 0},
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        }}
+                    >
+                        {workflowsFromDB.length === 0 ? (
+                            <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
+                                No workflows configured. Click "Add Workflow" to create one.
+                            </Box>
+                        ) : (
+                        getFilteredWorkflows().map((item) => (<Box
+                            key={item.name}
+                            sx={{
+                                marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
+                            }}
+                        >
+                            <Checkbox
+                                checked={checkedWorkflows.includes(item.name)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setCheckedWorkflows([...checkedWorkflows, item.name]);
+                                    } else {
+                                        setCheckedWorkflows(checkedWorkflows.filter((w) => w !== item.name));
+                                    }
+                                }}
+                                sx={{
+                                    p: 0,
+                                    mr: "10px",
+                                    color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                    borderRadius: "5px",
+                                    "&.Mui-checked": {
+                                        color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
+                                    },
+                                    "& .MuiSvgIcon-root": {fontSize: 25},
+                                }}
+                            />
+                            <Box
+                                sx={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(5, 1fr)",
+                                    alignItems: "center",
+                                    bgcolor: "#fff",
+                                    borderRadius: "8px",
+                                    width: "100%",
+                                    minHeight: "80px",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                                    },
+                                }}
+                            >
+                                <span style={{paddingLeft: "15px", textAlign: "left"}}>{item.name}</span>
+                                <span style={{textAlign: "center"}}>{item.type}</span>
+                                <span style={{textAlign: "center"}}>{item.approver}</span>
+                                <span style={{textAlign: "center"}}>
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            display: "inline-block",
+                                            width: "8px",
+                                            height: "8px",
+                                            borderRadius: "50%",
+                                            bgcolor: item.status === "Active" ? "#28a745" : "#dc3545",
+                                            mr: "4px",
+                                        }}
+                                    />
+                                    {item.status}
+                                </span>
+                                <Box sx={{display: "flex", justifyContent: "center"}}>
+                                    <IconButton
+                                        onClick={() => openEditWorkflowModal(item)}
+                                        sx={{
+                                            backgroundColor: "#172224",
+                                            color: "#fff",
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: "50%",
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                backgroundColor: "#2E3B3D",
+                                                color: "#fff",
+                                                transform: "translateY(-3px)",
+                                            },
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                        }}
+                                    >
+                                        <RiPencilFill style={{fontSize: 19}}/>
+                                    </IconButton>
+                                </Box>
                             </Box>
                         </Box>))
                         )}
@@ -1176,6 +1567,177 @@ export default function AdminConfiguration() {
                     </Box>
                 </Box>);
 
+            case "workflow":
+                return (<Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        color: "#fff",
+                    }}
+                >
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                        }}
+                    >
+                        {editingWorkflow ? "Edit Workflow" : "Add Workflow"}
+                    </Typography>
+
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Workflow Name
+                        </Typography>
+                        <TextField
+                            placeholder="Enter workflow name"
+                            value={workflowForm.name}
+                            onChange={(e) => setWorkflowForm(prev => ({...prev, name: e.target.value}))}
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "13px",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "18px",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": {fontSize: "18px"},
+                            }}
+                        />
+                    </Box>
+
+                    <Box sx={{display: "flex", gap: 1, mt: 2}}>
+                        <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 0.5}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                Type
+                            </Typography>
+                            <Select
+                                value={workflowForm.type}
+                                onChange={(e) => setWorkflowForm(prev => ({...prev, type: e.target.value}))}
+                                displayEmpty
+                                sx={{
+                                    borderRadius: "13px",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "16px",
+                                    height: "45px",
+                                    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                }}
+                                renderValue={(selected) => {
+                                    if (!selected) return <span style={{color: "#828689"}}>Select Type</span>;
+                                    return selected;
+                                }}
+                            >
+                                {["Overtime", "Leave", "Bonus", "Reimbursement", "Timesheet", "Payroll"].map((option) => (
+                                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                                ))}
+                            </Select>
+                        </Box>
+
+                        <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 0.5}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                Approval Role
+                            </Typography>
+                            <Select
+                                value={workflowForm.approver}
+                                onChange={(e) => setWorkflowForm(prev => ({...prev, approver: e.target.value}))}
+                                displayEmpty
+                                sx={{
+                                    borderRadius: "13px",
+                                    backgroundColor: "#cacace",
+                                    color: "#1F2829",
+                                    fontSize: "16px",
+                                    height: "45px",
+                                    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                }}
+                                renderValue={(selected) => {
+                                    if (!selected) return <span style={{color: "#828689"}}>Select Approval Role</span>;
+                                    return selected;
+                                }}
+                            >
+                                {["Admin", "Manager", "Payroll", "Employee"].map((option) => (
+                                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                                ))}
+                            </Select>
+                        </Box>
+                    </Box>
+
+                    <Box sx={{display: "flex", alignItems: "center", gap: 2, mt: 2}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            Status
+                        </Typography>
+                        <Switch
+                            checked={workflowForm.status === 'Active'}
+                            onChange={(e) => setWorkflowForm(prev => ({...prev, status: e.target.checked ? 'Active' : 'Inactive'}))}
+                            sx={{
+                                width: 50,
+                                height: 28,
+                                padding: 0,
+                                "& .MuiSwitch-switchBase": {
+                                    padding: "2px",
+                                    "&.Mui-checked": {
+                                        transform: "translateX(22px)",
+                                        color: "#fff",
+                                        "& + .MuiSwitch-track": { backgroundColor: "#3A4F50", opacity: 1 },
+                                    },
+                                },
+                                "& .MuiSwitch-thumb": { width: 24, height: 24, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" },
+                                "& .MuiSwitch-track": { borderRadius: 14, backgroundColor: "#bdbdbd", opacity: 1 },
+                            }}
+                        />
+                        <Typography sx={{fontFamily: "'TTHoves-Regular', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                            {workflowForm.status}
+                        </Typography>
+                    </Box>
+
+                    <Box sx={{display: "flex", justifyContent: editingWorkflow ? "center" : "flex-end", gap: 2, mt: 3}}>
+                        {editingWorkflow && (
+                            <Box
+                                component="button"
+                                onClick={() => {
+                                    setDeleteTarget({ type: 'workflow', id: editingWorkflow.id, name: editingWorkflow.name });
+                                    setShowDeleteModal(true);
+                                }}
+                                sx={{
+                                    fontSize: "16px",
+                                    backgroundColor: "#8b1a1a",
+                                    color: "#fff",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    width: "200px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": { backgroundColor: "#a32020" },
+                                }}
+                            >
+                                Remove
+                            </Box>
+                        )}
+                        <Box
+                            component="button"
+                            onClick={() => showSaveConfirmation('workflow')}
+                            disabled={saving}
+                            sx={{
+                                fontSize: "16px",
+                                backgroundColor: saving ? "#666" : "#172224",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: saving ? "not-allowed" : "pointer",
+                                border: "none",
+                                width: "200px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: saving ? "#666" : "#1f2f31" },
+                            }}
+                        >
+                            {saving ? "Saving..." : "Save"}
+                        </Box>
+                    </Box>
+                </Box>);
+
             default:
                 return null;
         }
@@ -1231,7 +1793,7 @@ export default function AdminConfiguration() {
                     borderRadius: "25px",
                 }}
             >
-                {["payrollRules", "cutoffDates", "employeeGroups"].map((tab) => (<Button
+                {["payrollRules", "cutoffDates", "employeeGroups", "approvalWorkflows"].map((tab) => (<Button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     sx={{
@@ -1246,7 +1808,7 @@ export default function AdminConfiguration() {
                         minHeight: "50px",
                     }}
                 >
-                    {tab === "payrollRules" ? "Payroll Rules" : tab === "cutoffDates" ? "Cutoff Dates" : "Employee Groups"}
+                    {tab === "payrollRules" ? "Payroll Rules" : tab === "cutoffDates" ? "Cutoff Dates" : tab === "employeeGroups" ? "Employee Groups" : "Approval Workflow"}
                 </Button>))}
             </Box>
 
@@ -1295,11 +1857,24 @@ export default function AdminConfiguration() {
                                     }}
                                 />
                             )}
-                            {(activeTab === "payrollRules" && hasCheckedRules) || (activeTab === "cutoffDates" && hasCheckedCutoffs) ? (
+                            {activeTab === "approvalWorkflows" && (
+                                <ActionButton
+                                    text="Add Workflow"
+                                    width="200px"
+                                    onClick={() => {
+                                        setEditingWorkflow(null);
+                                        setWorkflowForm({ name: '', type: '', approver: '', status: 'Active' });
+                                        setShowRemove(false);
+                                        setModalType("workflow");
+                                        setShowModal(true);
+                                    }}
+                                />
+                            )}
+                            {(activeTab === "payrollRules" && hasCheckedRules) || (activeTab === "cutoffDates" && hasCheckedCutoffs) || (activeTab === "approvalWorkflows" && hasCheckedWorkflows) ? (
                                 <ActionButton
                                     text="Delete Selected"
                                     width="200px"
-                                    onClick={activeTab === "payrollRules" ? handleDeleteSelectedRules : handleDeleteSelectedCutoffs}
+                                    onClick={activeTab === "payrollRules" ? handleDeleteSelectedRules : activeTab === "cutoffDates" ? handleDeleteSelectedCutoffs : handleDeleteSelectedWorkflows}
                                 />) : null}
                         </Box>
                     </Box>
@@ -1307,6 +1882,7 @@ export default function AdminConfiguration() {
                     <FilterSelect
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
+                        options={getFilterOptions()}
                     />
                 </Box>
 
@@ -1316,7 +1892,7 @@ export default function AdminConfiguration() {
                     open={showModal}
                     onClose={closeModal}
                     width={500}
-                    height={modalType === "cutoff" ? 470 : modalType === "rule" ? 495 : 400}
+                    height={modalType === "cutoff" ? 470 : modalType === "rule" ? 495 : modalType === "workflow" ? 450 : 400}
                 >
                     {renderModalContent()}
                 </BoxModal>

@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
-import {Box, Typography, CircularProgress} from "@mui/material";
+import {Box, Typography, CircularProgress, Button} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import SearchBar from "../../components/SearchBar.jsx";
+import ActionButton from "../../components/ActionButton.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
 
 export default function AdminAuditLogs() {
     const theme = useTheme();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [actionFilter, setActionFilter] = useState("all");
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [exportType, setExportType] = useState("");
 
     useEffect(() => {
         fetchAuditLogs();
@@ -38,11 +43,102 @@ export default function AdminAuditLogs() {
         });
     };
 
-    const filteredLogs = logs.filter(log =>
-        log.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Get unique actions for filter
+    const uniqueActions = [...new Set(logs.map(log => log.action).filter(Boolean))];
+
+    const filteredLogs = logs.filter(log => {
+        const matchesSearch = log.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesAction = actionFilter === "all" || log.action === actionFilter;
+        return matchesSearch && matchesAction;
+    });
+
+    const handleExportPDF = () => {
+        const reportDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+        
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Audit Logs Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; }
+                    h1 { color: #1b2223; border-bottom: 2px solid #1b2223; padding-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                    th { background-color: #1b2223; color: white; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .date { color: #666; font-size: 14px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Audit Logs Report</h1>
+                    <p class="date">Generated on: ${reportDate}</p>
+                    <p>Total Records: ${filteredLogs.length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredLogs.map(log => `
+                            <tr>
+                                <td>${formatDate(log.date)}</td>
+                                <td>${log.user || 'N/A'}</td>
+                                <td>${log.action || 'N/A'}</td>
+                                <td>${log.description || 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 250);
+    };
+
+    const handleExportCSV = () => {
+        const headers = ['Date', 'User', 'Action', 'Description'];
+        const csvContent = [
+            headers.join(','),
+            ...filteredLogs.map(log => [
+                formatDate(log.date),
+                `"${log.user || 'N/A'}"`,
+                `"${log.action || 'N/A'}"`,
+                `"${(log.description || 'N/A').replace(/"/g, '""')}"`
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
+
+    const handleConfirmExport = () => {
+        if (exportType === 'pdf') {
+            handleExportPDF();
+        } else if (exportType === 'csv') {
+            handleExportCSV();
+        }
+        setIsExportModalOpen(false);
+    };
 
     return (<Box
         width="100%"
@@ -71,36 +167,87 @@ export default function AdminAuditLogs() {
                 Audit Logs
             </Typography>
 
-            <Box sx={{display: "flex"}}>
+            <Box sx={{display: "flex", gap: 2, alignItems: "center"}}>
                 <SearchBar 
                     placeholder="Search logs..." 
-                    width="350px"
+                    width="300px"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <ActionButton
+                    text="Export PDF"
+                    width="120px"
+                    onClick={() => { setExportType('pdf'); setIsExportModalOpen(true); }}
+                />
+                <ActionButton
+                    text="Export CSV"
+                    width="120px"
+                    onClick={() => { setExportType('csv'); setIsExportModalOpen(true); }}
                 />
             </Box>
         </Box>
 
+        {/* Filter Buttons */}
+        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+            <Button
+                onClick={() => setActionFilter("all")}
+                sx={{
+                    fontSize: "12px",
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: "8px",
+                    textTransform: "none",
+                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                    backgroundColor: actionFilter === "all" ? "#1b2223" : "#e0e0e0",
+                    color: actionFilter === "all" ? "#fff" : "#333",
+                    "&:hover": { backgroundColor: actionFilter === "all" ? "#2a3435" : "#d0d0d0" },
+                }}
+            >
+                All Actions
+            </Button>
+            {uniqueActions.slice(0, 6).map((action) => (
+                <Button
+                    key={action}
+                    onClick={() => setActionFilter(action)}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: actionFilter === action ? "#1b2223" : "#e0e0e0",
+                        color: actionFilter === action ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: actionFilter === action ? "#2a3435" : "#d0d0d0" },
+                    }}
+                >
+                    {action}
+                </Button>
+            ))}
+        </Box>
+
         <Box
             sx={{
-                height: "90.9%",
+                height: "calc(100% - 120px)",
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: "15px",
                 backdropFilter: "blur(12px)",
                 p: "12px 24px",
-                transition: "all 0.3s ease",
                 display: "flex",
                 flexDirection: "column",
-                "&:hover": {
-                    transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                },
             }}
         >
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                <Typography sx={{ fontSize: "14px", color: theme.palette.text.secondary }}>
+                    Showing {filteredLogs.length} of {logs.length} logs
+                </Typography>
+            </Box>
+
             <Box
                 sx={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gridTemplateColumns: "1fr 1fr 1fr 2fr",
                     color: theme.palette.text.primary,
                     fontWeight: 700,
                     p: "8px 0",
@@ -120,11 +267,10 @@ export default function AdminAuditLogs() {
 
             <Box
                 sx={{
-                    maxHeight: "530px",
+                    flex: 1,
                     overflowY: "auto",
-                    "&::-webkit-scrollbar": {width: 0, height: 0},
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
+                    "&::-webkit-scrollbar": { width: 6 },
+                    "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: 3 },
                     mt: "8px",
                     fontFamily: "'TTHoves-DemiBold', sans-serif",
                 }}
@@ -143,27 +289,101 @@ export default function AdminAuditLogs() {
                         sx={{
                             marginTop: "10px",
                             display: "grid",
-                            gridTemplateColumns: "repeat(4, 1fr)",
+                            gridTemplateColumns: "1fr 1fr 1fr 2fr",
                             alignItems: "center",
                             bgcolor: "#fff",
                             color: "#1b2223",
                             borderRadius: "8px",
                             width: "100%",
-                            minHeight: "83px",
+                            minHeight: "60px",
                             transition: "all 0.3s ease",
                             "&:hover": {
                                 transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                             },
                             textAlign: "center",
+                            fontSize: "13px",
+                            p: 1,
                         }}
                     >
                         <span>{formatDate(log.date)}</span>
                         <span>{log.user}</span>
-                        <span>{log.action}</span>
-                        <span>{log.description}</span>
+                        <span style={{
+                            backgroundColor: log.action === 'CREATE' ? '#e8f5e9' : 
+                                           log.action === 'UPDATE' ? '#e3f2fd' : 
+                                           log.action === 'DELETE' ? '#ffebee' : '#f5f5f5',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                        }}>{log.action}</span>
+                        <span style={{ 
+                            textAlign: "left", 
+                            overflow: "hidden", 
+                            textOverflow: "ellipsis", 
+                            whiteSpace: "nowrap",
+                            paddingLeft: "8px"
+                        }} title={log.description}>{log.description}</span>
                     </Box>))
                 )}
             </Box>
         </Box>
+
+        {/* Export Confirmation Modal */}
+        <BoxModal
+            open={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            width="400px"
+        >
+            <Typography
+                variant="h5"
+                sx={{
+                    fontFamily: "'TTHoves-Bold', sans-serif",
+                    fontSize: "24px",
+                    color: "#FFFFFF",
+                    mb: 2,
+                    textAlign: "center"
+                }}
+            >
+                Export Audit Logs
+            </Typography>
+            <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                Export {filteredLogs.length} log(s) to {exportType.toUpperCase()}?
+            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+                <Box
+                    onClick={() => setIsExportModalOpen(false)}
+                    component="button"
+                    sx={{
+                        fontSize: "16px",
+                        backgroundColor: "#666",
+                        color: "#fff",
+                        padding: "10px 30px",
+                        borderRadius: "15px",
+                        cursor: "pointer",
+                        border: "none",
+                        fontFamily: "'TTHoves-Regular', sans-serif",
+                        "&:hover": { backgroundColor: "#555" },
+                    }}
+                >
+                    Cancel
+                </Box>
+                <Box
+                    onClick={handleConfirmExport}
+                    component="button"
+                    sx={{
+                        fontSize: "16px",
+                        backgroundColor: "#172224",
+                        color: "#fff",
+                        padding: "10px 30px",
+                        borderRadius: "15px",
+                        cursor: "pointer",
+                        border: "none",
+                        fontFamily: "'TTHoves-Regular', sans-serif",
+                        "&:hover": { backgroundColor: "#1f2f31", transform: "translateY(-2px)" },
+                    }}
+                >
+                    Export
+                </Box>
+            </Box>
+        </BoxModal>
     </Box>);
 }

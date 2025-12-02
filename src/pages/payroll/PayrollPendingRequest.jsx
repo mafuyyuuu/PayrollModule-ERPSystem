@@ -4,7 +4,8 @@ import {
     useTheme,
     IconButton,
     TextField,
-    Chip
+    Chip,
+    Button
 } from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
@@ -101,7 +102,7 @@ export default function PayrollPendingRequest() {
         if (filter) {
             if (filter === 'all') {
                 // Show all
-            } else if (['Pending', 'Approved', 'Rejected'].includes(filter)) {
+            } else if (['Manager_Approved', 'Approved', 'Rejected'].includes(filter)) {
                 // Filter by status
                 filtered = filtered.filter(request => request.status === filter);
             } else {
@@ -118,9 +119,9 @@ export default function PayrollPendingRequest() {
     const filterOptions = [
         {value: 'all', label: 'All'},
         ...requestTypes.map(type => ({value: type, label: type})),
-        {value: 'Pending', label: 'Status: Pending'},
-        {value: 'Approved', label: 'Status: Approved'},
-        {value: 'Rejected', label: 'Status: Rejected'},
+        {value: 'Manager_Approved', label: 'Ready for Processing'},
+        {value: 'Approved', label: 'Processed'},
+        {value: 'Rejected', label: 'Rejected'},
     ];
 
     const closeConfirmDialog = () => {
@@ -171,6 +172,8 @@ export default function PayrollPendingRequest() {
     };
 
     const renderModalCards = () => {
+        const currentEmployee = employeeRequests.find(req => req.requestId === currentRequestId)?.employee || "this employee";
+        
         switch (modalType) {
             case "processRequest":
                 return (
@@ -185,7 +188,10 @@ export default function PayrollPendingRequest() {
                                 textAlign: currentAction === "reject" ? "left" : "center"
                             }}
                         >
-                            Are you sure you want to {currentAction} name ng emp request?
+                            {currentAction === "approve" 
+                                ? `Process and approve request for ${currentEmployee}?`
+                                : `Reject request for ${currentEmployee}?`
+                            }
                         </Typography>
 
                         {/* Reject reason input only for reject */}
@@ -294,7 +300,7 @@ export default function PayrollPendingRequest() {
                                     }
                                 }}
                             >
-                                {currentAction === "approve" ? "Approve" : "Reject"}
+                                {currentAction === "approve" ? "Process & Approve" : "Reject"}
                             </Box>
                         </Box>
                     </>
@@ -411,7 +417,7 @@ export default function PayrollPendingRequest() {
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 3,
+                    mb: 2,
                 }}
             >
                 <Typography
@@ -422,7 +428,7 @@ export default function PayrollPendingRequest() {
                         color: theme.palette.text.primary,
                     }}
                 >
-                    Pending Requests
+                    Employee Requests
                 </Typography>
 
                 <Box
@@ -437,46 +443,114 @@ export default function PayrollPendingRequest() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
-                    <FilterSelect
-                        width={200}
-                        placeholder="Filter by Type/Status"
-                        options={filterOptions}
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
+                    <ActionButton
+                        text="Export CSV"
+                        width="120px"
+                        onClick={() => {
+                            setModalType("exportCSV");
+                            setIsModalOpen(true);
+                        }}
                     />
-
-                    {/* Clear filters button */}
-                    {hasActiveFilters && (
-                        <Chip
-                            label="Clear Filters"
-                            onDelete={handleClearFilters}
-                            deleteIcon={<RiCloseLine />}
-                            sx={{
-                                backgroundColor: theme.palette.primary.main,
-                                color: theme.palette.primary.contrastText,
-                                '& .MuiChip-deleteIcon': {
-                                    color: theme.palette.primary.contrastText,
-                                }
-                            }}
-                        />
-                    )}
                 </Box>
+            </Box>
+
+            {/* Filter Buttons */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+                <Button
+                    onClick={() => setFilter("all")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "all" || !filter ? "#1b2223" : "#e0e0e0",
+                        color: filter === "all" || !filter ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
+                    }}
+                >
+                    All
+                </Button>
+                {requestTypes.map((type) => (
+                    <Button
+                        key={type}
+                        onClick={() => setFilter(type)}
+                        sx={{
+                            fontSize: "12px",
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: "8px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: filter === type ? "#1b2223" : "#e0e0e0",
+                            color: filter === type ? "#fff" : "#333",
+                            "&:hover": { backgroundColor: filter === type ? "#2a3435" : "#d0d0d0" },
+                        }}
+                    >
+                        {type}
+                    </Button>
+                ))}
+                <Button
+                    onClick={() => setFilter("Manager_Approved")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Manager_Approved" ? "#17a2b8" : "#e0e0e0",
+                        color: filter === "Manager_Approved" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "Manager_Approved" ? "#138496" : "#d0d0d0" },
+                    }}
+                >
+                    Ready for Processing
+                </Button>
+                <Button
+                    onClick={() => setFilter("Approved")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Approved" ? "#5cb85c" : "#e0e0e0",
+                        color: filter === "Approved" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "Approved" ? "#449d44" : "#d0d0d0" },
+                    }}
+                >
+                    Processed
+                </Button>
+                <Button
+                    onClick={() => setFilter("Rejected")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
+                        color: filter === "Rejected" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
+                    }}
+                >
+                    Rejected
+                </Button>
             </Box>
 
             <Box
                 sx={{
-                    height: "80%",
+                    height: "calc(100% - 120px)",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",
-                    transition: "all 0.3s ease",
                     display: "flex",
                     flexDirection: "column",
-                    "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
                 }}
             >
                 <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1}}>
@@ -565,21 +639,23 @@ export default function PayrollPendingRequest() {
                                                     ? "#4CAF50"
                                                     : item.status === "Rejected"
                                                         ? "#F44336"
-                                                        : "#FFC107",
+                                                        : item.status === "Manager_Approved"
+                                                            ? "#17a2b8"
+                                                            : "#FFC107",
                                             fontWeight: 500,
                                         }}
                                     >
-                                        {item.status}
+                                        {item.status === "Manager_Approved" ? "Ready for Processing" : item.status}
                                     </span>
                                     <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
-                                        {item.status === "Pending" ? (
+                                        {item.status === "Manager_Approved" ? (
                                             <>
-                                                {/*Accept Button */}
+                                                {/*Accept Button - Process into payroll */}
                                                 <IconButton
                                                     disableRipple
                                                     onClick={() => {
                                                         setModalType("processRequest");
-                                                        setCurrentAction("approve"); // or "reject"
+                                                        setCurrentAction("approve");
                                                         setCurrentRequestId(item.requestId);
                                                         setIsModalOpen(true);
                                                     }}
@@ -606,7 +682,7 @@ export default function PayrollPendingRequest() {
                                                     disableRipple
                                                     onClick={() => {
                                                         setModalType("processRequest");
-                                                        setCurrentAction("reject"); // or "reject"
+                                                        setCurrentAction("reject");
                                                         setCurrentRequestId(item.requestId);
                                                         setIsModalOpen(true);
                                                     }} sx={{

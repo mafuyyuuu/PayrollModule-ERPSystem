@@ -9,12 +9,12 @@ import {
     MenuItem,
     IconButton, Checkbox, Snackbar, Alert, Chip,
     Stepper, Step, StepLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    CircularProgress, Divider, Tooltip,
+    CircularProgress, Divider, Tooltip, Accordion, AccordionSummary, AccordionDetails, LinearProgress,
 } from "@mui/material";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
-import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill, RiCalculatorLine, RiSaveLine, RiArrowLeftLine, RiArrowRightLine} from "react-icons/ri";
+import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill, RiCalculatorLine, RiSaveLine, RiArrowLeftLine, RiArrowRightLine, RiArrowDownSLine, RiMailSendLine, RiAlertLine, RiTimeLine} from "react-icons/ri";
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
 import {PDFViewer, pdf} from "@react-pdf/renderer";
@@ -49,6 +49,10 @@ export default function PayoutProcessing() {
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     
+    // Period-based payroll data
+    const [payrollPeriods, setPayrollPeriods] = useState([]);
+    const [expandedPeriod, setExpandedPeriod] = useState(null);
+    
     // Confirmation modal state
     const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
     const [error, setError] = useState(null);
@@ -56,23 +60,36 @@ export default function PayoutProcessing() {
     // Tab state for switching between new payroll and existing payroll
     const [currentTab, setCurrentTab] = useState(0); // 0 = Calculate New, 1 = Manage Existing
 
-    // Filter options for status
+    // Filter options for status - Payroll processing statuses
+    // Pending = calculated, awaiting review | Processed = reviewed, ready to release | Released = paid out | Rejected = needs recalculation
     const statusFilterOptions = [
         { value: '', label: 'All Status' },
-        { value: 'Pending', label: 'Pending' },
-        { value: 'Approved', label: 'Approved' },
-        { value: 'Released', label: 'Released' },
-        { value: 'Rejected', label: 'Rejected' },
+        { value: 'Pending', label: 'Pending (Awaiting Review)' },
+        { value: 'Processed', label: 'Processed (Ready to Release)' },
+        { value: 'Released', label: 'Released (Paid)' },
+        { value: 'Rejected', label: 'Rejected (Needs Review)' },
     ];
 
+    // Urgency filter options
+    const urgencyFilterOptions = [
+        { value: '', label: 'All Urgency' },
+        { value: 'overdue', label: 'Overdue' },
+        { value: 'urgent', label: 'Urgent (≤3 days)' },
+        { value: 'soon', label: 'Soon (≤7 days)' },
+        { value: 'normal', label: 'Normal' },
+    ];
+
+    const [urgencyFilter, setUrgencyFilter] = useState('');
+
     // Check if any filter is active
-    const hasActiveFilters = filter || selectedPayroll || searchTerm;
+    const hasActiveFilters = filter || selectedPayroll || searchTerm || urgencyFilter;
 
     // Clear all filters
     const handleClearFilters = () => {
         setFilter("");
         setSelectedPayroll("");
         setSearchTerm("");
+        setUrgencyFilter("");
     };
 
     // Fetch payroll cutoff periods
@@ -140,7 +157,30 @@ export default function PayoutProcessing() {
             setFilteredEmployees(transformedData);
             setLoading(false);
         } catch (err) {
-            console.error('❌ Error fetching payroll process:', err);
+            console.error('Error fetching payroll process:', err);
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
+    // Fetch payroll data grouped by period
+    const fetchPayrollByPeriod = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:8080/api/payroll/payroll-by-period');
+            if (!response.ok) throw new Error('Failed to fetch payroll data');
+            
+            const data = await response.json();
+            setPayrollPeriods(data);
+            
+            // Auto-expand the most urgent period
+            if (data.length > 0 && !expandedPeriod) {
+                setExpandedPeriod(data[0].periodKey);
+            }
+            
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching payroll by period:', err);
             setError(err.message);
             setLoading(false);
         }
@@ -148,6 +188,7 @@ export default function PayoutProcessing() {
 
     useEffect(() => {
         fetchPayrollProcess();
+        fetchPayrollByPeriod();
     }, []);
 
     // Filter employees based on search and filter
@@ -161,8 +202,9 @@ export default function PayoutProcessing() {
             );
         }
 
-        if (filter && filter !== 'all') {
-            filtered = filtered.filter(emp => emp.status === filter || emp.department === filter);
+        if (filter && filter !== 'all' && filter !== '') {
+            // Filter by status only (status filter dropdown)
+            filtered = filtered.filter(emp => emp.status === filter);
         }
 
         if (selectedPayroll) {
@@ -171,6 +213,23 @@ export default function PayoutProcessing() {
 
         setFilteredEmployees(filtered);
     }, [searchTerm, filter, selectedPayroll, employeesProcess]);
+
+    // Filter periods based on urgency
+    const filteredPeriods = payrollPeriods.filter(period => {
+        if (urgencyFilter && period.urgency !== urgencyFilter) return false;
+        if (selectedPayroll && period.periodName !== selectedPayroll) return false;
+        return true;
+    });
+
+    // Get urgency color and icon
+    const getUrgencyStyle = (urgency) => {
+        switch (urgency) {
+            case 'overdue': return { color: '#F44336', bg: 'rgba(244,67,54,0.1)', icon: <RiAlertLine /> };
+            case 'urgent': return { color: '#FF9800', bg: 'rgba(255,152,0,0.1)', icon: <RiTimeLine /> };
+            case 'soon': return { color: '#FFC107', bg: 'rgba(255,193,7,0.1)', icon: <RiTimeLine /> };
+            default: return { color: '#4CAF50', bg: 'rgba(76,175,80,0.1)', icon: null };
+        }
+    };
 
     const handleClose = () => {
         setOpen(false);
@@ -185,8 +244,8 @@ export default function PayoutProcessing() {
         }
     };
 
-    // API call to approve payslip
-    const handleApprovePayslip = async (employee) => {
+    // API call to mark payslip as processed (reviewed and ready for release)
+    const handleProcessPayslip = async (employee) => {
         try {
             const response = await fetch(`http://localhost:8080/api/payroll/payroll/${employee.payrollId}/approve`, {
                 method: 'PUT',
@@ -196,13 +255,14 @@ export default function PayoutProcessing() {
             if (response.ok) {
                 // Refetch to ensure data consistency
                 await fetchPayrollProcess();
-                setSnackbar({ open: true, message: `Payslip approved for ${employee.name}`, severity: 'success' });
+                await fetchPayrollByPeriod();
+                setSnackbar({ open: true, message: `Payslip marked as processed for ${employee.name}`, severity: 'success' });
             } else {
-                throw new Error('Failed to approve payslip');
+                throw new Error('Failed to process payslip');
             }
         } catch (err) {
-            console.error('Error approving payslip:', err);
-            setSnackbar({ open: true, message: `Failed to approve payslip for ${employee.name}`, severity: 'error' });
+            console.error('Error processing payslip:', err);
+            setSnackbar({ open: true, message: `Failed to process payslip for ${employee.name}`, severity: 'error' });
         }
         setOpen(false);
     };
@@ -219,6 +279,7 @@ export default function PayoutProcessing() {
             if (response.ok) {
                 // Refetch to ensure data consistency
                 await fetchPayrollProcess();
+                await fetchPayrollByPeriod();
                 setSnackbar({ open: true, message: `Payslip rejected for ${employee.name}`, severity: 'warning' });
             } else {
                 throw new Error('Failed to reject payslip');
@@ -231,8 +292,8 @@ export default function PayoutProcessing() {
         setRejectionReason("");
     };
 
-    // Bulk approve selected payslips
-    const handleBulkApprove = async () => {
+    // Bulk process selected payslips (mark as reviewed/processed)
+    const handleBulkProcess = async () => {
         const pendingEmployees = selectedEmployees.filter(emp => emp.status === "Pending");
         if (pendingEmployees.length === 0) {
             setSnackbar({ open: true, message: 'No pending payslips selected', severity: 'warning' });
@@ -250,25 +311,27 @@ export default function PayoutProcessing() {
                     successCount++;
                 }
             } catch (err) {
-                console.error(`Error approving payslip for ${emp.name}:`, err);
+                console.error(`Error approving payslip for ${emp.name || emp.employeeName}:`, err);
             }
         }
         // Refetch to ensure data consistency
         await fetchPayrollProcess();
+        await fetchPayrollByPeriod();
         setSelectedEmployees([]);
-        setSnackbar({ open: true, message: `${successCount} payslips approved`, severity: 'success' });
+        setSnackbar({ open: true, message: `${successCount} payslips marked as processed`, severity: 'success' });
     };
 
-    // Release approved payouts
+    // Release processed payouts
     const handleReleasePayouts = async () => {
-        const approvedEmployees = selectedEmployees.filter(emp => emp.status === "Approved");
-        if (approvedEmployees.length === 0) {
-            setSnackbar({ open: true, message: 'No approved payslips to release', severity: 'warning' });
+        // Only "Processed" status payslips can be released
+        const processedEmployees = selectedEmployees.filter(emp => emp.status === "Processed");
+        if (processedEmployees.length === 0) {
+            setSnackbar({ open: true, message: 'No processed payslips to release. Mark payslips as processed first.', severity: 'warning' });
             return;
         }
 
         try {
-            const payrollIds = approvedEmployees.map(emp => emp.payrollId);
+            const payrollIds = processedEmployees.map(emp => emp.payrollId);
             const response = await fetch('http://localhost:8080/api/payroll/payroll-release', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -278,7 +341,8 @@ export default function PayoutProcessing() {
             if (response.ok) {
                 // Refetch to ensure data consistency
                 await fetchPayrollProcess();
-                setSnackbar({ open: true, message: `${approvedEmployees.length} payouts released`, severity: 'success' });
+                await fetchPayrollByPeriod();
+                setSnackbar({ open: true, message: `${processedEmployees.length} payouts released`, severity: 'success' });
             } else {
                 throw new Error('Failed to release payouts');
             }
@@ -293,11 +357,10 @@ export default function PayoutProcessing() {
     // Get status color
     const getStatusColor = (status) => {
         switch (status) {
-            case "Approved": return "#4CAF50";
-            case "Released": return "#2196F3";
-            case "Rejected": return "#F44336";
-            case "Processing": return "#FF9800";
-            default: return "#FFC107"; // Pending
+            case "Processed": return "#4CAF50";  // Green - ready for release
+            case "Released": return "#2196F3";   // Blue - paid out
+            case "Rejected": return "#F44336";   // Red - needs review
+            default: return "#FF9800";           // Orange - Pending
         }
     };
 
@@ -673,10 +736,20 @@ export default function PayoutProcessing() {
                                 textAlign: "center"
                             }}
                         >
-                            {selectedEmployee[0].department
-                                ? `Are you sure you want to send emails to the employees in the ${selectedEmployee[0].department} department?`
-                                : `Are you sure you want to send payslip to selected employees?`}
+                            Send payslip emails to {selectedEmployee.length} employee(s)?
                         </Typography>
+                        <Typography variant="body2" sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                            Emails will be sent to the employees registered email addresses.
+                        </Typography>
+
+                        <Box sx={{ maxHeight: 200, overflowY: 'auto', mb: 2 }}>
+                            {selectedEmployee.map((emp, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', p: 1, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <Typography sx={{ color: '#fff', fontSize: '14px' }}>{emp.name || emp.employeeName}</Typography>
+                                    <Typography sx={{ color: '#ccc', fontSize: '14px' }}>{emp.email || 'No email'}</Typography>
+                                </Box>
+                            ))}
+                        </Box>
 
                         <Box
                             sx={{
@@ -685,26 +758,40 @@ export default function PayoutProcessing() {
                         >
                             <Box
                                 onClick={async () => {
-                                    if (!selectedEmployee || selectedEmployee.length === 0) return alert("No employees selected");
+                                    if (!selectedEmployee || selectedEmployee.length === 0) {
+                                        setSnackbar({ open: true, message: 'No employees selected', severity: 'warning' });
+                                        return;
+                                    }
 
                                     try {
-                                        for (let emp of selectedEmployee) {
-                                            const blob = await pdf(<PayslipDocument employee={emp}/>).toBlob();
-                                            const formData = new FormData();
-                                            formData.append("file", blob, `${emp.name}.pdf`);
-                                            formData.append("email", emp.email || "test@example.com");
-
-                                            await fetch("http://localhost:8080/api/send-payslip", {
-                                                method: "POST",
-                                                body: formData
-                                            });
+                                        const payrollIds = selectedEmployee.map(emp => emp.payrollId).filter(Boolean);
+                                        if (payrollIds.length === 0) {
+                                            setSnackbar({ open: true, message: 'No valid payroll records selected', severity: 'warning' });
+                                            return;
                                         }
 
-                                        alert(`Payslips sent to ${selectedEmployee.length} employee(s)!`);
+                                        const response = await fetch('http://localhost:8080/api/payroll/send-payslip-emails', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ payrollIds })
+                                        });
+
+                                        const result = await response.json();
+                                        
+                                        if (response.ok) {
+                                            setSnackbar({ 
+                                                open: true, 
+                                                message: `Sent ${result.results.sent.length} email(s)${result.results.failed.length > 0 ? `, ${result.results.failed.length} failed` : ''}`, 
+                                                severity: result.results.failed.length > 0 ? 'warning' : 'success' 
+                                            });
+                                        } else {
+                                            throw new Error(result.message || result.error || 'Failed to send emails');
+                                        }
                                     } catch (err) {
                                         console.error(err);
-                                        alert("Failed to send payslips.");
+                                        setSnackbar({ open: true, message: err.message || 'Failed to send payslips', severity: 'error' });
                                     }
+                                    setOpen(false);
                                 }}
                                 component="button"
                                 sx={{
@@ -726,7 +813,7 @@ export default function PayoutProcessing() {
                                     },
                                 }}
                             >
-                                Send
+                                Send Emails
                             </Box>
                         </Box>
                     </>
@@ -758,14 +845,14 @@ export default function PayoutProcessing() {
                 ) : null;
 
             case "releasePayouts":
-                const approvedCount = selectedEmployees.filter(emp => emp.status === "Approved").length;
+                const releaseableCount = selectedEmployees.filter(emp => emp.status === "Processed").length;
                 return (
                     <>
                         <Typography
                             variant="h5"
                             sx={{color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center"}}
                         >
-                            Release {approvedCount} approved payout(s)?
+                            Release {releaseableCount} payout(s)?
                         </Typography>
                         <Typography variant="body2" sx={{color: "#ccc", textAlign: "center", mt: 1}}>
                             This will mark them as released and ready for disbursement.
@@ -799,7 +886,7 @@ export default function PayoutProcessing() {
                     </>
                 );
 
-            case "acceptPayslip":
+            case "processPayslip":
                 return selectedEmployee ? (
                     <>
                         <Typography
@@ -811,7 +898,10 @@ export default function PayoutProcessing() {
                                 textAlign: "center"
                             }}
                         >
-                            Approve payslip for {selectedEmployee.name}?
+                            Mark payslip as processed for {selectedEmployee.name}?
+                        </Typography>
+                        <Typography variant="body2" sx={{color: "#ccc", textAlign: "center", mt: 1}}>
+                            This confirms the payroll calculation has been reviewed and is ready for release.
                         </Typography>
                         <Box sx={{mt: 2, p: 2, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "8px"}}>
                             <Typography variant="body2" sx={{color: "#ccc"}}>
@@ -824,7 +914,7 @@ export default function PayoutProcessing() {
 
                         <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
                             <Box
-                                onClick={() => handleApprovePayslip(selectedEmployee)}
+                                onClick={() => handleProcessPayslip(selectedEmployee)}
                                 component="button"
                                 sx={{
                                     fontSize: "16px",
@@ -844,7 +934,7 @@ export default function PayoutProcessing() {
                                     },
                                 }}
                             >
-                                Approve
+                                Mark as Processed
                             </Box>
                         </Box>
                     </>
@@ -994,17 +1084,20 @@ export default function PayoutProcessing() {
                             borderRadius: '12px',
                             cursor: 'pointer',
                             backgroundColor: currentTab === 0 
-                                ? (theme.palette.mode === 'dark' ? '#1F2829' : '#172224')
-                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                                ? (theme.palette.mode === 'dark' ? 'rgba(31, 40, 41, 0.9)' : 'rgba(23, 34, 36, 0.9)')
+                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'),
+                            backdropFilter: "blur(8px)",
                             color: currentTab === 0 ? '#fff' : theme.palette.text.primary,
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                             transition: 'all 0.3s ease',
                             display: 'flex',
                             alignItems: 'center',
                             gap: 1,
+                            boxShadow: currentTab === 0 ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
+                            border: `1px solid ${currentTab === 0 ? 'transparent' : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
                             '&:hover': {
                                 transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                             }
                         }}
                     >
@@ -1019,17 +1112,20 @@ export default function PayoutProcessing() {
                             borderRadius: '12px',
                             cursor: 'pointer',
                             backgroundColor: currentTab === 1 
-                                ? (theme.palette.mode === 'dark' ? '#1F2829' : '#172224')
-                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                                ? (theme.palette.mode === 'dark' ? 'rgba(31, 40, 41, 0.9)' : 'rgba(23, 34, 36, 0.9)')
+                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'),
+                            backdropFilter: "blur(8px)",
                             color: currentTab === 1 ? '#fff' : theme.palette.text.primary,
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                             transition: 'all 0.3s ease',
                             display: 'flex',
                             alignItems: 'center',
                             gap: 1,
+                            boxShadow: currentTab === 1 ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
+                            border: `1px solid ${currentTab === 1 ? 'transparent' : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
                             '&:hover': {
                                 transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                             }
                         }}
                     >
@@ -1044,12 +1140,17 @@ export default function PayoutProcessing() {
                 /* Calculate New Payroll Tab */
                 <Box
                     sx={{
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.8)",
-                        border: `1px solid ${theme.palette.divider}`,
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.7)",
+                        border: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"}`,
                         borderRadius: "15px",
                         backdropFilter: "blur(12px)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                         p: 3,
                         minHeight: '500px',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                        }
                     }}
                 >
                     {/* Stepper */}
@@ -1080,8 +1181,9 @@ export default function PayoutProcessing() {
                     {renderStepContent(activeStep)}
                 </Box>
             ) : (
-                /* Manage Existing Payroll Tab */
+                /* Manage Existing Payroll Tab - Period-Based View */
                 <>
+                    {/* Filters and Search */}
                     <Box
                         sx={{
                             alignItems: "center",
@@ -1093,401 +1195,435 @@ export default function PayoutProcessing() {
                             flexWrap: "wrap",
                         }}
                     >
-                    <SearchBar 
-                        placeholder="Search employee..." 
-                        width="300px"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-
-                    <FilterSelect
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        options={statusFilterOptions}
-                        placeholder="Filter by Status"
-                        width={180}
-                    />
-
-                    <Box
-                        sx={{
-                            display: "inline-block",
-                            borderRadius: "15px",
-                            transition: "box-shadow 0.3s ease, transform 0.3s ease",
-                            "&:hover": {
-                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)", transform: "translateY(-2px)",
-                            },
-                        }}
-                    >
-                        <Select
-                            value={selectedPayroll}
-                            onChange={(e) => setSelectedPayroll(e.target.value)}
-                            displayEmpty
-                            sx={{
-                                backgroundColor:
-                                    theme.palette.mode === "dark"
-                                        ? "rgba(255, 255, 255, 0.05)"
-                                        : "rgba(255, 255, 255, 0.3)",
-                                borderRadius: "15px",
-                                width: "220px",
-                                fontSize: "16px",
-                                color: theme.palette.text.primary,
-                                "& .MuiSelect-select": {
-                                    padding: "8px 12px",
-                                },
-                                "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: theme.palette.divider,
-                                },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: theme.palette.divider,
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "& .MuiSvgIcon-root": {
-                                    color: theme.palette.text.primary,
-                                },
-                            }}
-                            renderValue={(selected) => {
-                                if (!selected)
-                                    return (
-                                        <span style={{fontSize: "16px", color: "#bdbdbd"}}>
-                                            Select Pay Period
-                                        </span>
-                                    );
-                                return selected;
-                            }}
-                        >
-                            <MenuItem value="">
-                                <em>All Periods</em>
-                            </MenuItem>
-                            {payrollHistory.map((item) => (
-                                <MenuItem key={item.ref} value={item.duration}>
-                                    {item.duration}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </Box>
-
-                    {/* Clear filters button */}
-                    {hasActiveFilters && (
-                        <Chip
-                            label="Clear Filters"
-                            onDelete={handleClearFilters}
-                            deleteIcon={<RiCloseLine />}
-                            sx={{
-                                backgroundColor: theme.palette.primary.main,
-                                color: theme.palette.primary.contrastText,
-                                '& .MuiChip-deleteIcon': {
-                                    color: theme.palette.primary.contrastText,
-                                }
-                            }}
+                        <SearchBar 
+                            placeholder="Search employee..." 
+                            width="250px"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                    )}
-                </Box>
 
-            <Box
-                sx={{
-                    height: "80%",
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: "15px",
-                    backdropFilter: "blur(12px)",
-                    p: "12px 24px",
-                    transition: "all 0.3s ease",
-                    display: "flex",
-                    flexDirection: "column",
-                    "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
-                }}
-            >
-                <Box
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                    }}
-                >
-                    <Checkbox
-                        checked={selectedEmployees.length === employeesProcess.length && employeesProcess.length > 0}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                        sx={{
-                            p: 0,
-                            mr: "10px",
-                            color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
-                            borderRadius: "5px",
-                            "&.Mui-checked": {
-                                color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
-                            },
-                            "& .MuiSvgIcon-root": {fontSize: 25},
-                        }}
-                    />
+                        <FilterSelect
+                            value={urgencyFilter}
+                            onChange={(e) => setUrgencyFilter(e.target.value)}
+                            options={urgencyFilterOptions}
+                            placeholder="Filter by Urgency"
+                            width={180}
+                        />
 
-                    <Box
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(8, 1fr)",
-                            color: theme.palette.text.primary,
-                            fontWeight: 700,
-                            p: "8px 0",
-                            width: "100%",
-                            alignItems: "center",
-                            textAlign: "center",
-                        }}
-                    >
-                        <span style={{paddingLeft: "15px", textAlign: "left"}}>Employee ID</span>
-                        <span>Employee Name</span>
-                        <span>Department</span>
-                        <span>Earning</span>
-                        <span>Deduction</span>
-                        <span>Netpay</span>
-                        <span>Status</span>
-                        <span>Actions</span>
-                    </Box>
-                </Box>
+                        <FilterSelect
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            options={statusFilterOptions}
+                            placeholder="Filter by Status"
+                            width={180}
+                        />
 
-                {error && (
-                    <Box sx={{ color: 'error.main', p: 2, textAlign: 'center' }}>
-                        Error: {error}
-                    </Box>
-                )}
-
-                {loading ? (
-                    <Box sx={{ p: 2, textAlign: 'center', color: theme.palette.text.primary }}>
-                        Loading payroll data...
-                    </Box>
-                ) : (
-                <Box
-                    sx={{
-                        overflowY: "auto",
-                        "&::-webkit-scrollbar": {width: 0, height: 0},
-                        scrollbarWidth: "none",
-                        msOverflowStyle: "none",
-                        mt: "8px",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                    }}
-                >
-                    {filteredEmployees.length === 0 ? (
-                        <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.secondary }}>
-                            No payroll records found.
-                        </Box>
-                    ) : (
-                    filteredEmployees.map((item, index) => (
-                        <Box
-                            key={item.payrollId || index}
-                            sx={{
-                                marginTop: "10px", display: "flex", alignItems: "center", gap: "8px", mb: "12px",
-                            }}
-                        >
-                            <Checkbox
-                                checked={selectedEmployees.some(emp => emp.payrollId === item.payrollId)}
-                                onChange={() => {
-                                    setSelectedEmployees((prev) =>
-                                        prev.some(emp => emp.payrollId === item.payrollId)
-                                            ? prev.filter((e) => e.payrollId !== item.payrollId)
-                                            : [...prev, item]
-                                    );
-                                }}
+                        {/* Clear filters button */}
+                        {hasActiveFilters && (
+                            <Chip
+                                label="Clear Filters"
+                                onDelete={handleClearFilters}
+                                deleteIcon={<RiCloseLine />}
                                 sx={{
-                                    p: 0,
-                                    mr: "10px",
-                                    color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
-                                    borderRadius: "5px",
-                                    "&.Mui-checked": {
-                                        color: theme.palette.mode === "dark" ? "#fff" : "#1F2829",
-                                    },
-                                    "& .MuiSvgIcon-root": {fontSize: 25},
+                                    backgroundColor: theme.palette.primary.main,
+                                    color: theme.palette.primary.contrastText,
+                                    '& .MuiChip-deleteIcon': {
+                                        color: theme.palette.primary.contrastText,
+                                    }
                                 }}
                             />
+                        )}
+                    </Box>
 
-                            <Box
-                                sx={{
-                                    display: "grid",
-                                    gridTemplateColumns: "repeat(8, 1fr)",
-                                    alignItems: "center",
-                                    textAlign: "center",
-                                    bgcolor: "#fff",
-                                    color: "#1b2223",
-                                    borderRadius: "8px",
-                                    width: "100%",
-                                    minHeight: "80px",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                    },
-                                }}
-                            >
-                                <span style={{paddingLeft: "15px", textAlign: "left"}}>{item.id}</span>
-                                <span>{item.name}</span>
-                                <span>{item.department}</span>
-                                <span>{item.earningDisplay}</span>
-                                <span>{item.deductionDisplay}</span>
-                                <span>{item.netpayDisplay}</span>
-                                <span
-                                    style={{
-                                        fontFamily: "'TTHoves-Bold', sans-serif",
-                                        color: getStatusColor(item.status),
-                                        fontWeight: 500,
-                                    }}
-                                >
-                                    {item.status}
-                                </span>
-
-                                <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
-                                    {/* Pending status - show approve/reject buttons */}
-                                    {(item.status === "Pending" || item.status === "Processing") && (
-                                        <>
-                                            <IconButton
-                                                disableRipple
-                                                onClick={() => {
-                                                    setSelectedEmployee(item);
-                                                    setModalType("acceptPayslip");
-                                                    setOpen(true);
-                                                }}
-                                                sx={{
-                                                    backgroundColor: "#172224",
-                                                    color: "green",
-                                                    width: 40,
-                                                    height: 36,
-                                                    borderRadius: "50%",
-                                                    transition: "all 0.2s ease",
-                                                    "&:hover": {
-                                                        backgroundColor: "#388E3C",
-                                                        color: "#fff",
-                                                        transform: "translateY(-3px)",
-                                                    },
-                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                                }}
-                                            >
-                                                <RiCheckFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
-                                            </IconButton>
-
-                                            <IconButton
-                                                disableRipple
-                                                onClick={() => {
-                                                    setSelectedEmployee(item);
-                                                    setRejectionReason("");
-                                                    setModalType("rejectPayslip");
-                                                    setOpen(true);
-                                                }}
-                                                sx={{
-                                                    backgroundColor: "#172224",
-                                                    color: "red",
-                                                    width: 40,
-                                                    height: 36,
-                                                    borderRadius: "50%",
-                                                    transition: "all 0.2s ease",
-                                                    "&:hover": {
-                                                        backgroundColor: "#D32F2F",
-                                                        color: "#fff",
-                                                        transform: "translateY(-3px)",
-                                                    },
-                                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                                }}
-                                            >
-                                                <RiCloseFill style={{fontSize: 20, transform: "scale(1.2)"}}/>
-                                            </IconButton>
-                                        </>
-                                    )}
-
-                                    {/* Rejected status - show view reason button */}
-                                    {item.status === "Rejected" && (
-                                        <IconButton
-                                            onClick={() => {
-                                                setSelectedEmployee(item);
-                                                setModalType("viewRejection");
-                                                setOpen(true);
-                                            }}
-                                            sx={{
-                                                backgroundColor: "#172224",
-                                                color: "#fff",
-                                                width: 40,
-                                                height: 40,
-                                                borderRadius: "50%",
-                                                transition: "all 0.2s ease",
-                                                "&:hover": {
-                                                    backgroundColor: "#2E3B3D",
-                                                    color: "#fff",
-                                                    transform: "translateY(-3px)",
-                                                },
-                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                            }}
-                                        >
-                                            <RiEyeFill style={{fontSize: 19}}/>
-                                        </IconButton>
-                                    )}
-
-                                    {/* Approved or Released status - show download button */}
-                                    {(item.status === "Approved" || item.status === "Released" || item.status === "Processed") && (
-                                        <IconButton
-                                            onClick={() => {
-                                                setSelectedEmployee(item);
-                                                setModalType("downloadPayslip");
-                                                setOpen(true);
-                                            }}
-                                            sx={{
-                                                backgroundColor: "#172224",
-                                                color: "#fff",
-                                                width: 40,
-                                                height: 40,
-                                                borderRadius: "50%",
-                                                transition: "all 0.2s ease",
-                                                "&:hover": {
-                                                    backgroundColor: "#2E3B3D",
-                                                    color: "#fff",
-                                                    transform: "translateY(-3px)",
-                                                },
-                                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                            }}
-                                        >
-                                            <RiDownload2Line style={{fontSize: 19}}/>
-                                        </IconButton>
-                                    )}
-                                </Box>
-                            </Box>
+                    {error && (
+                        <Box sx={{ color: 'error.main', p: 2, textAlign: 'center', mb: 2 }}>
+                            Error: {error}
                         </Box>
-                    ))
                     )}
-                </Box>
-                )}
-            </Box>
 
-            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <ActionButton
-                    text={`Approve Payslips (${selectedEmployees.filter(e => e.status === "Pending").length})`}
-                    width="200px"
-                    onClick={handleBulkApprove}
-                    disabled={selectedEmployees.filter(e => e.status === "Pending").length === 0}
-                />
-                <ActionButton
-                    text={`Release Payouts (${selectedEmployees.filter(e => e.status === "Approved").length})`}
-                    width="200px"
-                    onClick={() => {
-                        const approvedCount = selectedEmployees.filter(emp => emp.status === "Approved").length;
-                        if (approvedCount === 0) {
-                            setSnackbar({ open: true, message: 'No approved payslips to release', severity: 'warning' });
-                            return;
-                        }
-                        setModalType("releasePayouts");
-                        setOpen(true);
-                    }}
-                />
-                <ActionButton
-                    onClick={() => {
-                        if (selectedEmployees.length === 0) {
-                            setSnackbar({ open: true, message: "No employees selected.", severity: 'warning' });
-                            return;
-                        }
-                        setSelectedEmployee(selectedEmployees);
-                        setModalType("sendToEmails");
-                        setOpen(true);
-                    }}
-                    text="Send to Emails"
-                    width="200px"
-                />
-            </Box>
-            </>
+                    {loading ? (
+                        <Box sx={{ p: 4, textAlign: 'center', color: theme.palette.text.primary }}>
+                            <CircularProgress size={40} sx={{ mb: 2 }} />
+                            <Typography>Loading payroll data...</Typography>
+                        </Box>
+                    ) : filteredPeriods.length === 0 ? (
+                        <Box sx={{ 
+                            p: 4, 
+                            textAlign: 'center', 
+                            color: theme.palette.text.secondary,
+                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.7)",
+                            borderRadius: "15px",
+                            backdropFilter: "blur(12px)",
+                            border: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"}`,
+                            boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+                        }}>
+                            <Typography>No payroll records found.</Typography>
+                        </Box>
+                    ) : (
+                        /* Period Accordions */
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {filteredPeriods.map((period) => {
+                                const urgencyStyle = getUrgencyStyle(period.urgency);
+                                const progressPercent = period.stats.total > 0 
+                                    ? ((period.stats.processed + period.stats.released) / period.stats.total) * 100 
+                                    : 0;
+
+                                // Filter payrolls within this period
+                                let periodPayrolls = period.payrolls;
+                                if (searchTerm) {
+                                    periodPayrolls = periodPayrolls.filter(p => 
+                                        p.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        p.employeeNumber.toLowerCase().includes(searchTerm.toLowerCase())
+                                    );
+                                }
+                                if (filter) {
+                                    periodPayrolls = periodPayrolls.filter(p => p.status === filter);
+                                }
+
+                                if (periodPayrolls.length === 0 && (searchTerm || filter)) return null;
+
+                                return (
+                                    <Accordion
+                                        key={period.periodKey}
+                                        expanded={expandedPeriod === period.periodKey}
+                                        onChange={() => setExpandedPeriod(expandedPeriod === period.periodKey ? null : period.periodKey)}
+                                        sx={{
+                                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.7)",
+                                            borderRadius: "15px !important",
+                                            border: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"}`,
+                                            backdropFilter: "blur(12px)",
+                                            '&:before': { display: 'none' },
+                                            boxShadow: expandedPeriod === period.periodKey 
+                                                ? `0 8px 32px ${urgencyStyle.color}25` 
+                                                : "0 4px 15px rgba(0,0,0,0.08)",
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                transform: expandedPeriod === period.periodKey ? 'none' : 'translateY(-2px)',
+                                                boxShadow: "0 8px 25px rgba(0,0,0,0.12)",
+                                            }
+                                        }}
+                                    >
+                                        <AccordionSummary
+                                            expandIcon={<RiArrowDownSLine style={{ fontSize: 24, color: theme.palette.text.primary }} />}
+                                            sx={{ 
+                                                borderRadius: "15px",
+                                                '&:hover': { backgroundColor: 'rgba(0,0,0,0.02)' }
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2, flexWrap: 'wrap' }}>
+                                                {/* Urgency Indicator */}
+                                                <Box sx={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: 1,
+                                                    backgroundColor: urgencyStyle.bg,
+                                                    color: urgencyStyle.color,
+                                                    px: 1.5,
+                                                    py: 0.5,
+                                                    borderRadius: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                }}>
+                                                    {urgencyStyle.icon}
+                                                    {period.daysUntilPayDate <= 0 
+                                                        ? 'OVERDUE' 
+                                                        : period.daysUntilPayDate === 1 
+                                                            ? '1 day left'
+                                                            : `${period.daysUntilPayDate} days left`}
+                                                </Box>
+
+                                                {/* Period Name */}
+                                                <Typography sx={{ 
+                                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                                    fontSize: '16px',
+                                                    color: theme.palette.text.primary,
+                                                    flex: 1,
+                                                }}>
+                                                    {period.periodName}
+                                                </Typography>
+
+                                                {/* Pay Date */}
+                                                <Typography sx={{ 
+                                                    fontSize: '14px',
+                                                    color: theme.palette.text.secondary,
+                                                }}>
+                                                    Pay Date: {new Date(period.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </Typography>
+
+                                                {/* Stats */}
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    <Chip size="small" label={`${period.stats.pending} Pending`} sx={{ backgroundColor: '#FF980020', color: '#FF9800' }} />
+                                                    <Chip size="small" label={`${period.stats.processed} Processed`} sx={{ backgroundColor: '#4CAF5020', color: '#4CAF50' }} />
+                                                    <Chip size="small" label={`${period.stats.released} Released`} sx={{ backgroundColor: '#2196F320', color: '#2196F3' }} />
+                                                    {period.stats.rejected > 0 && (
+                                                        <Chip size="small" label={`${period.stats.rejected} Rejected`} sx={{ backgroundColor: '#F4433620', color: '#F44336' }} />
+                                                    )}
+                                                </Box>
+
+                                                {/* Total Amount */}
+                                                <Typography sx={{ 
+                                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                                    fontSize: '16px',
+                                                    color: '#4CAF50',
+                                                }}>
+                                                    ₱{period.stats.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                </Typography>
+                                            </Box>
+                                        </AccordionSummary>
+
+                                        <AccordionDetails sx={{ p: 2 }}>
+                                            {/* Progress Bar */}
+                                            <Box sx={{ mb: 2 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                                        Processing Progress
+                                                    </Typography>
+                                                    <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                                        {Math.round(progressPercent)}% Complete
+                                                    </Typography>
+                                                </Box>
+                                                <LinearProgress 
+                                                    variant="determinate" 
+                                                    value={progressPercent} 
+                                                    sx={{ 
+                                                        height: 8, 
+                                                        borderRadius: 4,
+                                                        backgroundColor: 'rgba(0,0,0,0.1)',
+                                                        '& .MuiLinearProgress-bar': {
+                                                            backgroundColor: progressPercent === 100 ? '#4CAF50' : '#2196F3',
+                                                            borderRadius: 4,
+                                                        }
+                                                    }}
+                                                />
+                                            </Box>
+
+                                            {/* Employee Table Header */}
+                                            <Box sx={{ 
+                                                display: 'grid', 
+                                                gridTemplateColumns: '40px 100px 1.5fr 1fr 1fr 1fr 1fr 100px 120px',
+                                                gap: 1,
+                                                p: 1,
+                                                backgroundColor: theme.palette.mode === "dark" ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.05)",
+                                                borderRadius: '8px',
+                                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                                fontSize: '12px',
+                                                color: theme.palette.text.secondary,
+                                                mb: 1,
+                                            }}>
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={periodPayrolls.length > 0 && periodPayrolls.every(emp => selectedEmployees.some(e => e.payrollId === emp.payrollId))}
+                                                    indeterminate={periodPayrolls.some(emp => selectedEmployees.some(e => e.payrollId === emp.payrollId)) && !periodPayrolls.every(emp => selectedEmployees.some(e => e.payrollId === emp.payrollId))}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            // Add all period payrolls that aren't already selected
+                                                            const newSelections = periodPayrolls
+                                                                .filter(emp => !selectedEmployees.some(e => e.payrollId === emp.payrollId))
+                                                                .map(emp => ({ ...emp, name: emp.employeeName }));
+                                                            setSelectedEmployees(prev => [...prev, ...newSelections]);
+                                                        } else {
+                                                            // Remove all period payrolls from selection
+                                                            const periodPayrollIds = periodPayrolls.map(p => p.payrollId);
+                                                            setSelectedEmployees(prev => prev.filter(e => !periodPayrollIds.includes(e.payrollId)));
+                                                        }
+                                                    }}
+                                                    sx={{ p: 0 }}
+                                                />
+                                                <span>Employee ID</span>
+                                                <span>Name</span>
+                                                <span>Department</span>
+                                                <span style={{ textAlign: 'right' }}>Gross Pay</span>
+                                                <span style={{ textAlign: 'right' }}>Deductions</span>
+                                                <span style={{ textAlign: 'right' }}>Net Pay</span>
+                                                <span style={{ textAlign: 'center' }}>Status</span>
+                                                <span style={{ textAlign: 'center' }}>Actions</span>
+                                            </Box>
+
+                                            {/* Employee Rows */}
+                                            <Box sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                                {periodPayrolls.map((emp) => (
+                                                    <Box 
+                                                        key={emp.payrollId}
+                                                        sx={{ 
+                                                            display: 'grid', 
+                                                            gridTemplateColumns: '40px 100px 1.5fr 1fr 1fr 1fr 1fr 100px 120px',
+                                                            gap: 1,
+                                                            p: 1.5,
+                                                            backgroundColor: '#fff',
+                                                            borderRadius: '8px',
+                                                            mb: 1,
+                                                            alignItems: 'center',
+                                                            fontSize: '14px',
+                                                            color: '#1b2223',
+                                                            transition: 'all 0.2s ease',
+                                                            '&:hover': {
+                                                                transform: 'translateX(4px)',
+                                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Checkbox
+                                                            size="small"
+                                                            checked={selectedEmployees.some(e => e.payrollId === emp.payrollId)}
+                                                            onChange={() => {
+                                                                setSelectedEmployees(prev =>
+                                                                    prev.some(e => e.payrollId === emp.payrollId)
+                                                                        ? prev.filter(e => e.payrollId !== emp.payrollId)
+                                                                        : [...prev, { ...emp, name: emp.employeeName }]
+                                                                );
+                                                            }}
+                                                            sx={{ p: 0 }}
+                                                        />
+                                                        <span style={{ fontFamily: "'TTHoves-DemiBold', sans-serif" }}>{emp.employeeNumber}</span>
+                                                        <Box>
+                                                            <Typography sx={{ fontWeight: 600, fontSize: '14px' }}>{emp.employeeName}</Typography>
+                                                            {emp.waitingDays > 0 && (
+                                                                <Typography sx={{ fontSize: '11px', color: '#999' }}>
+                                                                    Waiting {emp.waitingDays} day(s)
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                        <span>{emp.department}</span>
+                                                        <span style={{ textAlign: 'right' }}>₱{emp.grossPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                                        <span style={{ textAlign: 'right', color: '#d32f2f' }}>-₱{emp.deductions.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                                        <span style={{ textAlign: 'right', fontWeight: 'bold', color: '#4CAF50' }}>₱{emp.netPay.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                                        <Box sx={{ textAlign: 'center' }}>
+                                                            <Chip 
+                                                                size="small" 
+                                                                label={emp.status}
+                                                                sx={{ 
+                                                                    backgroundColor: `${getStatusColor(emp.status)}20`,
+                                                                    color: getStatusColor(emp.status),
+                                                                    fontWeight: 'bold',
+                                                                    fontSize: '11px',
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                                                            {emp.status === "Pending" && (
+                                                                <>
+                                                                    <Tooltip title="Mark as Processed">
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            onClick={() => {
+                                                                                setSelectedEmployee({ ...emp, name: emp.employeeName, netpayDisplay: `₱${emp.netPay.toLocaleString()}`, period: period.periodName });
+                                                                                setModalType("processPayslip");
+                                                                                setOpen(true);
+                                                                            }}
+                                                                            sx={{ backgroundColor: '#E8F5E9', color: '#4CAF50', '&:hover': { backgroundColor: '#4CAF50', color: '#fff' } }}
+                                                                        >
+                                                                            <RiCheckFill size={16} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Reject">
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            onClick={() => {
+                                                                                setSelectedEmployee({ ...emp, name: emp.employeeName });
+                                                                                setRejectionReason("");
+                                                                                setModalType("rejectPayslip");
+                                                                                setOpen(true);
+                                                                            }}
+                                                                            sx={{ backgroundColor: '#FFEBEE', color: '#F44336', '&:hover': { backgroundColor: '#F44336', color: '#fff' } }}
+                                                                        >
+                                                                            <RiCloseFill size={16} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </>
+                                                            )}
+                                                            {emp.status === "Rejected" && (
+                                                                <Tooltip title="View Rejection">
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        onClick={() => {
+                                                                            setSelectedEmployee({ ...emp, name: emp.employeeName });
+                                                                            setModalType("viewRejection");
+                                                                            setOpen(true);
+                                                                        }}
+                                                                        sx={{ backgroundColor: '#FFF3E0', color: '#FF9800' }}
+                                                                    >
+                                                                        <RiEyeFill size={16} />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            )}
+                                                            {(emp.status === "Processed" || emp.status === "Released") && (
+                                                                <>
+                                                                    <Tooltip title="View Payslip">
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            onClick={() => {
+                                                                                setSelectedEmployee({ ...emp, name: emp.employeeName, netpayDisplay: `₱${emp.netPay.toLocaleString()}`, earningDisplay: `₱${emp.grossPay.toLocaleString()}`, deductionDisplay: `₱${emp.deductions.toLocaleString()}` });
+                                                                                setModalType("downloadPayslip");
+                                                                                setOpen(true);
+                                                                            }}
+                                                                            sx={{ backgroundColor: '#E3F2FD', color: '#2196F3', '&:hover': { backgroundColor: '#2196F3', color: '#fff' } }}
+                                                                        >
+                                                                            <RiDownload2Line size={16} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Send Email">
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            onClick={() => {
+                                                                                setSelectedEmployee([{ ...emp, name: emp.employeeName }]);
+                                                                                setModalType("sendToEmails");
+                                                                                setOpen(true);
+                                                                            }}
+                                                                            sx={{ backgroundColor: '#F3E5F5', color: '#9C27B0', '&:hover': { backgroundColor: '#9C27B0', color: '#fff' } }}
+                                                                        >
+                                                                            <RiMailSendLine size={16} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </>
+                                                            )}
+                                                        </Box>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+                                        </AccordionDetails>
+                                    </Accordion>
+                                );
+                            })}
+                        </Box>
+                    )}
+
+                    {/* Bulk Action Buttons */}
+                    <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+                        <ActionButton
+                            text={`Mark as Processed (${selectedEmployees.filter(e => e.status === "Pending").length})`}
+                            width="220px"
+                            onClick={handleBulkProcess}
+                            disabled={selectedEmployees.filter(e => e.status === "Pending").length === 0}
+                        />
+                        <ActionButton
+                            text={`Release Payouts (${selectedEmployees.filter(e => e.status === "Processed").length})`}
+                            width="200px"
+                            onClick={() => {
+                                const releaseableCount = selectedEmployees.filter(emp => emp.status === "Processed").length;
+                                if (releaseableCount === 0) {
+                                    setSnackbar({ open: true, message: 'No processed payslips to release. Mark payslips as processed first.', severity: 'warning' });
+                                    return;
+                                }
+                                setModalType("releasePayouts");
+                                setOpen(true);
+                            }}
+                        />
+                        <ActionButton
+                            onClick={() => {
+                                const emailableEmployees = selectedEmployees.filter(e => e.status === "Processed" || e.status === "Released");
+                                if (emailableEmployees.length === 0) {
+                                    setSnackbar({ open: true, message: "Select processed or released payslips to send emails.", severity: 'warning' });
+                                    return;
+                                }
+                                setSelectedEmployee(emailableEmployees);
+                                setModalType("sendToEmails");
+                                setOpen(true);
+                            }}
+                            text={`Send to Emails (${selectedEmployees.filter(e => e.status === "Processed" || e.status === "Released").length})`}
+                            width="200px"
+                        />
+                    </Box>
+                </>
             )}
 
             <BoxModal

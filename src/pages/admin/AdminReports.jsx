@@ -1,15 +1,24 @@
 import React, {useState, useEffect} from "react";
-import {Box, Typography, useTheme, CircularProgress} from "@mui/material";
+import {Box, Typography, useTheme, CircularProgress, Button} from "@mui/material";
 import ActionButton from "../../components/ActionButton.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    PieChart, Pie, Cell, LineChart, Line
+} from "recharts";
 
 export default function AdminReports() {
     const theme = useTheme();
-    const [filter, setFilter] = useState("");
+    const [filter, setFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [deductionData, setDeductionData] = useState([]);
     const [reportsSummary, setReportsSummary] = useState(null);
     const [generating, setGenerating] = useState(false);
+    const [chartData, setChartData] = useState([]);
+    const [departmentData, setDepartmentData] = useState([]);
+    const [complianceData, setComplianceData] = useState([]);
+
+    const COLORS = ['#1b2223', '#3a4f50', '#5a7f80', '#7ab0b0', '#9ad0d0', '#bae0e0'];
 
     useEffect(() => {
         fetchReportsData();
@@ -22,15 +31,28 @@ export default function AdminReports() {
             if (deductionsResponse.ok) {
                 const deductions = await deductionsResponse.json();
                 // Transform to table format
-                const tableData = deductions.map(d => [
-                    d.employee_name,
-                    formatCurrency(d.tax),
-                    formatCurrency(d.sss),
-                    formatCurrency(d.philhealth),
-                    formatCurrency(d.pagibig),
-                    formatCurrency(d.total)
-                ]);
+                const tableData = deductions.map(d => ({
+                    name: d.employee_name,
+                    tax: d.tax || 0,
+                    sss: d.sss || 0,
+                    philhealth: d.philhealth || 0,
+                    pagibig: d.pagibig || 0,
+                    total: d.total || 0
+                }));
                 setDeductionData(tableData);
+                
+                // Prepare chart data (top 10 by total deductions)
+                const chartData = tableData
+                    .sort((a, b) => b.total - a.total)
+                    .slice(0, 10)
+                    .map(d => ({
+                        name: d.name?.split(' ')[0] || 'Unknown', // First name only for chart
+                        Tax: d.tax,
+                        SSS: d.sss,
+                        PhilHealth: d.philhealth,
+                        'Pag-IBIG': d.pagibig
+                    }));
+                setChartData(chartData);
             }
 
             // Fetch reports summary
@@ -38,10 +60,25 @@ export default function AdminReports() {
             if (summaryResponse.ok) {
                 const summary = await summaryResponse.json();
                 setReportsSummary(summary);
+                
+                // Prepare department data for pie chart
+                if (summary.departments) {
+                    setDepartmentData(summary.departments.map(d => ({
+                        name: d.department_name || 'Unknown',
+                        value: d.employee_count || 0
+                    })));
+                }
+                
+                // Prepare compliance data for line chart
+                if (summary.requests) {
+                    setComplianceData(summary.requests.map(r => ({
+                        name: r.status,
+                        count: r.count || 0
+                    })));
+                }
             }
         } catch (error) {
             console.error('Error fetching reports data:', error);
-            // No fallback - show empty state
             setDeductionData([]);
         } finally {
             setLoading(false);
@@ -56,11 +93,25 @@ export default function AdminReports() {
         })}`;
     };
 
+    // Filter data based on selection
+    const getFilteredData = () => {
+        if (filter === "all" || !filter) return deductionData;
+        
+        return deductionData.filter(d => {
+            const total = d.total;
+            switch(filter) {
+                case "high": return total >= 5000;
+                case "medium": return total >= 2000 && total < 5000;
+                case "low": return total < 2000;
+                default: return true;
+            }
+        });
+    };
+
     // Generate and export PDF report
     const handleExportPDF = async (reportType) => {
         setGenerating(true);
         try {
-            // Create a simple printable HTML report
             const reportDate = new Date().toLocaleDateString('en-US', {
                 year: 'numeric', month: 'long', day: 'numeric'
             });
@@ -94,6 +145,7 @@ export default function AdminReports() {
             `;
 
             if (reportType === 'Payroll Summary') {
+                const filteredData = getFilteredData();
                 htmlContent += `
                     <h2>Payroll Summary Report</h2>
                     ${reportsSummary ? `
@@ -124,9 +176,14 @@ export default function AdminReports() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${deductionData.map(row => `
+                            ${filteredData.map(row => `
                                 <tr>
-                                    ${row.map(cell => `<td>${cell}</td>`).join('')}
+                                    <td>${row.name}</td>
+                                    <td>${formatCurrency(row.tax)}</td>
+                                    <td>${formatCurrency(row.sss)}</td>
+                                    <td>${formatCurrency(row.philhealth)}</td>
+                                    <td>${formatCurrency(row.pagibig)}</td>
+                                    <td>${formatCurrency(row.total)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -143,10 +200,10 @@ export default function AdminReports() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${(reportsSummary?.departments || []).map(dept => `
+                            ${departmentData.map(dept => `
                                 <tr>
-                                    <td>${dept.department_name || 'Unknown'}</td>
-                                    <td>${dept.employee_count || 0}</td>
+                                    <td>${dept.name}</td>
+                                    <td>${dept.value}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -163,9 +220,9 @@ export default function AdminReports() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${(reportsSummary?.requests || []).map(req => `
+                            ${complianceData.map(req => `
                                 <tr>
-                                    <td>${req.status}</td>
+                                    <td>${req.name}</td>
                                     <td>${req.count}</td>
                                 </tr>
                             `).join('')}
@@ -179,7 +236,6 @@ export default function AdminReports() {
                 </html>
             `;
 
-            // Open in new window for printing/saving as PDF
             const printWindow = window.open('', '_blank');
             printWindow.document.write(htmlContent);
             printWindow.document.close();
@@ -196,10 +252,11 @@ export default function AdminReports() {
         }
     };
 
-    // Generate full report
     const handleGenerateReport = () => {
         handleExportPDF('Payroll Summary');
     };
+
+    const filteredData = getFilteredData();
 
     return (
         <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
@@ -223,11 +280,7 @@ export default function AdminReports() {
                     Reports and Analytics
                 </Typography>
 
-                <Box
-                    sx={{
-                        display: "flex", alignItems: "center", flexWrap: "wrap",
-                    }}
-                >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <ActionButton
                         text={generating ? "Generating..." : "Generate Report"}
                         width="180px"
@@ -247,11 +300,9 @@ export default function AdminReports() {
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: 2,
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
+                    overflowY: "auto",
+                    "&::-webkit-scrollbar": { width: 6 },
+                    "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: 3 },
                 }}
             >
                 <Box
@@ -271,17 +322,41 @@ export default function AdminReports() {
                     >
                         Payroll Summary Report
                     </Typography>
-                    <Box sx={{ display: "flex", gap: 1 }}>
+                    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                        {/* Filter Buttons */}
+                        <Box sx={{ display: "flex", gap: 0.5, mr: 1 }}>
+                            {[
+                                { value: "all", label: "All" },
+                                { value: "high", label: "High (≥₱5k)" },
+                                { value: "medium", label: "Medium" },
+                                { value: "low", label: "Low (<₱2k)" }
+                            ].map((btn) => (
+                                <Button
+                                    key={btn.value}
+                                    onClick={() => setFilter(btn.value)}
+                                    sx={{
+                                        fontSize: "12px",
+                                        px: 1.5,
+                                        py: 0.5,
+                                        minWidth: "auto",
+                                        borderRadius: "8px",
+                                        textTransform: "none",
+                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                        backgroundColor: filter === btn.value ? "#1b2223" : "#e0e0e0",
+                                        color: filter === btn.value ? "#fff" : "#333",
+                                        "&:hover": {
+                                            backgroundColor: filter === btn.value ? "#2a3435" : "#d0d0d0",
+                                        },
+                                    }}
+                                >
+                                    {btn.label}
+                                </Button>
+                            ))}
+                        </Box>
                         <ActionButton
                             text="Export PDF"
-                            width="150px"
+                            width="120px"
                             onClick={() => handleExportPDF('Payroll Summary')}
-                        />
-                        <FilterSelect
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            options={[
-                            ]}
                         />
                     </Box>
                 </Box>
@@ -295,51 +370,71 @@ export default function AdminReports() {
                         flexDirection: { xs: "column", md: "row" },
                     }}
                 >
+                    {/* Deductions Bar Chart */}
                     <Box
                         sx={{
                             flex: 1.2,
                             height: 267,
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",                            borderRadius: "12px",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            fontStyle: "italic",
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "#fff",
+                            borderRadius: "12px",
+                            p: 2,
                             border: `1px solid ${theme.palette.divider}`,
                         }}
                     >
-                        (Chart/Graph Placeholder)
+                        <Typography sx={{ fontSize: "14px", fontFamily: "'TTHoves-DemiBold', sans-serif", mb: 1, color: theme.palette.text.primary }}>
+                            Top 10 Employee Deductions
+                        </Typography>
+                        {chartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="90%">
+                                <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₱${v/1000}k`} />
+                                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                                    <Legend wrapperStyle={{ fontSize: "10px" }} />
+                                    <Bar dataKey="Tax" fill="#1b2223" stackId="a" />
+                                    <Bar dataKey="SSS" fill="#3a4f50" stackId="a" />
+                                    <Bar dataKey="PhilHealth" fill="#5a7f80" stackId="a" />
+                                    <Bar dataKey="Pag-IBIG" fill="#7ab0b0" stackId="a" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <Box display="flex" justifyContent="center" alignItems="center" height="90%">
+                                <Typography sx={{ color: theme.palette.text.secondary, fontStyle: "italic" }}>
+                                    No chart data available
+                                </Typography>
+                            </Box>
+                        )}
                     </Box>
 
+                    {/* Deductions Table */}
                     <Box
                         sx={{
                             height: 278,
                             flex: 1.8,
                             display: "flex",
                             flexDirection: "column",
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "rgba(255, 255, 255, 0.1)",
                             border: `1px solid ${theme.palette.divider}`,
                             borderRadius: "15px",
                             p: 2,
-                            position: "sticky",
-                            mb: "0",
                         }}
                     >
                         <Box
                             sx={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(6, 1fr)",
+                                gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
                                 color: theme.palette.text.primary,
                                 fontWeight: 700,
                                 p: 1,
+                                fontSize: "13px",
                             }}
                         >
-                            <span style={{ textAlign: "center" }}>Employee</span>
+                            <span style={{ textAlign: "left", paddingLeft: "8px" }}>Employee</span>
                             <span style={{ textAlign: "center" }}>Tax</span>
                             <span style={{ textAlign: "center" }}>SSS</span>
                             <span style={{ textAlign: "center" }}>PhilHealth</span>
@@ -353,26 +448,26 @@ export default function AdminReports() {
                             flexDirection: "column",
                             gap: 1,
                             overflowY: "auto",
-                            "&::-webkit-scrollbar": { width: 0, height: 0 },
-                            scrollbarWidth: "none",
-                            msOverflowStyle: "none", }}
-                        >
+                            flex: 1,
+                            "&::-webkit-scrollbar": { width: 4 },
+                            "&::-webkit-scrollbar-thumb": { backgroundColor: "#ccc", borderRadius: 2 },
+                        }}>
                             {loading ? (
                                 <Box display="flex" justifyContent="center" alignItems="center" height="150px">
                                     <CircularProgress size={24} />
                                 </Box>
-                            ) : deductionData.length === 0 ? (
+                            ) : filteredData.length === 0 ? (
                                 <Box display="flex" justifyContent="center" alignItems="center" height="150px">
                                     <Typography sx={{ color: theme.palette.text.secondary }}>No data available</Typography>
                                 </Box>
                             ) : (
-                                deductionData.map((row, i) => (
+                                filteredData.map((row, i) => (
                                     <Box
                                         key={i}
                                         sx={{
                                             fontFamily: "'TTHoves-DemiBold', sans-serif",
                                             display: "grid",
-                                            gridTemplateColumns: "repeat(6, 1fr)",
+                                            gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
                                             borderRadius: "8px",
                                             alignItems: "center",
                                             minHeight: "45px",
@@ -385,12 +480,24 @@ export default function AdminReports() {
                                                 boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                                             },
                                             p: 1,
-                                            textAlign: "center",
+                                            fontSize: "12px",
                                         }}
                                     >
-                                        {row.map((cell, j) => (
-                                            <span key={j}>{cell}</span>
-                                        ))}
+                                        <span style={{ 
+                                            textAlign: "left", 
+                                            paddingLeft: "8px",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                            maxWidth: "100%"
+                                        }} title={row.name}>
+                                            {row.name}
+                                        </span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.tax)}</span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.sss)}</span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.philhealth)}</span>
+                                        <span style={{ textAlign: "center" }}>{formatCurrency(row.pagibig)}</span>
+                                        <span style={{ textAlign: "center", fontWeight: 700 }}>{formatCurrency(row.total)}</span>
                                     </Box>
                                 ))
                             )}
@@ -407,15 +514,16 @@ export default function AdminReports() {
                         mt: 2,
                     }}
                 >
+                    {/* Department Summary - Pie Chart */}
                     <Box
                         sx={{
                             borderRadius: "12px",
                             p: 2,
-                            backgroundColor:
-                                theme.palette.mode === "dark"
-                                    ? "rgba(255, 255, 255, 0.05)"
-                                    : "rgba(255, 255, 255, 0.1)",
-                            border: `1px solid ${theme.palette.divider}`,                          minHeight: 150,
+                            backgroundColor: theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.05)"
+                                : "#fff",
+                            border: `1px solid ${theme.palette.divider}`,
+                            minHeight: 150,
                             display: "flex",
                             flexDirection: "column",
                         }}
@@ -433,32 +541,48 @@ export default function AdminReports() {
                             </Typography>
                             <ActionButton
                                 text="Export PDF"
-                                width="150px"
+                                width="120px"
                                 onClick={() => handleExportPDF('Department Summary')}
                             />
                         </Box>
-                        <Box
-                            sx={{
-                                flex: 1,
-                                borderRadius: "10px",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                fontStyle: "italic",
-                                color: "#555",
-                            }}
-                        >
-                            (Chart/Graph Placeholder)
+                        <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                            {departmentData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={departmentData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={40}
+                                            outerRadius={70}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                            labelLine={false}
+                                        >
+                                            {departmentData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip formatter={(value) => `${value} employees`} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <Typography sx={{ color: theme.palette.text.secondary, fontStyle: "italic" }}>
+                                    No department data available
+                                </Typography>
+                            )}
                         </Box>
                     </Box>
 
+                    {/* Tax and Compliance - Bar Chart */}
                     <Box
                         sx={{
                             borderRadius: "12px",
                             p: 2,
                             backgroundColor: theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
-                                : "rgba(255, 255, 255, 0.1)",
+                                : "#fff",
                             border: `1px solid ${theme.palette.divider}`,
                             minHeight: 150,
                             display: "flex",
@@ -478,21 +602,28 @@ export default function AdminReports() {
                             </Typography>
                             <ActionButton
                                 text="Export PDF"
-                                width="150px"
+                                width="120px"
                                 onClick={() => handleExportPDF('Tax and Compliance')}
                             />
                         </Box>
-                        <Box
-                            sx={{
-                                flex: 1,
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                fontStyle: "italic",
-                                color: theme.palette.text.primary,
-                            }}
-                        >
-                            (Chart/Graph Placeholder)
+                        <Box sx={{ flex: 1 }}>
+                            {complianceData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={complianceData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                                        <YAxis tick={{ fontSize: 11 }} />
+                                        <Tooltip />
+                                        <Bar dataKey="count" fill="#1b2223" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                                    <Typography sx={{ color: theme.palette.text.secondary, fontStyle: "italic" }}>
+                                        No compliance data available
+                                    </Typography>
+                                </Box>
+                            )}
                         </Box>
                     </Box>
                 </Box>

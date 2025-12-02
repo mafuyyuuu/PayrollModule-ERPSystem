@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import express from 'express';
 import { payrollDB, hrDB } from '../db.js';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
 
@@ -32,6 +33,11 @@ router.get('/dashboard-stats', async (req, res) => {
             "SELECT COUNT(*) as count FROM Payroll WHERE status IN ('Pending', 'Processing')"
         );
 
+        // Count requests ready for payroll processing (Manager_Approved)
+        const [pendingRequests] = await payrollDB.query(
+            "SELECT COUNT(*) as count FROM Requests WHERE status = 'Manager_Approved'"
+        );
+
         // Get upcoming schedule from PayrollCutoffs
         const [upcomingSchedule] = await payrollDB.query(
             "SELECT pay_date FROM PayrollCutoffs WHERE pay_date >= CURDATE() ORDER BY pay_date ASC LIMIT 1"
@@ -41,6 +47,7 @@ router.get('/dashboard-stats', async (req, res) => {
             totalEmployees: totalEmployees[0]?.count || 0,
             processedPayouts: processedPayouts[0]?.count || 0,
             pendingPayouts: pendingPayouts[0]?.count || 0,
+            pendingRequests: pendingRequests[0]?.count || 0,
             upcomingSchedule: upcomingSchedule[0]?.pay_date || null
         });
     } catch (error) {
@@ -187,22 +194,29 @@ router.get('/payroll', async (req, res) => {
 });
 
 // 4. GET PENDING REQUESTS WITH FILTERS
+// Payroll sees: Manager_Approved (ready for processing) and Approved/Rejected (their history)
 router.get('/pending-requests', async (req, res) => {
     try {
         const { search, type, status, showAll } = req.query;
 
-        // If showAll is true, show all requests regardless of status
-        // Otherwise default to showing Pending requests only
+        // Payroll sees requests that are Manager_Approved (ready for second-level/processing)
+        // or Approved/Rejected (final status history)
         let query = `SELECT * FROM Requests`;
         const params = [];
 
-        if (!showAll) {
+        if (showAll === 'true') {
+            // Show all requests that payroll can see
+            query += ` WHERE status IN ('Manager_Approved', 'Approved', 'Rejected')`;
+        } else if (status && status !== 'all') {
             query += ` WHERE status = ?`;
-            params.push(status || 'Pending');
+            params.push(status);
+        } else {
+            // Default: show Manager_Approved (ready for payroll processing)
+            query += ` WHERE status = 'Manager_Approved'`;
         }
 
         if (type) {
-            query += params.length > 0 ? ` AND request_type = ?` : ` WHERE request_type = ?`;
+            query += params.length > 0 || showAll === 'true' ? ` AND request_type = ?` : ` AND request_type = ?`;
             params.push(type);
         }
 
@@ -255,78 +269,121 @@ router.get('/pending-requests', async (req, res) => {
     }
 });
 
-// 5. APPROVE REQUEST
+// 5. PAYROLL APPROVE REQUEST (Second-Level - Final Approval)
 router.put('/pending-requests/:id/approve', async (req, res) => {
     const { id } = req.params;
     const { approved_by, remarks } = req.body;
 
     try {
-        console.log(`📝 Approving request ID: ${id}`);
+        console.log(`[INFO] Payroll approving request ID: ${id} (second-level/final approval)`);
         
         // Get request details first
         const [requestDetails] = await payrollDB.query(
-            `SELECT employee_id, request_type FROM Requests WHERE request_id = ?`,
+            `SELECT employee_id, request_type, status FROM Requests WHERE request_id = ?`,
             [id]
         );
+
+        if (!requestDetails.length) {
+            return res.status(404).json({ error: 'Request not found' });
+        }
+
+        // Payroll can only approve Manager_Approved requests
+        if (requestDetails[0].status !== 'Manager_Approved') {
+            return res.status(400).json({ 
+                error: 'Invalid request status',
+                message: 'Only manager-approved requests can be processed by payroll',
+                currentStatus: requestDetails[0].status
+            });
+        }
         
+        // Final approval - this processes the request into payroll
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Approved', approved_by = ?, remarks = ?, updated_at = NOW()
-             WHERE request_id = ?`,
-            [approved_by, remarks || 'Approved', id]
+             SET status = 'Approved', 
+                 approved_by = ?, 
+                 remarks = ?, 
+                 updated_at = NOW()
+             WHERE request_id = ? AND status = 'Manager_Approved'`,
+            [approved_by, remarks || 'Processed by payroll team', id]
         );
 
         // Log activity
-        if (result.affectedRows > 0 && requestDetails.length > 0) {
+        if (result.affectedRows > 0) {
             await payrollDB.query(
                 `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, processed_by, description)
                  VALUES (?, ?, ?, ?, ?, ?)`,
-                ['APPROVE', 'Request', id, requestDetails[0].employee_id, approved_by, 
-                 `${requestDetails[0].request_type} request approved`]
+                ['PAYROLL_APPROVE', 'Request', id, requestDetails[0].employee_id, approved_by, 
+                 `${requestDetails[0].request_type} request processed and approved by payroll`]
             );
         }
 
-        console.log(`✅ Request ${id} approved. Affected rows: ${result.affectedRows}`);
-        res.json({ success: true, message: 'Request approved successfully', affectedRows: result.affectedRows });
+        console.log(`[SUCCESS] Request ${id} approved by payroll. Affected rows: ${result.affectedRows}`);
+        res.json({ 
+            success: true, 
+            message: 'Request processed and approved by payroll', 
+            affectedRows: result.affectedRows,
+            newStatus: 'Approved'
+        });
     } catch (error) {
         console.error('Error approving request:', error);
         res.status(500).json({ error: 'Failed to approve request', details: error.message });
     }
 });
 
-// 6. REJECT REQUEST
+// 6. PAYROLL REJECT REQUEST (Second-Level - Final Rejection)
 router.put('/pending-requests/:id/reject', async (req, res) => {
     const { id } = req.params;
     const { approved_by, remarks } = req.body;
 
     try {
-        console.log(`📝 Rejecting request ID: ${id}`);
+        console.log(`[INFO] Payroll rejecting request ID: ${id}`);
         
         // Get request details first
         const [requestDetails] = await payrollDB.query(
-            `SELECT employee_id, request_type FROM Requests WHERE request_id = ?`,
+            `SELECT employee_id, request_type, status FROM Requests WHERE request_id = ?`,
             [id]
         );
+
+        if (!requestDetails.length) {
+            return res.status(404).json({ error: 'Request not found' });
+        }
+
+        // Payroll can only reject Manager_Approved requests
+        if (requestDetails[0].status !== 'Manager_Approved') {
+            return res.status(400).json({ 
+                error: 'Invalid request status',
+                message: 'Only manager-approved requests can be rejected by payroll',
+                currentStatus: requestDetails[0].status
+            });
+        }
         
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Rejected', approved_by = ?, remarks = ?, updated_at = NOW()
-             WHERE request_id = ?`,
-            [approved_by, remarks || 'Rejected', id]
+             SET status = 'Rejected', 
+                 approved_by = ?, 
+                 remarks = ?, 
+                 updated_at = NOW()
+             WHERE request_id = ? AND status = 'Manager_Approved'`,
+            [approved_by, remarks || 'Rejected by payroll team', id]
         );
 
         // Log activity
-        if (result.affectedRows > 0 && requestDetails.length > 0) {
+        if (result.affectedRows > 0) {
             await payrollDB.query(
                 `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, processed_by, description)
                  VALUES (?, ?, ?, ?, ?, ?)`,
-                ['REJECT', 'Request', id, requestDetails[0].employee_id, approved_by, 
-                 `${requestDetails[0].request_type} request rejected: ${remarks || 'No reason provided'}`]
+                ['PAYROLL_REJECT', 'Request', id, requestDetails[0].employee_id, approved_by, 
+                 `${requestDetails[0].request_type} request rejected by payroll: ${remarks || 'No reason provided'}`]
             );
         }
 
-        console.log(`✅ Request ${id} rejected. Affected rows: ${result.affectedRows}`);
-        res.json({ success: true, message: 'Request rejected successfully', affectedRows: result.affectedRows });
+        console.log(`[SUCCESS] Request ${id} rejected by payroll. Affected rows: ${result.affectedRows}`);
+        res.json({ 
+            success: true, 
+            message: 'Request rejected by payroll', 
+            affectedRows: result.affectedRows,
+            newStatus: 'Rejected'
+        });
     } catch (error) {
         console.error('Error rejecting request:', error);
         res.status(500).json({ error: 'Failed to reject request', details: error.message });
@@ -796,7 +853,7 @@ router.put('/payroll/:id/approve', async (req, res) => {
         );
         
         const [result] = await payrollDB.query(
-            `UPDATE Payroll SET status = 'Approved', updated_at = NOW() WHERE payroll_id = ?`,
+            `UPDATE Payroll SET status = 'Processed', updated_at = NOW() WHERE payroll_id = ?`,
             [id]
         );
         
@@ -805,13 +862,13 @@ router.put('/payroll/:id/approve', async (req, res) => {
             await payrollDB.query(
                 `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, processed_by, description)
                  VALUES (?, ?, ?, ?, ?, ?)`,
-                ['APPROVE', 'Payroll', id, payrollDetails[0].employee_id, approved_by || null, 
-                 `Payslip approved for Employee ID ${payrollDetails[0].employee_id}`]
+                ['PROCESS', 'Payroll', id, payrollDetails[0].employee_id, approved_by || null, 
+                 `Payslip marked as processed for Employee ID ${payrollDetails[0].employee_id}`]
             );
         }
         
-        console.log(`✅ Payslip ${id} approved. Affected rows: ${result.affectedRows}`);
-        res.json({ success: true, message: 'Payslip approved successfully', affectedRows: result.affectedRows });
+        console.log(`[SUCCESS] Payslip ${id} marked as processed. Affected rows: ${result.affectedRows}`);
+        res.json({ success: true, message: 'Payslip marked as processed successfully', affectedRows: result.affectedRows });
     } catch (error) {
         console.error('Error approving payslip:', error);
         res.status(500).json({ error: 'Failed to approve payslip', details: error.message });
@@ -824,7 +881,7 @@ router.put('/payroll/:id/reject', async (req, res) => {
     const { comments, rejected_by } = req.body;
     
     try {
-        console.log(`📝 Rejecting payslip ID: ${id} with reason: ${comments}`);
+        console.log(`[INFO] Rejecting payslip ID: ${id} with reason: ${comments}`);
         
         // Get payroll details first
         const [payrollDetails] = await payrollDB.query(
@@ -847,7 +904,7 @@ router.put('/payroll/:id/reject', async (req, res) => {
             );
         }
         
-        console.log(`✅ Payslip ${id} rejected. Affected rows: ${result.affectedRows}`);
+        console.log(`[SUCCESS] Payslip ${id} rejected. Affected rows: ${result.affectedRows}`);
         res.json({ success: true, message: 'Payslip rejected successfully', affectedRows: result.affectedRows });
     } catch (error) {
         console.error('Error rejecting payslip:', error);
@@ -860,7 +917,7 @@ router.put('/payroll-release', async (req, res) => {
     const { payrollIds, released_by } = req.body;
     
     try {
-        console.log(`📝 Releasing payouts for IDs: ${payrollIds}`);
+        console.log(`[INFO] Releasing payouts for IDs: ${payrollIds}`);
         if (!payrollIds || payrollIds.length === 0) {
             return res.status(400).json({ error: 'No payroll IDs provided' });
         }
@@ -873,7 +930,7 @@ router.put('/payroll-release', async (req, res) => {
         );
         
         const [result] = await payrollDB.query(
-            `UPDATE Payroll SET status = 'Released', updated_at = NOW() WHERE payroll_id IN (${placeholders}) AND status = 'Approved'`,
+            `UPDATE Payroll SET status = 'Released', updated_at = NOW() WHERE payroll_id IN (${placeholders}) AND status = 'Processed'`,
             payrollIds
         );
         
@@ -889,7 +946,7 @@ router.put('/payroll-release', async (req, res) => {
             }
         }
         
-        console.log(`✅ Payouts released. Affected rows: ${result.affectedRows}`);
+        console.log(`[SUCCESS] Payouts released. Affected rows: ${result.affectedRows}`);
         res.json({ success: true, message: 'Payouts released successfully', affectedRows: result.affectedRows });
     } catch (error) {
         console.error('Error releasing payouts:', error);
@@ -1958,16 +2015,320 @@ router.delete('/cutoffs/:id', async (req, res) => {
         console.log(`Attempting to delete cutoff period with id: ${id}`);
         const [result] = await payrollDB.query(`DELETE FROM PayrollCutoffs WHERE cutoff_id = ?`, [id]);
         console.log('Delete result:', result);
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Cutoff period not found' });
         }
-        
+
         await logActivity('DELETE', 'PayrollCutoff', id, `Deleted cutoff period #${id}`);
         res.json({ success: true, message: 'Cutoff period deleted successfully', affectedRows: result.affectedRows });
     } catch (error) {
         console.error('Error deleting cutoff:', error);
         res.status(500).json({ error: 'Failed to delete cutoff period', details: error.message });
+    }
+});
+
+// =====================================================
+// EMAIL ENDPOINTS
+// =====================================================
+
+// Create email transporter
+const createTransporter = () => {
+    return nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        }
+    });
+};
+
+// POST send payslip emails
+router.post('/send-payslip-emails', async (req, res) => {
+    const { payrollIds } = req.body;
+
+    if (!payrollIds || !Array.isArray(payrollIds) || payrollIds.length === 0) {
+        return res.status(400).json({ error: 'No payroll IDs provided' });
+    }
+
+    try {
+        // Check if email is configured
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            return res.status(500).json({ 
+                error: 'Email not configured',
+                message: 'Please configure SMTP settings in the .env file'
+            });
+        }
+
+        const transporter = createTransporter();
+        const results = { sent: [], failed: [] };
+
+        for (const payrollId of payrollIds) {
+            try {
+                // Get payroll details
+                const [payrollRows] = await payrollDB.query(
+                    `SELECT p.*, pc.period_name, pc.start_date as cutoff_start_date, pc.end_date as cutoff_end_date
+                     FROM Payroll p
+                     LEFT JOIN PayrollCutoffs pc ON p.cutoff_start_date = pc.start_date AND p.cutoff_end_date = pc.end_date
+                     WHERE p.payroll_id = ?`,
+                    [payrollId]
+                );
+
+                if (!payrollRows.length) {
+                    results.failed.push({ payrollId, reason: 'Payroll not found' });
+                    continue;
+                }
+
+                const payroll = payrollRows[0];
+
+                // Get employee details from HR database
+                const [empRows] = await hrDB.query(
+                    `SELECT e.*, 
+                            CONCAT(e.first_name, ' ', e.last_name) as full_name,
+                            p.position_name,
+                            d.department_name
+                     FROM employees e
+                     LEFT JOIN positions p ON e.position_id = p.position_id
+                     LEFT JOIN departments d ON e.department_id = d.department_id
+                     WHERE e.employee_id = ?`,
+                    [payroll.employee_id]
+                );
+
+                if (!empRows.length || !empRows[0].email) {
+                    results.failed.push({ 
+                        payrollId, 
+                        employeeId: payroll.employee_id,
+                        reason: 'Employee email not found' 
+                    });
+                    continue;
+                }
+
+                const employee = empRows[0];
+                const periodStart = new Date(payroll.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const periodEnd = new Date(payroll.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                // Send email
+                await transporter.sendMail({
+                    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+                    to: employee.email,
+                    subject: `Payslip for ${periodStart} - ${periodEnd}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #1F2829;">Payslip Notification</h2>
+                            <p>Dear ${employee.full_name},</p>
+                            <p>Your payslip for the period <strong>${periodStart} - ${periodEnd}</strong> is now available.</p>
+                            
+                            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                <h3 style="margin-top: 0; color: #1F2829;">Pay Summary</h3>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd;">Basic Pay</td>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd; text-align: right;">PHP ${parseFloat(payroll.basic_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd;">Overtime Pay</td>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd; text-align: right;">PHP ${parseFloat(payroll.overtime_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd;">Bonuses</td>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd; text-align: right;">PHP ${parseFloat(payroll.bonuses || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd;">Deductions</td>
+                                        <td style="padding: 8px 0; border-bottom: 1px solid #ddd; text-align: right; color: #d32f2f;">-PHP ${parseFloat(payroll.deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                    <tr style="font-weight: bold;">
+                                        <td style="padding: 12px 0;">Net Pay</td>
+                                        <td style="padding: 12px 0; text-align: right; color: #4CAF50; font-size: 18px;">PHP ${parseFloat(payroll.net_pay || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <p style="color: #666; font-size: 14px;">
+                                This is an automated message from the Payroll Management System. 
+                                Please log in to the system to view your full payslip and download a PDF copy.
+                            </p>
+                            
+                            <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+                                If you have any questions regarding your payslip, please contact the HR or Payroll department.
+                            </p>
+                        </div>
+                    `
+                });
+
+                results.sent.push({ 
+                    payrollId, 
+                    employeeId: payroll.employee_id,
+                    employeeName: employee.full_name,
+                    email: employee.email 
+                });
+
+                await logActivity('EMAIL_SENT', 'Payroll', payrollId, 
+                    `Payslip email sent to ${employee.full_name} (${employee.email})`);
+
+            } catch (emailError) {
+                console.error(`Error sending email for payroll ${payrollId}:`, emailError);
+                results.failed.push({ 
+                    payrollId, 
+                    reason: emailError.message 
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Sent ${results.sent.length} email(s), ${results.failed.length} failed`,
+            results
+        });
+
+    } catch (error) {
+        console.error('Error sending payslip emails:', error);
+        res.status(500).json({ error: 'Failed to send emails', details: error.message });
+    }
+});
+
+// GET payroll grouped by period with priority
+router.get('/payroll-by-period', async (req, res) => {
+    try {
+        // Get all payroll records with cutoff info
+        const [payrolls] = await payrollDB.query(`
+            SELECT 
+                p.payroll_id,
+                p.employee_id,
+                p.cutoff_start_date,
+                p.cutoff_end_date,
+                p.pay_date,
+                p.basic_pay,
+                p.overtime_pay,
+                p.bonuses,
+                p.deductions,
+                p.net_pay,
+                p.status,
+                p.comments,
+                p.created_at,
+                p.updated_at,
+                pc.period_name,
+                pc.cutoff_id
+            FROM Payroll p
+            LEFT JOIN PayrollCutoffs pc ON p.cutoff_start_date = pc.start_date AND p.cutoff_end_date = pc.end_date
+            ORDER BY p.pay_date ASC, p.created_at ASC
+        `);
+
+        // Group by period
+        const periodMap = new Map();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        for (const payroll of payrolls) {
+            const periodKey = `${payroll.cutoff_start_date}_${payroll.cutoff_end_date}`;
+            
+            if (!periodMap.has(periodKey)) {
+                const payDate = new Date(payroll.pay_date);
+                payDate.setHours(0, 0, 0, 0);
+                const daysUntilPayDate = Math.ceil((payDate - today) / (1000 * 60 * 60 * 24));
+                
+                periodMap.set(periodKey, {
+                    periodKey,
+                    periodName: payroll.period_name || `${new Date(payroll.cutoff_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(payroll.cutoff_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+                    cutoffStartDate: payroll.cutoff_start_date,
+                    cutoffEndDate: payroll.cutoff_end_date,
+                    payDate: payroll.pay_date,
+                    daysUntilPayDate,
+                    urgency: daysUntilPayDate <= 0 ? 'overdue' : daysUntilPayDate <= 3 ? 'urgent' : daysUntilPayDate <= 7 ? 'soon' : 'normal',
+                    payrolls: [],
+                    stats: {
+                        total: 0,
+                        pending: 0,
+                        processed: 0,
+                        released: 0,
+                        rejected: 0,
+                        totalAmount: 0
+                    }
+                });
+            }
+
+            // Get employee details
+            let employeeName = `Employee ${payroll.employee_id}`;
+            let email = '';
+            let department = 'N/A';
+            let position = 'N/A';
+
+            try {
+                const [empRows] = await hrDB.query(
+                    `SELECT CONCAT(e.first_name, ' ', e.last_name) as name, e.email,
+                            d.department_name, p.position_name
+                     FROM employees e
+                     LEFT JOIN departments d ON e.department_id = d.department_id
+                     LEFT JOIN positions p ON e.position_id = p.position_id
+                     WHERE e.employee_id = ?`,
+                    [payroll.employee_id]
+                );
+                if (empRows.length) {
+                    employeeName = empRows[0].name;
+                    email = empRows[0].email || '';
+                    department = empRows[0].department_name || 'N/A';
+                    position = empRows[0].position_name || 'N/A';
+                }
+            } catch (_e) { /* ignore */ }
+
+            const period = periodMap.get(periodKey);
+            const grossPay = parseFloat(payroll.basic_pay || 0) + parseFloat(payroll.overtime_pay || 0) + parseFloat(payroll.bonuses || 0);
+            
+            period.payrolls.push({
+                payrollId: payroll.payroll_id,
+                employeeId: payroll.employee_id,
+                employeeNumber: `EMP-${String(payroll.employee_id).padStart(3, '0')}`,
+                employeeName,
+                email,
+                department,
+                position,
+                basicPay: parseFloat(payroll.basic_pay || 0),
+                overtimePay: parseFloat(payroll.overtime_pay || 0),
+                bonuses: parseFloat(payroll.bonuses || 0),
+                grossPay,
+                deductions: parseFloat(payroll.deductions || 0),
+                netPay: parseFloat(payroll.net_pay || 0),
+                status: payroll.status || 'Pending',
+                comments: payroll.comments || '',
+                createdAt: payroll.created_at,
+                updatedAt: payroll.updated_at,
+                waitingDays: Math.ceil((today - new Date(payroll.created_at)) / (1000 * 60 * 60 * 24))
+            });
+
+            // Update stats
+            period.stats.total++;
+            period.stats.totalAmount += parseFloat(payroll.net_pay || 0);
+            switch ((payroll.status || 'Pending').toLowerCase()) {
+                case 'pending': period.stats.pending++; break;
+                case 'processed': period.stats.processed++; break;
+                case 'released': period.stats.released++; break;
+                case 'rejected': period.stats.rejected++; break;
+            }
+        }
+
+        // Convert to array and sort by urgency
+        const periods = Array.from(periodMap.values())
+            .sort((a, b) => {
+                // Sort by urgency first, then by pay date
+                const urgencyOrder = { overdue: 0, urgent: 1, soon: 2, normal: 3 };
+                if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+                    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+                }
+                return new Date(a.payDate) - new Date(b.payDate);
+            });
+
+        // Sort payrolls within each period by waiting time (longest first)
+        periods.forEach(period => {
+            period.payrolls.sort((a, b) => b.waitingDays - a.waitingDays);
+        });
+
+        res.json(periods);
+
+    } catch (error) {
+        console.error('Error fetching payroll by period:', error);
+        res.status(500).json({ error: 'Failed to fetch payroll data', details: error.message });
     }
 });
 

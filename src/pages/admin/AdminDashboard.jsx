@@ -2,9 +2,11 @@ import { Box, useTheme, CircularProgress } from "@mui/material";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import { BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalEmployees: 0,
@@ -24,15 +26,14 @@ const AdminDashboard = () => {
                     setStats(statsData);
                 }
 
-                // Fetch notifications
-                const notifResponse = await fetch('http://localhost:8080/api/admin/notifications');
+                // Fetch recent activity (limit to 5 for dashboard)
+                const notifResponse = await fetch('http://localhost:8080/api/admin/notifications?limit=5');
                 if (notifResponse.ok) {
                     const notifData = await notifResponse.json();
-                    setNotifications(notifData);
+                    setNotifications(notifData.slice(0, 5));
                 }
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
-                // No fallback data - show empty state
                 setNotifications([]);
             } finally {
                 setLoading(false);
@@ -56,20 +57,6 @@ const AdminDashboard = () => {
             day: 'numeric',
             year: 'numeric'
         });
-    };
-
-    const handleClearNotifications = async () => {
-        try {
-            const response = await fetch('http://localhost:8080/api/admin/activity-logs', {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                setNotifications([]);
-            }
-        } catch (error) {
-            console.error('Error clearing activity logs:', error);
-            setNotifications([]);
-        }
     };
 
     return (
@@ -148,22 +135,23 @@ const AdminDashboard = () => {
                                 color: theme.palette.text.primary,
                             }}
                         >
-                            System Activity Logs
+                            Recent Activity
                         </span>
                     </Box>
                     <button
-                        onClick={handleClearNotifications}
+                        onClick={() => navigate('/admin/audit')}
                         style={{
                             background: "transparent",
-                            color: theme.palette.text.primary,
+                            color: theme.palette.primary.main,
                             padding: "6px 14px",
                             border: "none",
                             cursor: "pointer",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            fontSize: "18px",
+                            fontSize: "14px",
+                            textDecoration: "underline",
                         }}
                     >
-                        Clear All
+                        View All
                     </button>
                 </Box>
 
@@ -188,7 +176,7 @@ const AdminDashboard = () => {
                             flex: 1,
                             color: theme.palette.text.secondary 
                         }}>
-                            No activity logs to display
+                            No recent activity
                         </Box>
                     ) : (
                         notifications.map((notif, index) => (

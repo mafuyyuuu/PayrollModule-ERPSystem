@@ -13,9 +13,9 @@ export const payrollDB = mysql.createPool({
 
 // This is the HR database with employee data
 export const hrDB = mysql.createPool({
-    host: process.env.EMP_DB_HOST || '26.212.193.34',
-    user: process.env.EMP_DB_USER || 'payroll',
-    password: process.env.EMP_DB_PASSWORD || 'payroll',
+    host: process.env.EMP_DB_HOST || 'localhost',
+    user: process.env.EMP_DB_USER || 'root',
+    password: process.env.EMP_DB_PASSWORD || 'root',
     database: process.env.EMP_DB_NAME || 'employee_management_system',
     port: process.env.EMP_DB_PORT || 3306
 });

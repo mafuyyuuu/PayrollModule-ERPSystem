@@ -28,6 +28,7 @@ export default function AdminUserManagement() {
     const [saving, setSaving] = useState(false);
     const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
     const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
+    const [availableEmployees, setAvailableEmployees] = useState([]);
 
     // Role options
     const roleOptions = [
@@ -43,6 +44,7 @@ export default function AdminUserManagement() {
         fetchEmployeeTypes();
         fetchDepartments();
         fetchPositions();
+        fetchAvailableEmployees();
     }, []);
 
     const fetchUsers = async () => {
@@ -56,6 +58,18 @@ export default function AdminUserManagement() {
             console.error('Error fetching users:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAvailableEmployees = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/admin/available-employees');
+            if (response.ok) {
+                const data = await response.json();
+                setAvailableEmployees(data);
+            }
+        } catch (error) {
+            console.error('Error fetching available employees:', error);
         }
     };
 
@@ -103,6 +117,7 @@ export default function AdminUserManagement() {
     const handleAddUser = () => {
         setSelectedUser({
             id: "", 
+            employeeId: "",
             firstName: "",
             middleName: "",
             lastName: "",
@@ -111,23 +126,37 @@ export default function AdminUserManagement() {
             role: "", 
             roleId: "", 
             status: "Active",
-            employeeTypeId: "",
-            departmentId: "",
-            positionId: "",
             password: ""
         });
         setUploadedPhotos([]);
         setIsEditing(false);
+        fetchAvailableEmployees(); // Refresh list when opening modal
         setUserModalOpen(true);
+    };
+
+    const handleEmployeeSelect = (employeeId) => {
+        const employee = availableEmployees.find(e => e.employee_id === parseInt(employeeId));
+        if (employee) {
+            setSelectedUser(prev => ({
+                ...prev,
+                employeeId: employee.employee_id,
+                firstName: employee.first_name,
+                middleName: employee.middle_name || "",
+                lastName: employee.last_name,
+                email: employee.email || "",
+                username: employee.email ? employee.email.split('@')[0] : `${employee.first_name.toLowerCase()}.${employee.last_name.toLowerCase()}`
+            }));
+        }
     };
 
     const handleEditUser = (user) => {
         setSelectedUser({
             ...user,
+            firstName: user.firstName || "",
+            middleName: user.middleName || "",
+            lastName: user.lastName || "",
             roleId: user.role_id || user.roleId || "",
-            employeeTypeId: user.employee_type_id || "",
-            departmentId: user.department_id || "",
-            positionId: user.position_id || ""
+            employeeId: user.employeeId || user.employee_id || ""
         });
         setUploadedPhotos([]);
         setIsEditing(true);
@@ -160,12 +189,8 @@ export default function AdminUserManagement() {
 
     const validateAndShowSaveConfirm = () => {
         // Validate required fields
-        if (!selectedUser?.firstName?.trim()) {
-            alert('First name is required');
-            return;
-        }
-        if (!selectedUser?.lastName?.trim()) {
-            alert('Last name is required');
+        if (!isEditing && !selectedUser?.employeeId) {
+            alert('Please select an employee');
             return;
         }
         if (!selectedUser?.username?.trim()) {
@@ -192,7 +217,6 @@ export default function AdminUserManagement() {
         setSaveConfirmModalOpen(false);
         setSaving(true);
         try {
-            // First, create/update the user account
             const url = isEditing 
                 ? `http://localhost:8080/api/admin/users/${selectedUser.id}`
                 : 'http://localhost:8080/api/admin/users';
@@ -205,13 +229,7 @@ export default function AdminUserManagement() {
                 role_id: parseInt(selectedUser.roleId),
                 status: selectedUser.status || 'Active',
                 password: isEditing ? undefined : selectedUser.password,
-                // Employee data
-                first_name: selectedUser.firstName.trim(),
-                middle_name: selectedUser.middleName?.trim() || null,
-                last_name: selectedUser.lastName.trim(),
-                employee_type_id: selectedUser.employeeTypeId || null,
-                department_id: selectedUser.departmentId || null,
-                position_id: selectedUser.positionId || null
+                employee_id: selectedUser.employeeId ? parseInt(selectedUser.employeeId) : null
             };
 
             console.log('Sending user data:', userData);
@@ -225,18 +243,25 @@ export default function AdminUserManagement() {
             const result = await response.json();
 
             if (response.ok) {
-                // Upload photos if any
-                if (uploadedPhotos.length > 0 && result.employee_id) {
+                // Upload photos if any (only for Employee role)
+                const empId = result.employee_id || selectedUser.employeeId;
+                if (uploadedPhotos.length > 0 && empId && selectedUser.roleId === 4) {
                     const formData = new FormData();
                     uploadedPhotos.forEach((photo) => {
                         formData.append('photos', photo.file);
                     });
-                    formData.append('employee_id', result.employee_id);
+                    formData.append('employee_id', empId);
+                    formData.append('role_id', selectedUser.roleId);
 
-                    await fetch('http://localhost:8080/api/admin/users/photos', {
+                    const photoResponse = await fetch('http://localhost:8080/api/admin/users/photos', {
                         method: 'POST',
                         body: formData
                     });
+
+                    const photoResult = await photoResponse.json();
+                    if (!photoResult.success) {
+                        console.error('Photo upload failed:', photoResult.error);
+                    }
                 }
 
                 fetchUsers();
@@ -272,11 +297,22 @@ export default function AdminUserManagement() {
         }
     };
 
-    // Filter users by search term
-    const filteredUsers = users.filter(user =>
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.username?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter state for role/status
+    const [roleFilter, setRoleFilter] = useState("all");
+
+    // Get unique roles and statuses for filter buttons
+    const uniqueRoles = [...new Set(users.map(u => u.role).filter(Boolean))];
+    const uniqueStatuses = [...new Set(users.map(u => u.status).filter(Boolean))];
+
+    // Filter users by search term and role/status filter
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.username?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesRole = roleFilter === "all" || 
+            user.role === roleFilter || 
+            user.status === roleFilter;
+        return matchesSearch && matchesRole;
+    });
 
     return (
         <Box
@@ -311,27 +347,81 @@ export default function AdminUserManagement() {
 
                     <SearchBar 
                         placeholder="Enter Username" 
-                        width="350px"
+                        width="300px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </Box>
             </Box>
 
+            {/* Filter Buttons */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+                <Button
+                    onClick={() => setRoleFilter("all")}
+                    sx={{
+                        fontSize: "12px",
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: roleFilter === "all" ? "#1b2223" : "#e0e0e0",
+                        color: roleFilter === "all" ? "#fff" : "#333",
+                        "&:hover": { backgroundColor: roleFilter === "all" ? "#2a3435" : "#d0d0d0" },
+                    }}
+                >
+                    All Users
+                </Button>
+                {uniqueRoles.map((role) => (
+                    <Button
+                        key={role}
+                        onClick={() => setRoleFilter(role)}
+                        sx={{
+                            fontSize: "12px",
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: "8px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: roleFilter === role ? "#1b2223" : "#e0e0e0",
+                            color: roleFilter === role ? "#fff" : "#333",
+                            "&:hover": { backgroundColor: roleFilter === role ? "#2a3435" : "#d0d0d0" },
+                        }}
+                    >
+                        {role}
+                    </Button>
+                ))}
+                {uniqueStatuses.map((status) => (
+                    <Button
+                        key={status}
+                        onClick={() => setRoleFilter(status)}
+                        sx={{
+                            fontSize: "12px",
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: "8px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: roleFilter === status ? "#1b2223" : "#e0e0e0",
+                            color: roleFilter === status ? "#fff" : "#333",
+                            "&:hover": { backgroundColor: roleFilter === status ? "#2a3435" : "#d0d0d0" },
+                        }}
+                    >
+                        {status}
+                    </Button>
+                ))}
+            </Box>
+
             <Box
                 sx={{
-                    height: "90.9%",
+                    height: "calc(100% - 100px)",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
                     p: "12px 24px",
-                    transition: "all 0.3s ease",
                     display: "flex",
                     flexDirection: "column",
-                    "&:hover": {
-                        transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                    },
                 }}
             >
                 <Box
@@ -437,18 +527,54 @@ export default function AdminUserManagement() {
                     {isEditing ? "Edit User" : "Add New User"}
                 </Typography>
 
-                {/* Row 1: First Name, Middle Name, Last Name */}
+                {/* Employee Selection (only for new users) */}
+                {!isEditing && (
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, mb: 2}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                            Select Employee *
+                        </Typography>
+                        <Select
+                            value={selectedUser?.employeeId || ""}
+                            onChange={(e) => handleEmployeeSelect(e.target.value)}
+                            displayEmpty
+                            size="small"
+                            sx={{
+                                borderRadius: "10px",
+                                backgroundColor: "#cacace",
+                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                            }}
+                            renderValue={(selected) => {
+                                if (!selected) return <span style={{color: "#888"}}>Select an employee</span>;
+                                const emp = availableEmployees.find(e => e.employee_id === parseInt(selected));
+                                return emp ? `${emp.first_name} ${emp.last_name}` : selected;
+                            }}
+                        >
+                            {availableEmployees.length === 0 ? (
+                                <MenuItem disabled>No employees without accounts</MenuItem>
+                            ) : (
+                                availableEmployees.map((emp) => (
+                                    <MenuItem key={emp.employee_id} value={emp.employee_id}>
+                                        {emp.first_name} {emp.last_name} - {emp.department || 'No Dept'}
+                                    </MenuItem>
+                                ))
+                            )}
+                        </Select>
+                    </Box>
+                )}
+
+                {/* Row 1: Name display (read-only when creating, shows selected employee) */}
                 <Box sx={{display: "flex", gap: 1, mb: 2}}>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
                         <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
-                            First Name *
+                            First Name
                         </Typography>
                         <TextField
-                            placeholder="Enter first name"
+                            placeholder="First name"
                             value={selectedUser?.firstName || ""}
                             onChange={(e) => setSelectedUser(prev => ({...prev, firstName: e.target.value}))}
                             variant="outlined"
                             size="small"
+                            disabled={!isEditing}
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
@@ -463,11 +589,12 @@ export default function AdminUserManagement() {
                             Middle Name
                         </Typography>
                         <TextField
-                            placeholder="Enter middle name"
+                            placeholder="Middle name"
                             value={selectedUser?.middleName || ""}
                             onChange={(e) => setSelectedUser(prev => ({...prev, middleName: e.target.value}))}
                             variant="outlined"
                             size="small"
+                            disabled={!isEditing}
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
@@ -479,14 +606,15 @@ export default function AdminUserManagement() {
                     </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
                         <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
-                            Last Name *
+                            Last Name
                         </Typography>
                         <TextField
-                            placeholder="Enter last name"
+                            placeholder="Last name"
                             value={selectedUser?.lastName || ""}
                             onChange={(e) => setSelectedUser(prev => ({...prev, lastName: e.target.value}))}
                             variant="outlined"
                             size="small"
+                            disabled={!isEditing}
                             sx={{
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
@@ -618,194 +746,103 @@ export default function AdminUserManagement() {
                     </Box>
                 </Box>
 
-                {/* Employee-specific fields (shown when role is Employee) */}
+                {/* Photo Upload Section - Only shown when role is Employee (roleId === 4) */}
                 {selectedUser?.roleId === 4 && (
-                    <>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px", mt: 2, mb: 1}}>
-                            Employee Details
+                    <Box sx={{mb: 2}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px", mb: 1}}>
+                            Employee Photos (for Face Recognition)
                         </Typography>
                         
-                        <Box sx={{display: "flex", gap: 1, mb: 2}}>
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
-                                    Employment Type *
-                                </Typography>
-                                <Select
-                                    value={selectedUser?.employeeTypeId || ""}
-                                    onChange={(e) => setSelectedUser(prev => ({...prev, employeeTypeId: e.target.value}))}
-                                    displayEmpty
-                                    size="small"
-                                    sx={{
-                                        backgroundColor: "#cacace",
-                                        borderRadius: "10px",
-                                        "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                    }}
-                                    renderValue={(selected) => {
-                                        if (!selected) return <span style={{color: "#828689"}}>Select Type</span>;
-                                        return employeeTypes.find(t => t.employee_type_id === selected)?.employee_type_name || selected;
-                                    }}
-                                >
-                                    {employeeTypes.map((type) => (
-                                        <MenuItem key={type.employee_type_id} value={type.employee_type_id}>
-                                            {type.employee_type_name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Box>
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
-                                    Department *
-                                </Typography>
-                                <Select
-                                    value={selectedUser?.departmentId || ""}
-                                    onChange={(e) => setSelectedUser(prev => ({...prev, departmentId: e.target.value}))}
-                                    displayEmpty
-                                    size="small"
-                                    sx={{
-                                        backgroundColor: "#cacace",
-                                        borderRadius: "10px",
-                                        "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                    }}
-                                    renderValue={(selected) => {
-                                        if (!selected) return <span style={{color: "#828689"}}>Select Department</span>;
-                                        return departments.find(d => d.department_id === selected)?.department_name || selected;
-                                    }}
-                                >
-                                    {departments.map((dept) => (
-                                        <MenuItem key={dept.department_id} value={dept.department_id}>
-                                            {dept.department_name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Box>
-                        </Box>
-
-                        <Box sx={{display: "flex", gap: 1, mb: 2}}>
-                            <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
-                                    Position *
-                                </Typography>
-                                <Select
-                                    value={selectedUser?.positionId || ""}
-                                    onChange={(e) => setSelectedUser(prev => ({...prev, positionId: e.target.value}))}
-                                    displayEmpty
-                                    size="small"
-                                    sx={{
-                                        backgroundColor: "#cacace",
-                                        borderRadius: "10px",
-                                        "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                    }}
-                                    renderValue={(selected) => {
-                                        if (!selected) return <span style={{color: "#828689"}}>Select Position</span>;
-                                        return positions.find(p => p.position_id === selected)?.position_name || selected;
-                                    }}
-                                >
-                                    {positions.map((pos) => (
-                                        <MenuItem key={pos.position_id} value={pos.position_id}>
-                                            {pos.position_name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Box>
-                        </Box>
-
-                        {/* Photo Upload Section */}
-                        <Box sx={{mb: 2}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px", mb: 1}}>
-                                Employee Photos (for Face Recognition)
-                            </Typography>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handlePhotoUpload}
+                            accept="image/*"
+                            multiple
+                            style={{ display: 'none' }}
+                        />
+                                
+                        {/* Photo Upload Container with photos inside */}
+                        <Box
+                            sx={{
+                                backgroundColor: "rgba(255,255,255,0.1)",
+                                borderRadius: "10px",
+                                border: "2px dashed rgba(255,255,255,0.3)",
+                                width: "100%",
+                                minHeight: "120px",
+                                p: 2,
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 1,
+                                alignItems: "center",
+                                justifyContent: uploadedPhotos.length === 0 ? "center" : "flex-start",
+                            }}
+                        >
+                            {/* Show uploaded photos inside the container */}
+                            {uploadedPhotos.map((photo, index) => (
+                                <Box key={index} sx={{ position: "relative" }}>
+                                    <img
+                                        src={photo.preview}
+                                        alt={`Preview ${index + 1}`}
+                                        style={{
+                                            width: "80px",
+                                            height: "80px",
+                                            objectFit: "cover",
+                                            borderRadius: "8px"
+                                        }}
+                                    />
+                                    <IconButton
+                                        onClick={() => removePhoto(index)}
+                                        sx={{
+                                            position: "absolute",
+                                            top: -8,
+                                            right: -8,
+                                            backgroundColor: "#f44336",
+                                            color: "#fff",
+                                            width: 20,
+                                            height: 20,
+                                            "&:hover": { backgroundColor: "#d32f2f" }
+                                        }}
+                                    >
+                                        <RiCloseLine style={{ fontSize: "14px" }} />
+                                    </IconButton>
+                                </Box>
+                            ))}
                             
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handlePhotoUpload}
-                                accept="image/*"
-                                multiple
-                                style={{ display: 'none' }}
-                            />
-                            
-                            {/* Photo Upload Container with photos inside */}
+                            {/* Add button - shows + when photos exist, or upload prompt when empty */}
                             <Box
+                                onClick={() => fileInputRef.current?.click()}
                                 sx={{
-                                    backgroundColor: "rgba(255,255,255,0.1)",
-                                    borderRadius: "10px",
-                                    border: "2px dashed rgba(255,255,255,0.3)",
-                                    width: "100%",
-                                    minHeight: "120px",
-                                    p: 2,
+                                    width: uploadedPhotos.length > 0 ? "80px" : "100%",
+                                    height: uploadedPhotos.length > 0 ? "80px" : "auto",
                                     display: "flex",
-                                    flexWrap: "wrap",
-                                    gap: 1,
+                                    flexDirection: "column",
                                     alignItems: "center",
-                                    justifyContent: uploadedPhotos.length === 0 ? "center" : "flex-start",
+                                    justifyContent: "center",
+                                    cursor: "pointer",
+                                    borderRadius: "8px",
+                                    backgroundColor: uploadedPhotos.length > 0 ? "rgba(255,255,255,0.15)" : "transparent",
+                                    border: uploadedPhotos.length > 0 ? "2px dashed rgba(255,255,255,0.4)" : "none",
+                                    transition: "all 0.2s ease",
+                                    py: uploadedPhotos.length > 0 ? 0 : 2,
+                                    "&:hover": {
+                                        backgroundColor: "rgba(255,255,255,0.2)",
+                                    }
                                 }}
                             >
-                                {/* Show uploaded photos inside the container */}
-                                {uploadedPhotos.map((photo, index) => (
-                                    <Box key={index} sx={{ position: "relative" }}>
-                                        <img
-                                            src={photo.preview}
-                                            alt={`Preview ${index + 1}`}
-                                            style={{
-                                                width: "80px",
-                                                height: "80px",
-                                                objectFit: "cover",
-                                                borderRadius: "8px"
-                                            }}
-                                        />
-                                        <IconButton
-                                            onClick={() => removePhoto(index)}
-                                            sx={{
-                                                position: "absolute",
-                                                top: -8,
-                                                right: -8,
-                                                backgroundColor: "#f44336",
-                                                color: "#fff",
-                                                width: 20,
-                                                height: 20,
-                                                "&:hover": { backgroundColor: "#d32f2f" }
-                                            }}
-                                        >
-                                            <RiCloseLine style={{ fontSize: "14px" }} />
-                                        </IconButton>
-                                    </Box>
-                                ))}
-                                
-                                {/* Add button - shows + when photos exist, or upload prompt when empty */}
-                                <Box
-                                    onClick={() => fileInputRef.current?.click()}
-                                    sx={{
-                                        width: uploadedPhotos.length > 0 ? "80px" : "100%",
-                                        height: uploadedPhotos.length > 0 ? "80px" : "auto",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        cursor: "pointer",
-                                        borderRadius: "8px",
-                                        backgroundColor: uploadedPhotos.length > 0 ? "rgba(255,255,255,0.15)" : "transparent",
-                                        border: uploadedPhotos.length > 0 ? "2px dashed rgba(255,255,255,0.4)" : "none",
-                                        transition: "all 0.2s ease",
-                                        py: uploadedPhotos.length > 0 ? 0 : 2,
-                                        "&:hover": {
-                                            backgroundColor: "rgba(255,255,255,0.2)",
-                                        }
-                                    }}
-                                >
-                                    {uploadedPhotos.length > 0 ? (
-                                        <Typography sx={{ fontSize: "32px", color: "#fff", fontWeight: "bold" }}>+</Typography>
-                                    ) : (
-                                        <>
-                                            <RiUploadCloud2Line style={{ fontSize: "24px", color: "#fff", marginBottom: "8px" }} />
-                                            <Typography sx={{ color: "#fff", fontSize: "14px" }}>
-                                                Click to upload photos
-                                            </Typography>
-                                        </>
-                                    )}
-                                </Box>
+                                {uploadedPhotos.length > 0 ? (
+                                    <Typography sx={{ fontSize: "32px", color: "#fff", fontWeight: "bold" }}>+</Typography>
+                                ) : (
+                                    <>
+                                        <RiUploadCloud2Line style={{ fontSize: "24px", color: "#fff", marginBottom: "8px" }} />
+                                        <Typography sx={{ color: "#fff", fontSize: "14px" }}>
+                                            Click to upload photos
+                                        </Typography>
+                                    </>
+                                )}
                             </Box>
                         </Box>
-                    </>
+                    </Box>
                 )}
 
                 {/* Action Buttons */}

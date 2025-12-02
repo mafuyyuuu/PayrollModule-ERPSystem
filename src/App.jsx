@@ -18,7 +18,6 @@ import Layout from "./components/Layout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminConfiguration from "./pages/admin/AdminConfiguration.jsx";
 import AdminUserManagement from "./pages/admin/AdminUserManagement.jsx";
-import AdminApprovals from "./pages/admin/AdminApprovals.jsx";
 import AdminReports from "./pages/admin/AdminReports.jsx";
 import AdminPayrollSetup from "./pages/admin/AdminPayrollSetup.jsx";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs.jsx";
@@ -70,7 +69,6 @@ function App() {
                                             <Route path="dashboard" element={<AdminDashboard />} />
                                             <Route path="configuration" element={<AdminConfiguration />} />
                                             <Route path="user" element={<AdminUserManagement />} />
-                                            <Route path="approvals" element={<AdminApprovals />} />
                                             <Route path="reports" element={<AdminReports />} />
                                             <Route path="setup" element={<AdminPayrollSetup />} />
                                             <Route path="audit" element={<AdminAuditLogs />} />

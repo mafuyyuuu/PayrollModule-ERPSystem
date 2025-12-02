@@ -81,13 +81,13 @@ def log_attendance_to_db(employee_id, name, action, timestamp, time_out=None):
 
         if action == "check_in":
             if record:
-                print(f"ℹ️ {name} already checked in today (ID: {employee_id})")
+                print(f"[INFO] {name} already checked in today (ID: {employee_id})")
             else:
                 cursor.execute("""
                                INSERT INTO timesheets (employee_id, date, time_in)
                                VALUES (%s, %s, %s)
                                """, (employee_id, date_str, time_str))
-                print(f"✅ {name} checked in at {time_str}")
+                print(f"[SUCCESS] {name} checked in at {time_str}")
 
         elif action == "check_out":
             if record and record[2] is None:
@@ -108,16 +108,16 @@ def log_attendance_to_db(employee_id, name, action, timestamp, time_out=None):
                         (calc_time_out, round(overtime, 2), record[0])
                     )
                 else:
-                    print(f"⚠️ Missing time_in for {employee_id}")
+                    print(f"[WARNING] Missing time_in for {employee_id}")
             else:
-                print(f"ℹ️ {name} already checked out today (ID: {employee_id})")
+                print(f"[INFO] {name} already checked out today (ID: {employee_id})")
 
         connection.commit()
         cursor.close()
         connection.close()
 
     except Error as e:
-        print(f"⚠️ Database error: {e}")
+        print(f"[WARNING] Database error: {e}")
 
 
 # Helpers
@@ -139,11 +139,11 @@ async def register_face(
         role_id: int = Form(default=4)
 ):
     try:
-        print(f"📝 Attempting to register employee ID: {employee_id}, Name: {name}, Role: {role_id}")
+        print(f"[INFO] Attempting to register employee ID: {employee_id}, Name: {name}, Role: {role_id}")
 
-        # ✅ CHECK: Is this employee already registered?
+        # CHECK: Is this employee already registered?
         if employee_id in embeddings_db:
-            print(f"⚠️ WARNING: Employee {employee_id} already exists!")
+            print(f"[WARNING] Employee {employee_id} already exists!")
             # Ask user if they want to update or cancel
             return {
                 "success": False,
@@ -151,11 +151,11 @@ async def register_face(
                 "existing_data": employees.get(employee_id)
             }
 
-        # ✅ CHECK: Does this name already exist under a different ID?
+        # CHECK: Does this name already exist under a different ID?
         for existing_id, data in employees.items():
             existing_name = data.get("name") if isinstance(data, dict) else data
             if existing_name == name and existing_id != employee_id:
-                print(f"⚠️ WARNING: Name '{name}' already registered under ID {existing_id}")
+                print(f"[WARNING] Name '{name}' already registered under ID {existing_id}")
                 return {
                     "success": False,
                     "error": f"Name '{name}' is already registered under employee ID {existing_id}",
@@ -197,11 +197,11 @@ async def register_face(
         }
         save_employees()
 
-        print(f"✅ Successfully registered {name} (ID: {employee_id}, Role: {role_id})")
+        print(f"[SUCCESS] Registered {name} (ID: {employee_id}, Role: {role_id})")
         return {"success": True, "message": f"Registered {name} with role_id {role_id} and {len(files)} samples."}
 
     except Exception as e:
-        print(f"❌ Registration error: {e}")
+        print(f"[ERROR] Registration error: {e}")
         import traceback
         traceback.print_exc()
         return {"success": False, "error": str(e)}
@@ -260,11 +260,11 @@ async def update_face(
         employees[employee_id] = current_data
         save_employees()
 
-        print(f"✅ Updated employee {employee_id}: {current_data}")
+        print(f"[SUCCESS] Updated employee {employee_id}: {current_data}")
         return {"success": True, "message": f"Updated employee {employee_id}", "data": current_data}
 
     except Exception as e:
-        print(f"❌ Update error: {e}")
+        print(f"[ERROR] Update error: {e}")
         return {"success": False, "error": str(e)}
 
 
@@ -302,7 +302,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
                 return {"matched": False, "error": "No embedding returned."}
         except Exception as e:
             # more explicit error for face detection / model issues
-            print("❌ DeepFace error:", e)
+            print("[ERROR] DeepFace error:", e)
             return {"matched": False, "error": f"Face detection/embedding error: {str(e)}"}
 
         uploaded_embedding = np.array(result, dtype=np.float32)
@@ -315,17 +315,17 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         best_match_id = None
         best_score = -1.0
 
-        print(f"🔍 Comparing against {len(embeddings_db)} registered employees: {list(embeddings_db.keys())}")
+        print(f"[DEBUG] Comparing against {len(embeddings_db)} registered employees: {list(embeddings_db.keys())}")
 
         for emp_id, emb in embeddings_db.items():
             try:
                 emb_array = np.array(emb, dtype=np.float32)
             except Exception as e:
-                print(f"⚠️ Error converting embedding for employee {emp_id}: {e}")
+                print(f"[WARNING] Error converting embedding for employee {emp_id}: {e}")
                 continue
             emb_norm = np.linalg.norm(emb_array)
             if emb_norm == 0 or np.isnan(emb_norm) or np.isinf(emb_norm):
-                print(f"⚠️ Invalid embedding norm for employee {emp_id}")
+                print(f"[WARNING] Invalid embedding norm for employee {emp_id}")
                 continue
             emb_array /= emb_norm
             sim = float(np.dot(emb_array, uploaded_embedding))
@@ -348,7 +348,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
 
         employee_id = best_match_id
 
-        # ✅ Get employee name and stored role_id from local storage
+        # [SUCCESS] Get employee name and stored role_id from local storage
         employee_data = employees.get(employee_id, {"name": "Unknown", "role_id": None})
         if isinstance(employee_data, dict):
             name = employee_data.get("name", "Unknown")
@@ -362,7 +362,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         date_str = now.strftime("%Y-%m-%d")
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
 
-        # ✅ Fetch role from database (most authoritative source)
+        # [SUCCESS] Fetch role from database (most authoritative source)
         try:
             connection = mysql.connector.connect(**DB_CONFIG)
             cursor = connection.cursor()
@@ -391,20 +391,20 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
             if role_row and role_row[0]:
                 role_id = role_row[0]
                 user_role = role_map.get(role_id, 'employee')
-                print(f"✅ Retrieved role from DB: {user_role} (role_id: {role_id})")
+                print(f"[SUCCESS] Retrieved role from DB: {user_role} (role_id: {role_id})")
             elif stored_role_id:
                 # Fallback to stored role if DB doesn't have it
                 role_id = stored_role_id
                 user_role = role_map.get(role_id, 'employee')
-                print(f"⚠️ Using stored role: {user_role} (role_id: {role_id})")
+                print(f"[WARNING] Using stored role: {user_role} (role_id: {role_id})")
             else:
                 # Default to employee if no role found anywhere
                 role_id = 4
                 user_role = 'employee'
-                print(f"⚠️ No role found, defaulting to employee")
+                print(f"[WARNING] No role found, defaulting to employee")
 
         except Exception as role_error:
-            print(f"⚠️ Error fetching role from DB: {role_error}")
+            print(f"[WARNING] Error fetching role from DB: {role_error}")
             # Fallback to stored role or default
             if stored_role_id:
                 role_id = stored_role_id
@@ -448,15 +448,15 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
                                    WHERE timesheet_id = %s
                                    """, (time_out, round(overtime, 2), record[0]))
                     connection.commit()
-                    print(f"✅ {name} logged out at {time_out} (Overtime: {round(overtime, 2)}h)")
+                    print(f"[SUCCESS] {name} logged out at {time_out} (Overtime: {round(overtime, 2)}h)")
                 else:
-                    print(f"⚠️ No active session for {name} today")
+                    print(f"[WARNING] No active session for {name} today")
 
                 cursor.close()
                 connection.close()
 
             except Error as db_error:
-                print(f"⚠️ Database error during logout: {db_error}")
+                print(f"[WARNING] Database error during logout: {db_error}")
 
             return {
                 "matched": True,
@@ -484,7 +484,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
             cursor.close()
             connection.close()
         except Exception as db_check_error:
-            print("⚠️ Could not check database for previous record:", db_check_error)
+            print("[WARNING] Could not check database for previous record:", db_check_error)
             record = None
 
         if record:
@@ -503,7 +503,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         try:
             log_attendance_to_db(int(employee_id), name, next_action, timestamp)
         except Exception as db_log_error:
-            print("⚠️ Error writing attendance to DB:", db_log_error)
+            print("[WARNING] Error writing attendance to DB:", db_log_error)
 
         # Return success to frontend with role
         print(f"🎉 Successful login: {name} (ID: {employee_id}, Role: {user_role})")
@@ -520,7 +520,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
         }
 
     except Exception as e:
-        print("❌ Unexpected error in /recognize:", e)
+        print("[ERROR] Unexpected error in /recognize:", e)
         import traceback
         traceback.print_exc()
         return {"matched": False, "error": f"Unexpected server error: {str(e)}"}

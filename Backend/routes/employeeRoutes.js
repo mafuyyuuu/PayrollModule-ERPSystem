@@ -1023,4 +1023,236 @@ router.get('/tax-summary/:employeeId', async (req, res) => {
     }
 });
 
+// =====================================================
+// BONUS REQUEST ROUTES
+// =====================================================
+
+// CREATE BONUS REQUEST
+router.post('/bonus-request', async (req, res) => {
+    const { employeeId, bonusType, amount, reason } = req.body;
+
+    console.log('[INFO] Bonus request from employee:', employeeId);
+
+    if (!employeeId || !bonusType || !amount || !reason) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        const bonusTypeLabels = {
+            'performance': 'Performance Bonus',
+            'project': 'Project Completion Bonus',
+            'referral': 'Referral Bonus',
+            'other': 'Other Bonus'
+        };
+
+        const bonusLabel = bonusTypeLabels[bonusType] || bonusType;
+        const description = `${bonusLabel} Request: PHP ${parseFloat(amount).toLocaleString()} - ${reason}`;
+
+        const [result] = await payrollDB.query(
+            `INSERT INTO requests 
+            (employee_id, request_type, request_description, date_filed, status)
+            VALUES (?, 'Bonus', ?, CURDATE(), 'Pending')`,
+            [employeeId, description]
+        );
+
+        console.log('[SUCCESS] Bonus request created with ID:', result.insertId);
+        res.json({
+            success: true,
+            message: 'Bonus request submitted successfully',
+            requestId: result.insertId
+        });
+    } catch (error) {
+        console.error('[ERROR] Error creating bonus request:', error.message);
+        res.status(500).json({ message: 'Failed to submit bonus request', details: error.message });
+    }
+});
+
+// GET BONUS REQUESTS FOR EMPLOYEE
+router.get('/bonus-requests/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { status } = req.query;
+
+    console.log('[INFO] Fetching bonus requests for employee:', employeeId);
+
+    try {
+        let query = `
+            SELECT 
+                request_id,
+                employee_id,
+                request_type,
+                request_description,
+                date_filed,
+                status,
+                approved_by,
+                remarks
+            FROM requests
+            WHERE employee_id = ? AND request_type = 'Bonus'
+        `;
+
+        const params = [employeeId];
+
+        if (status) {
+            query += ` AND status = ?`;
+            params.push(status);
+        }
+
+        query += ` ORDER BY date_filed DESC`;
+
+        const [requests] = await payrollDB.query(query, params);
+
+        console.log('[SUCCESS] Found', requests.length, 'bonus requests');
+        res.json(requests);
+    } catch (error) {
+        console.error('[ERROR] Error fetching bonus requests:', error.message);
+        res.status(500).json({ error: 'Failed to fetch bonus requests', details: error.message });
+    }
+});
+
+// =====================================================
+// REIMBURSEMENT REQUEST ROUTES
+// =====================================================
+
+// CREATE REIMBURSEMENT REQUEST
+router.post('/reimbursement-request', async (req, res) => {
+    const { employeeId, expenseType, amount, date, description, receiptNumber } = req.body;
+
+    console.log('[INFO] Reimbursement request from employee:', employeeId);
+
+    if (!employeeId || !expenseType || !amount || !date || !description) {
+        return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    try {
+        const expenseTypeLabels = {
+            'travel': 'Travel Expenses',
+            'medical': 'Medical Expenses',
+            'training': 'Training/Education',
+            'equipment': 'Equipment/Supplies',
+            'meal': 'Meal Allowance',
+            'other': 'Other Expenses'
+        };
+
+        const expenseLabel = expenseTypeLabels[expenseType] || expenseType;
+        const receiptInfo = receiptNumber ? ` (Receipt: ${receiptNumber})` : '';
+        const requestDescription = `${expenseLabel} Reimbursement: PHP ${parseFloat(amount).toLocaleString()} on ${date}${receiptInfo} - ${description}`;
+
+        const [result] = await payrollDB.query(
+            `INSERT INTO requests 
+            (employee_id, request_type, request_description, date_filed, status)
+            VALUES (?, 'Reimbursement', ?, CURDATE(), 'Pending')`,
+            [employeeId, requestDescription]
+        );
+
+        console.log('[SUCCESS] Reimbursement request created with ID:', result.insertId);
+        res.json({
+            success: true,
+            message: 'Reimbursement request submitted successfully',
+            requestId: result.insertId
+        });
+    } catch (error) {
+        console.error('[ERROR] Error creating reimbursement request:', error.message);
+        res.status(500).json({ message: 'Failed to submit reimbursement request', details: error.message });
+    }
+});
+
+// GET REIMBURSEMENT REQUESTS FOR EMPLOYEE
+router.get('/reimbursement-requests/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { status } = req.query;
+
+    console.log('[INFO] Fetching reimbursement requests for employee:', employeeId);
+
+    try {
+        let query = `
+            SELECT 
+                request_id,
+                employee_id,
+                request_type,
+                request_description,
+                date_filed,
+                status,
+                approved_by,
+                remarks
+            FROM requests
+            WHERE employee_id = ? AND request_type = 'Reimbursement'
+        `;
+
+        const params = [employeeId];
+
+        if (status) {
+            query += ` AND status = ?`;
+            params.push(status);
+        }
+
+        query += ` ORDER BY date_filed DESC`;
+
+        const [requests] = await payrollDB.query(query, params);
+
+        console.log('[SUCCESS] Found', requests.length, 'reimbursement requests');
+        res.json(requests);
+    } catch (error) {
+        console.error('[ERROR] Error fetching reimbursement requests:', error.message);
+        res.status(500).json({ error: 'Failed to fetch reimbursement requests', details: error.message });
+    }
+});
+
+// =====================================================
+// PENDING REQUESTS - Get all pending requests for employee
+// =====================================================
+router.get('/pending-requests/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+
+    try {
+        // Query the main Requests table where all requests are stored
+        const [requests] = await payrollDB.query(`
+            SELECT 
+                request_id,
+                request_type as type,
+                date_filed as date,
+                status,
+                request_description as details
+            FROM Requests
+            WHERE employee_id = ? AND LOWER(status) = 'pending'
+            ORDER BY date_filed DESC
+            LIMIT 10
+        `, [employeeId]);
+
+        res.json(requests);
+    } catch (error) {
+        console.error('[ERROR] Error fetching pending requests:', error.message);
+        res.status(500).json({ error: 'Failed to fetch pending requests' });
+    }
+});
+
+// =====================================================
+// RECENT PAYSLIPS - Get recent payslips for employee
+// =====================================================
+router.get('/recent-payslips/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+
+    try {
+        const [payslips] = await payrollDB.query(`
+            SELECT 
+                payroll_id,
+                pay_date,
+                net_pay,
+                CONCAT(
+                    DATE_FORMAT(period_start, '%b %d'),
+                    ' - ',
+                    DATE_FORMAT(period_end, '%b %d, %Y')
+                ) as period,
+                status
+            FROM payroll
+            WHERE employee_id = ? AND status IN ('released', 'paid', 'processed')
+            ORDER BY pay_date DESC
+            LIMIT 5
+        `, [employeeId]);
+
+        res.json(payslips);
+    } catch (error) {
+        console.error('[ERROR] Error fetching recent payslips:', error.message);
+        res.status(500).json({ error: 'Failed to fetch recent payslips' });
+    }
+});
+
 export default router;
