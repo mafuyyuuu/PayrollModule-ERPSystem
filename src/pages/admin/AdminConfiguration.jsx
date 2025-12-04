@@ -655,7 +655,7 @@ export default function AdminConfiguration() {
                 if (hasInactiveRules) statusOptions.push({ value: 'status:Inactive', label: 'Inactive' });
                 return [
                     { value: '', label: 'All Rules' },
-                    ...ruleTypes.map(type => ({ value: `type:${type}`, label: `Type: ${type}` })),
+                    ...ruleTypes.map(type => ({ value: `type:${type}`, label: type })),
                     ...statusOptions,
                 ];
             case "cutoffDates":
@@ -678,7 +678,7 @@ export default function AdminConfiguration() {
                 const workflowStatuses = [...new Set(workflowsFromDB.map(w => w.status).filter(Boolean))];
                 return [
                     { value: '', label: 'All Workflows' },
-                    ...workflowTypes.map(type => ({ value: `type:${type}`, label: `Type: ${type}` })),
+                    ...workflowTypes.map(type => ({ value: `${type}`, label: `Type: ${type}` })),
                     ...workflowStatuses.map(status => ({ value: `status:${status}`, label: status })),
                 ];
             default:
@@ -1265,7 +1265,7 @@ export default function AdminConfiguration() {
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        color: "#fff",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     <Box
@@ -1279,7 +1279,7 @@ export default function AdminConfiguration() {
                         <Typography
                             variant="h5"
                             sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary
                             }}
                         >
                             {editingRule ? "Edit Rule" : "Add Rule"}
@@ -1297,7 +1297,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Rule Name
                         </Typography>
 
@@ -1314,13 +1314,14 @@ export default function AdminConfiguration() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Rule Type
                         </Typography>
 
@@ -1332,6 +1333,8 @@ export default function AdminConfiguration() {
                                 backgroundColor: "#cacace",
                                 borderRadius: "10px",
                                 "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                         >
                             <MenuItem value="earning">Earning</MenuItem>
@@ -1344,7 +1347,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Formula or Calculation
                         </Typography>
 
@@ -1361,13 +1364,14 @@ export default function AdminConfiguration() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Description
                         </Typography>
 
@@ -1386,6 +1390,7 @@ export default function AdminConfiguration() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
@@ -1417,26 +1422,26 @@ export default function AdminConfiguration() {
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        color: "#fff",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
                         }}
                     >
                         {editingCutoff ? "Edit Cutoff Period" : "Add Cutoff Period"}
                     </Typography>
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
                             Payroll Period
                         </Typography>
 
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
-                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
+                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
                                     Start Date
                                 </Typography>
                                 <input
@@ -1446,10 +1451,12 @@ export default function AdminConfiguration() {
                                         height: "40px",
                                         borderRadius: "10px",
                                         fontSize: "14px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
                                         backgroundColor: "#cacace",
                                         border: "none",
                                         color: "#1F2829",
                                         outline: "none",
+                                        colorScheme: "light",
                                     }}
                                     value={cutoffForm.start_date}
                                     onChange={(e) => {
@@ -1459,7 +1466,7 @@ export default function AdminConfiguration() {
                                 />
                             </Box>
                             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
-                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
+                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
                                     End Date
                                 </Typography>
                                 <input
@@ -1469,10 +1476,12 @@ export default function AdminConfiguration() {
                                         height: "40px",
                                         borderRadius: "10px",
                                         fontSize: "14px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
                                         backgroundColor: "#cacace",
                                         border: "none",
                                         color: "#1F2829",
                                         outline: "none",
+                                        colorScheme: "light",
                                     }}
                                     value={cutoffForm.end_date}
                                     onChange={(e) => {
@@ -1485,7 +1494,7 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 2 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
                             Period Name
                         </Typography>
                         <TextField
@@ -1500,12 +1509,13 @@ export default function AdminConfiguration() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 2 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-Demibold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
                             Pay Date
                         </Typography>
                         <input
@@ -1515,10 +1525,12 @@ export default function AdminConfiguration() {
                                 height: "40px",
                                 borderRadius: "10px",
                                 fontSize: "14px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
                                 backgroundColor: "#cacace",
                                 border: "none",
                                 color: "#1F2829",
                                 outline: "none",
+                                colorScheme: "light",
                             }}
                             value={cutoffForm.pay_date}
                             onChange={(e) => setCutoffForm(prev => ({...prev, pay_date: e.target.value}))}
@@ -1526,7 +1538,7 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, mt: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px"}}>
                             Frequency
                         </Typography>
                         <Select
@@ -1537,6 +1549,8 @@ export default function AdminConfiguration() {
                                 backgroundColor: "#cacace",
                                 borderRadius: "10px",
                                 "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                         >
                             <MenuItem value="Weekly">Weekly</MenuItem>
@@ -1573,20 +1587,20 @@ export default function AdminConfiguration() {
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        color: "#fff",
+                        color: theme.palette.text.primary,
                     }}
                 >
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
                         }}
                     >
                         {editingWorkflow ? "Edit Workflow" : "Add Workflow"}
                     </Typography>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Workflow Name
                         </Typography>
                         <TextField
@@ -1598,33 +1612,31 @@ export default function AdminConfiguration() {
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
                                     "& fieldset": { border: "none" },
                                 },
-                                "& .MuiInputBase-input": {fontSize: "18px"},
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{display: "flex", gap: 1, mt: 2}}>
-                        <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 0.5}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                        <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                 Type
                             </Typography>
                             <Select
                                 value={workflowForm.type}
                                 onChange={(e) => setWorkflowForm(prev => ({...prev, type: e.target.value}))}
                                 displayEmpty
+                                size="small"
                                 sx={{
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "16px",
-                                    height: "45px",
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                    "& .MuiSelect-select": { color: "#1F2829" },
+                                    "& .MuiSelect-icon": { color: "#1F2829" },
                                 }}
                                 renderValue={(selected) => {
                                     if (!selected) return <span style={{color: "#828689"}}>Select Type</span>;
@@ -1637,21 +1649,21 @@ export default function AdminConfiguration() {
                             </Select>
                         </Box>
 
-                        <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 0.5}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                        <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                 Approval Role
                             </Typography>
                             <Select
                                 value={workflowForm.approver}
                                 onChange={(e) => setWorkflowForm(prev => ({...prev, approver: e.target.value}))}
                                 displayEmpty
+                                size="small"
                                 sx={{
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "16px",
-                                    height: "45px",
                                     "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                    "& .MuiSelect-select": { color: "#1F2829" },
+                                    "& .MuiSelect-icon": { color: "#1F2829" },
                                 }}
                                 renderValue={(selected) => {
                                     if (!selected) return <span style={{color: "#828689"}}>Select Approval Role</span>;
@@ -1666,7 +1678,7 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <Box sx={{display: "flex", alignItems: "center", gap: 2, mt: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Status
                         </Typography>
                         <Switch
@@ -1688,7 +1700,7 @@ export default function AdminConfiguration() {
                                 "& .MuiSwitch-track": { borderRadius: 14, backgroundColor: "#bdbdbd", opacity: 1 },
                             }}
                         />
-                        <Typography sx={{fontFamily: "'TTHoves-Regular', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             {workflowForm.status}
                         </Typography>
                     </Box>
@@ -1783,30 +1795,21 @@ export default function AdminConfiguration() {
                 },
             }}
         >
-            <Box
-                sx={{
-                    display: "flex",
-                    gap: "12px",
-                    mb: "13px",
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0.3)",
-                    border: `1px solid ${theme.palette.divider}`,
-                    p: "12px",
-                    borderRadius: "25px",
-                }}
-            >
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
                 {["payrollRules", "cutoffDates", "employeeGroups", "approvalWorkflows"].map((tab) => (<Button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     sx={{
-                        bgcolor: activeTab === tab ? "#fff" : "#bdbdbd",
-                        color: activeTab === tab ? "#172224" : "#3a4f50",
-                        fontWeight: 700,
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
                         textTransform: "none",
-                        borderRadius: "15px",
-                        fontSize: "18px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        minWidth: "200px",
-                        minHeight: "50px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: activeTab === tab ? "#334042" : "#e0e0e0",
+                        color: activeTab === tab ? "#fff" : "#333",
+                        opacity: activeTab === tab ? 1 : 0.6,
+                        "&:hover": { backgroundColor: activeTab === tab ? "#2a3435" : "#d0d0d0" },
                     }}
                 >
                     {tab === "payrollRules" ? "Payroll Rules" : tab === "cutoffDates" ? "Cutoff Dates" : tab === "employeeGroups" ? "Employee Groups" : "Approval Workflow"}
@@ -1816,12 +1819,15 @@ export default function AdminConfiguration() {
             <Box
                 sx={(theme) => ({
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.1)",
-                    height: "85%",
+                    height: "calc(100% - 60px)",
                     borderRadius: "12px",
                     p: "24px",
                     color: "#222",
                     fontFamily: "'TTHoves-Regular', sans-serif",
                     border: `1px solid ${theme.palette.divider}`,
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
                 })}
             >
                 <Box
@@ -1887,7 +1893,17 @@ export default function AdminConfiguration() {
                     />
                 </Box>
 
-                {renderCards()}
+                <Box
+                    sx={{
+                        flex: 1,
+                        overflowY: "auto",
+                        "&::-webkit-scrollbar": { width: 0, height: 0 },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                    }}
+                >
+                    {renderCards()}
+                </Box>
 
                 <BoxModal
                     open={showModal}
@@ -1905,14 +1921,14 @@ export default function AdminConfiguration() {
                     width={400}
                     height={200}
                 >
-                    <Box sx={{ display: "flex", flexDirection: "column", color: "#fff", textAlign: "center" }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary, textAlign: "center" }}>
                         <Typography
                             variant="h6"
-                            sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "20px", color: "#FFFFFF", mb: 2 }}
+                            sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "20px", color: theme.palette.text.primary, mb: 2 }}
                         >
                             Confirm Delete
                         </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: "#ccc", mb: 3 }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary, mb: 3 }}>
                             Are you sure you want to delete "{deleteTarget.name}"? This action cannot be undone.
                         </Typography>
                         <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
@@ -1922,13 +1938,13 @@ export default function AdminConfiguration() {
                                 sx={{
                                     fontSize: "14px",
                                     backgroundColor: "transparent",
-                                    color: "#fff",
+                                    color: theme.palette.text.primary,
                                     padding: "10px 25px",
                                     borderRadius: "10px",
                                     cursor: "pointer",
-                                    border: "1px solid rgba(255,255,255,0.3)",
+                                    border: `1px solid ${theme.palette.divider}`,
                                     fontFamily: "'TTHoves-Regular', sans-serif",
-                                    "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                                    "&:hover": { backgroundColor: theme.palette.action.hover },
                                 }}
                             >
                                 Cancel

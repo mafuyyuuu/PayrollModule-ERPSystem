@@ -338,79 +338,78 @@ export default function AdminUserManagement() {
                 >
                     User Management
                 </Typography>
+            </Box>
 
-                <Box
-                    sx={{
-                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
-                    }}
-                >
-                    <ActionButton text="Add User" width="200px" onClick={handleAddUser}/>
-
+            {/* Filter Buttons */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <Button
+                        onClick={() => setRoleFilter("all")}
+                        sx={{
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: roleFilter === "all" ? "#334042" : "#e0e0e0",
+                            color: roleFilter === "all" ? "#fff" : "#333",
+                            opacity: roleFilter === "all" ? 1 : 0.6,
+                            "&:hover": { backgroundColor: roleFilter === "all" ? "#2a3435" : "#d0d0d0" },
+                        }}
+                    >
+                        All Users
+                    </Button>
+                    {uniqueRoles.map((role) => (
+                        <Button
+                            key={role}
+                            onClick={() => setRoleFilter(role)}
+                            sx={{
+                                fontSize: "14px",
+                                px: 3,
+                                py: 1,
+                                borderRadius: "10px",
+                                textTransform: "none",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                backgroundColor: roleFilter === role ? "#334042" : "#e0e0e0",
+                                color: roleFilter === role ? "#fff" : "#333",
+                                opacity: roleFilter === role ? 1 : 0.6,
+                                "&:hover": { backgroundColor: roleFilter === role ? "#2a3435" : "#d0d0d0" },
+                            }}
+                        >
+                            {role}
+                        </Button>
+                    ))}
+                    {uniqueStatuses.map((status) => (
+                        <Button
+                            key={status}
+                            onClick={() => setRoleFilter(status)}
+                            sx={{
+                                fontSize: "14px",
+                                px: 3,
+                                py: 1,
+                                borderRadius: "10px",
+                                textTransform: "none",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                backgroundColor: roleFilter === status ? "#334042" : "#e0e0e0",
+                                color: roleFilter === status ? "#fff" : "#333",
+                                opacity: roleFilter === status ? 1 : 0.6,
+                                "&:hover": { backgroundColor: roleFilter === status ? "#2a3435" : "#d0d0d0" },
+                            }}
+                        >
+                            {status}
+                        </Button>
+                    ))}
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <SearchBar 
                         placeholder="Enter Username" 
                         width="300px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                    <ActionButton text="Add User" width="200px" onClick={handleAddUser}/>
                 </Box>
-            </Box>
-
-            {/* Filter Buttons */}
-            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-                <Button
-                    onClick={() => setRoleFilter("all")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: roleFilter === "all" ? "#1b2223" : "#e0e0e0",
-                        color: roleFilter === "all" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: roleFilter === "all" ? "#2a3435" : "#d0d0d0" },
-                    }}
-                >
-                    All Users
-                </Button>
-                {uniqueRoles.map((role) => (
-                    <Button
-                        key={role}
-                        onClick={() => setRoleFilter(role)}
-                        sx={{
-                            fontSize: "12px",
-                            px: 2,
-                            py: 0.5,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            backgroundColor: roleFilter === role ? "#1b2223" : "#e0e0e0",
-                            color: roleFilter === role ? "#fff" : "#333",
-                            "&:hover": { backgroundColor: roleFilter === role ? "#2a3435" : "#d0d0d0" },
-                        }}
-                    >
-                        {role}
-                    </Button>
-                ))}
-                {uniqueStatuses.map((status) => (
-                    <Button
-                        key={status}
-                        onClick={() => setRoleFilter(status)}
-                        sx={{
-                            fontSize: "12px",
-                            px: 2,
-                            py: 0.5,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            backgroundColor: roleFilter === status ? "#1b2223" : "#e0e0e0",
-                            color: roleFilter === status ? "#fff" : "#333",
-                            "&:hover": { backgroundColor: roleFilter === status ? "#2a3435" : "#d0d0d0" },
-                        }}
-                    >
-                        {status}
-                    </Button>
-                ))}
             </Box>
 
             <Box
@@ -543,6 +542,8 @@ export default function AdminUserManagement() {
                                 borderRadius: "10px",
                                 backgroundColor: "#cacace",
                                 "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span style={{color: "#888"}}>Select an employee</span>;
@@ -582,6 +583,8 @@ export default function AdminUserManagement() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                                "& .MuiInputBase-input.Mui-disabled": { color: "#1F2829", WebkitTextFillColor: "#1F2829" },
                             }}
                         />
                     </Box>
@@ -602,6 +605,8 @@ export default function AdminUserManagement() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                                "& .MuiInputBase-input.Mui-disabled": { color: "#1F2829", WebkitTextFillColor: "#1F2829" },
                             }}
                         />
                     </Box>
@@ -622,6 +627,8 @@ export default function AdminUserManagement() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                                "& .MuiInputBase-input.Mui-disabled": { color: "#1F2829", WebkitTextFillColor: "#1F2829" },
                             }}
                         />
                     </Box>
@@ -645,6 +652,7 @@ export default function AdminUserManagement() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
@@ -664,6 +672,7 @@ export default function AdminUserManagement() {
                                     backgroundColor: "#cacace",
                                     "& fieldset": { border: "none" },
                                 },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
@@ -689,6 +698,7 @@ export default function AdminUserManagement() {
                                         backgroundColor: "#cacace",
                                         "& fieldset": { border: "none" },
                                     },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
                                 }}
                             />
                         </Box>
@@ -704,7 +714,7 @@ export default function AdminUserManagement() {
                         <Select
                             value={selectedUser?.roleId || ""}
                             onChange={(e) => setSelectedUser(prev => ({
-                                ...prev, 
+                                ...prev,
                                 roleId: e.target.value,
                                 role: roleOptions.find(r => r.id === e.target.value)?.name || ""
                             }))}
@@ -714,6 +724,8 @@ export default function AdminUserManagement() {
                                 backgroundColor: "#cacace",
                                 borderRadius: "10px",
                                 "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span style={{color: "#828689"}}>Select Role</span>;
@@ -739,6 +751,8 @@ export default function AdminUserManagement() {
                                 backgroundColor: "#cacace",
                                 borderRadius: "10px",
                                 "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                         >
                             <MenuItem value="Active">Active</MenuItem>

@@ -114,8 +114,7 @@ const AdminDashboard = () => {
                     "&:hover": { transform: "scale(1.02)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" },
                     display: "flex",
                     flexDirection: "column",
-                    minHeight: "300px",
-                    maxHeight: "500px",
+                    height: "60%",
                 }}
             >
                 <Box
@@ -142,13 +141,13 @@ const AdminDashboard = () => {
                         onClick={() => navigate('/admin/audit')}
                         style={{
                             background: "transparent",
-                            color: theme.palette.primary.main,
+                            color: theme.palette.text.primary,
                             padding: "6px 14px",
                             border: "none",
                             cursor: "pointer",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            fontSize: "14px",
-                            textDecoration: "underline",
+                            fontSize: "16px",
+                            textDecoration: "none",
                         }}
                     >
                         View All

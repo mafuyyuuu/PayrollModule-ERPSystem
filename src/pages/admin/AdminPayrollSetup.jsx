@@ -747,6 +747,8 @@ export default function AdminPayrollSetup() {
                                     sx={{
                                         backgroundColor: "#cacace", borderRadius: "13px", color: "#1F2829", fontSize: "16px",
                                         "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                        "& .MuiSelect-select": { color: "#1F2829" },
+                                        "& .MuiSelect-icon": { color: "#1F2829" },
                                     }}
                                     renderValue={(selected) => {
                                         if (!selected) return <span style={{color: "#828689"}}>Select Provider</span>;
@@ -844,6 +846,7 @@ export default function AdminPayrollSetup() {
                                     sx={{
                                         backgroundColor: "#cacace", borderRadius: "13px", color: "#1F2829", fontSize: "16px",
                                         "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                        "& .MuiSelect-icon": { color: "#1F2829" },
                                     }}
                                 >
                                     <MenuItem value="realtime">Real-time</MenuItem>
@@ -856,7 +859,7 @@ export default function AdminPayrollSetup() {
                     )}
 
                     {/* Action Buttons */}
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
                         <Box
                             component="button"
                             onClick={handleCloseModal}
@@ -891,13 +894,13 @@ export default function AdminPayrollSetup() {
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                        color: theme.palette.text.primary,
                     }}
                 >
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
                         }}
                     >
                         Edit Tax Setting
@@ -905,7 +908,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Tax Type
                         </Typography>
 
@@ -913,37 +916,16 @@ export default function AdminPayrollSetup() {
                             value={selectedTaxSetting?.type || ""}
                             onChange={(e) => setSelectedTaxSetting(prev => ({...prev, type: e.target.value}))}
                             displayEmpty
+                            size="small"
                             sx={{
                                 backgroundColor: "#cacace",
-                                borderRadius: "13px",
-                                color: "#1F2829",
-                                fontSize: "18px",
-                                "& .MuiSelect-select": {
-                                    padding: "8px 12px",
-                                },
-                                "& .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "& .MuiSvgIcon-root": {
-                                    color: "#1F2829",
-                                },
-                            }}
-                            MenuProps={{
-                                PaperProps: {
-                                    sx: {
-                                        backgroundColor: "#ffffff", color: "#1F2829",
-                                    }
-                                }
+                                borderRadius: "10px",
+                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                             renderValue={(selected) => {
-                                if (!selected) return <span
-                                    style={{color: "#828689"}}>Select Tax Type</span>;
+                                if (!selected) return <span style={{color: "#828689"}}>Select Tax Type</span>;
                                 return selected;
                             }}
                         >
@@ -956,7 +938,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Rate
                         </Typography>
 
@@ -969,27 +951,18 @@ export default function AdminPayrollSetup() {
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": {
-                                        border: "none",
-                                    },
-                                    "&:hover fieldset": {
-                                        border: "none",
-                                    },
-                                    "&.Mui-focused fieldset": {
-                                        border: "none",
-                                    },
-                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Description
                         </Typography>
 
@@ -1002,34 +975,24 @@ export default function AdminPayrollSetup() {
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": {
-                                        border: "none",
-                                    },
-                                    "&:hover fieldset": {
-                                        border: "none",
-                                    },
-                                    "&.Mui-focused fieldset": {
-                                        border: "none",
-                                    },
-                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box
                         sx={{
-                            display: "flex", justifyContent: "flex-end", gap: 2, mt: 3,
+                            display: "flex", justifyContent: "center", gap: 2, mt: 3,
                         }}
                     >
                         <Box
                             component="button"
                             onClick={handleCloseModal}
                             sx={{
-                                display: "flex-end",
                                 fontSize: "16px",
                                 backgroundColor: "#666",
                                 color: "#fff",
@@ -1082,21 +1045,21 @@ export default function AdminPayrollSetup() {
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        color: (theme) => (theme.palette.mode === "dark" ? "#fff" : "#222"),
+                        color: theme.palette.text.primary,
                     }}
                 >
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
                         }}
                     >
                         {isEditing ? "Edit Pay Component" : "Add Pay Component"}
                     </Typography>
 
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Component Name
                         </Typography>
 
@@ -1108,27 +1071,18 @@ export default function AdminPayrollSetup() {
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": {
-                                        border: "none",
-                                    },
-                                    "&:hover fieldset": {
-                                        border: "none",
-                                    },
-                                    "&.Mui-focused fieldset": {
-                                        border: "none",
-                                    },
-                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                         >
                             Type
                         </Typography>
@@ -1137,37 +1091,16 @@ export default function AdminPayrollSetup() {
                             value={selectedComponent?.type || ""}
                             onChange={(e) => setSelectedComponent(prev => ({...prev, type: e.target.value}))}
                             displayEmpty
+                            size="small"
                             sx={{
                                 backgroundColor: "#cacace",
-                                borderRadius: "13px",
-                                color: "#1F2829",
-                                fontSize: "18px",
-                                "& .MuiSelect-select": {
-                                    padding: "8px 12px",
-                                },
-                                "& .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "& .MuiSvgIcon-root": {
-                                    color: "#1F2829",
-                                },
-                            }}
-                            MenuProps={{
-                                PaperProps: {
-                                    sx: {
-                                        backgroundColor: "#ffffff", color: "#1F2829",
-                                    }
-                                }
+                                borderRadius: "10px",
+                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                             renderValue={(selected) => {
-                                if (!selected) return <span
-                                    style={{color: "#828689"}}>Select Type</span>;
+                                if (!selected) return <span style={{color: "#828689"}}>Select Type</span>;
                                 return selected;
                             }}
                         >
@@ -1180,7 +1113,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Formula or Fixed Amount
                         </Typography>
 
@@ -1192,27 +1125,18 @@ export default function AdminPayrollSetup() {
                             size="small"
                             sx={{
                                 "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
+                                    borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": {
-                                        border: "none",
-                                    },
-                                    "&:hover fieldset": {
-                                        border: "none",
-                                    },
-                                    "&.Mui-focused fieldset": {
-                                        border: "none",
-                                    },
-                                }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
                             }}
                         />
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                         >
                             Status
                         </Typography>
@@ -1221,37 +1145,16 @@ export default function AdminPayrollSetup() {
                             value={selectedComponent?.status || ""}
                             onChange={(e) => setSelectedComponent(prev => ({...prev, status: e.target.value}))}
                             displayEmpty
+                            size="small"
                             sx={{
                                 backgroundColor: "#cacace",
-                                borderRadius: "13px",
-                                color: "#1F2829",
-                                fontSize: "18px",
-                                "& .MuiSelect-select": {
-                                    padding: "8px 12px",
-                                },
-                                "& .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    border: "none",
-                                },
-                                "& .MuiSvgIcon-root": {
-                                    color: "#1F2829",
-                                },
-                            }}
-                            MenuProps={{
-                                PaperProps: {
-                                    sx: {
-                                        backgroundColor: "#ffffff", color: "#1F2829",
-                                    }
-                                }
+                                borderRadius: "10px",
+                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiSelect-select": { color: "#1F2829" },
+                                "& .MuiSelect-icon": { color: "#1F2829" },
                             }}
                             renderValue={(selected) => {
-                                if (!selected) return <span
-                                    style={{color: "#828689"}}>Select Status</span>;
+                                if (!selected) return <span style={{color: "#828689"}}>Select Status</span>;
                                 return selected;
                             }}
                         >
@@ -1264,7 +1167,7 @@ export default function AdminPayrollSetup() {
 
                     <Box
                         sx={{
-                            display: "flex", justifyContent: showRemove ? "center" : "flex-end", gap: 2, mt: 3,
+                            display: "flex", justifyContent: "center", gap: 2, mt: 3,
                         }}
                     >
                         {showRemove && (
@@ -1363,30 +1266,21 @@ export default function AdminPayrollSetup() {
                 },
             }}
         >
-            <Box
-                sx={{
-                    display: "flex",
-                    gap: "12px",
-                    mb: "13px",
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0.3)",
-                    border: `1px solid ${theme.palette.divider}`,
-                    p: "12px",
-                    borderRadius: "25px",
-                }}
-            >
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
                 {["integration", "taxSettings", "payComponents"].map((tab) => (<Button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     sx={{
-                        bgcolor: activeTab === tab ? "#fff" : "#bdbdbd",
-                        color: activeTab === tab ? "#172224" : "#3a4f50",
-                        fontWeight: 700,
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
                         textTransform: "none",
-                        borderRadius: "15px",
-                        fontSize: "18px",
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        minWidth: "200px",
-                        minHeight: "50px",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: activeTab === tab ? "#334042" : "#e0e0e0",
+                        color: activeTab === tab ? "#fff" : "#333",
+                        opacity: activeTab === tab ? 1 : 0.6,
+                        "&:hover": { backgroundColor: activeTab === tab ? "#2a3435" : "#d0d0d0" },
                     }}
                 >
                     {tab === "integration" ? "Integration" : tab === "taxSettings" ? "Tax Settings" : tab === "payComponents" ? "Pay Components" : tab}
@@ -1396,12 +1290,15 @@ export default function AdminPayrollSetup() {
             <Box
                 sx={(theme) => ({
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.1)",
-                    height: "85%",
+                    height: "calc(100% - 60px)",
                     borderRadius: "12px",
                     p: "24px",
                     color: "#222",
                     fontFamily: "'TTHoves-Regular', sans-serif",
                     border: `1px solid ${theme.palette.divider}`,
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
                 })}
             >
                 <Box
