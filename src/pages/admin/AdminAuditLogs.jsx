@@ -314,7 +314,15 @@ export default function AdminAuditLogs() {
                         <span style={{
                             padding: '4px 8px',
                             borderRadius: '4px',
-                            fontSize: '11px'
+                            fontSize: '11px',
+                            backgroundColor: log.action === 'CREATE' ? '#d4edda'
+                                : log.action === 'UPDATE' ? '#d1ecf1'
+                                : log.action === 'DELETE' ? '#f8d7da'
+                                : '#f0f0f0',
+                            color: log.action === 'DELETE' ? '#721c24'
+                                : log.action === 'CREATE' ? '#155724'
+                                : log.action === 'UPDATE' ? '#0c5460'
+                                : '#333'
                         }}>{log.action}</span>
                         <span style={{ 
                             textAlign: "left", 
