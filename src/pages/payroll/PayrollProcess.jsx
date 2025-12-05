@@ -888,11 +888,11 @@ export default function PayoutProcessing() {
                             Payslip for {selectedEmployee.name}
                         </Typography>
 
-                        <PDFViewer 
-                            width="100%" 
-                            height={650} 
+                        <PDFViewer
+                            width="100%"
+                            height={610}
                             showToolbar={false}
-                            style={{ border: "none" }}
+                            style={{ border: "none", borderRadius: "8px" }}
                         >
                             <PayslipDocument employee={selectedEmployee}/>
                         </PDFViewer>
@@ -1789,7 +1789,7 @@ export default function PayoutProcessing() {
             <BoxModal
                 open={downloadConfirmModalOpen}
                 onClose={() => setDownloadConfirmModalOpen(false)}
-                width={400}
+                width={380}
             >
                 <Box sx={{ textAlign: "center" }}>
                     <Typography

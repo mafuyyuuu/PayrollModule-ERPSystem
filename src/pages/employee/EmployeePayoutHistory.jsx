@@ -1,13 +1,11 @@
-import { Box, Typography, useTheme, Select, MenuItem, IconButton, CircularProgress, Modal, Button } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { Box, Typography, useTheme, Select, MenuItem, IconButton, CircularProgress } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { RiDownload2Line } from "react-icons/ri";
 import { useUser } from "../../components/UserContext.jsx";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { PayslipDocument } from "../../components/PayslipPDF.jsx";
+import { PayslipDocument, PayslipActions } from "../../components/PayslipPDF.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
 import { PDFViewer } from "@react-pdf/renderer";
-import ActionButton from "../../components/ActionButton.jsx";
 
 export default function EmployeePayoutHistory() {
     const theme = useTheme();
@@ -26,21 +24,8 @@ export default function EmployeePayoutHistory() {
     const [selectedPayslip, setSelectedPayslip] = useState(null);
     
     // Download confirmation modal state
-    const [downloadModalOpen, setDownloadModalOpen] = useState(false);
+    const [downloadConfirmModalOpen, setDownloadConfirmModalOpen] = useState(false);
     const [pendingDownloadPayslip, setPendingDownloadPayslip] = useState(null);
-
-    // Modal style for MUI Modal
-    const modalStyle = {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 450,
-        bgcolor: theme.palette.mode === 'dark' ? '#1b2223' : '#fff',
-        borderRadius: '15px',
-        boxShadow: 24,
-        p: 3,
-    };
 
     // Fetch payout history on component mount
     useEffect(() => {
@@ -350,8 +335,8 @@ export default function EmployeePayoutHistory() {
             <BoxModal
                 open={openModal}
                 onClose={handleCloseModal}
-                width="800px"
-                height="700px"
+                width="500px"
+                height="auto"
             >
                 {selectedPayslip && (
                     <>
@@ -362,22 +347,27 @@ export default function EmployeePayoutHistory() {
                                 fontSize: "24px",
                                 color: "#FFFFFF",
                                 mb: 2,
+                                textAlign: "center"
                             }}
                         >
-                            Payslip - {selectedPayslip.period}
+                            Payslip for {selectedPayslip.name}
                         </Typography>
 
-                        <PDFViewer width="100%" height={500} showToolbar={false}>
+                        <PDFViewer
+                            width="100%"
+                            height={580}
+                            showToolbar={false}
+                            style={{ border: "none", borderRadius: "8px" }}
+                        >
                             <PayslipDocument employee={selectedPayslip} />
                         </PDFViewer>
 
-                        <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
-                            <ActionButton
-                                text="Download Payslip"
-                                width="200px"
-                                onClick={() => {
+                        <Box sx={{ mt: 2 }}>
+                            <PayslipActions
+                                employee={selectedPayslip}
+                                onDownloadClick={() => {
                                     setPendingDownloadPayslip(selectedPayslip);
-                                    setDownloadModalOpen(true);
+                                    setDownloadConfirmModalOpen(true);
                                 }}
                             />
                         </Box>
@@ -385,67 +375,55 @@ export default function EmployeePayoutHistory() {
                 )}
             </BoxModal>
 
-            {/* Download Confirmation Modal */}
-            <Modal
-                open={downloadModalOpen}
-                onClose={() => setDownloadModalOpen(false)}
-                aria-labelledby="download-payslip-modal"
+            {/* Download Payslip Confirmation Modal */}
+            <BoxModal
+                open={downloadConfirmModalOpen}
+                onClose={() => setDownloadConfirmModalOpen(false)}
+                width={400}
             >
-                <Box sx={modalStyle}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif",
-                                color: theme.palette.text.primary,
-                            }}
-                        >
-                            Download Payslip
-                        </Typography>
-                        <IconButton onClick={() => setDownloadModalOpen(false)} size="small">
-                            <CloseIcon />
-                        </IconButton>
-                    </Box>
-                    
-                    <Typography sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                        You are about to download the payslip for <strong>{pendingDownloadPayslip?.period}</strong>.
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Download Payslip
                     </Typography>
-                    
-                    <Box sx={{ 
-                        p: 2, 
-                        borderRadius: '10px', 
-                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f5f5f5',
-                        mb: 3
-                    }}>
-                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
-                            • Period: {pendingDownloadPayslip?.period}
-                        </Typography>
-                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
-                            • Net Pay: {formatCurrency(pendingDownloadPayslip?.netpay)}
-                        </Typography>
-                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
-                            • Reference: {pendingDownloadPayslip?.reference || 'N/A'}
-                        </Typography>
-                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
-                            • Format: PDF Document
-                        </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                        <Button
-                            onClick={() => setDownloadModalOpen(false)}
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
+                        Are you sure you want to download the payslip for {pendingDownloadPayslip?.period}?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+                        <Box
+                            component="button"
+                            onClick={() => setDownloadConfirmModalOpen(false)}
                             sx={{
-                                textTransform: 'none',
-                                fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                color: theme.palette.text.secondary,
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
                             }}
                         >
                             Cancel
-                        </Button>
+                        </Box>
                         {pendingDownloadPayslip && (
                             <Box
                                 onClick={() => {
-                                    setTimeout(() => setDownloadModalOpen(false), 500);
+                                    setTimeout(() => setDownloadConfirmModalOpen(false), 500);
                                 }}
                                 sx={{
                                     fontSize: "14px",
@@ -456,14 +434,12 @@ export default function EmployeePayoutHistory() {
                                     cursor: "pointer",
                                     border: "none",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
-                                    display: "flex",
-                                    alignItems: "center",
                                     "&:hover": { backgroundColor: "#1f2f31" }
                                 }}
                             >
                                 <PDFDownloadLink
                                     document={<PayslipDocument employee={pendingDownloadPayslip} />}
-                                    fileName={`Payslip_${pendingDownloadPayslip.reference || 'payslip'}.pdf`}
+                                    fileName={`${pendingDownloadPayslip.name}_payslip.pdf`}
                                     style={{
                                         color: "#fff",
                                         textDecoration: "none",
@@ -475,7 +451,7 @@ export default function EmployeePayoutHistory() {
                         )}
                     </Box>
                 </Box>
-            </Modal>
+            </BoxModal>
         </Box>
     );
 }
