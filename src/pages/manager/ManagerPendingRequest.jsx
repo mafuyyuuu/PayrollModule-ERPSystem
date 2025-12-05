@@ -21,6 +21,8 @@ const ManagerPendingRequest = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openApproveModal, setOpenApproveModal] = useState(false);
+    const [exportPdfModalOpen, setExportPdfModalOpen] = useState(false);
+    const [exportCsvModalOpen, setExportCsvModalOpen] = useState(false);
 
     // Fetch requests from API
     const fetchRequests = async () => {
@@ -127,6 +129,70 @@ const ManagerPendingRequest = () => {
     const handleViewRequest = (request) => {
         setSelectedRequest(request);
         setOpen(true);
+    };
+
+    const handleExportPdf = () => {
+        const printContent = `
+            <html>
+            <head>
+                <title>Pending Requests Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #333; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                    th { background-color: #4CAF50; color: white; }
+                    tr:nth-child(even) { background-color: #f2f2f2; }
+                    .approved { color: #4CAF50; }
+                    .rejected { color: #F44336; }
+                    .pending { color: #FF9800; }
+                </style>
+            </head>
+            <body>
+                <h1>Pending Requests Report</h1>
+                <p>Generated: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr><th>Request Type</th><th>Employee</th><th>Date</th><th>Details</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        ${filteredRequests.map(row => `
+                            <tr>
+                                <td>${row.requestType}</td>
+                                <td>${row.employee}</td>
+                                <td>${row.date}</td>
+                                <td>${row.amount}</td>
+                                <td class="${row.status.toLowerCase()}">${row.status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+        setExportPdfModalOpen(false);
+    };
+
+    const handleExportCsv = () => {
+        const headers = ['Request Type', 'Employee', 'Date', 'Details', 'Status'];
+        const csvData = filteredRequests.map(row => [
+            row.requestType,
+            row.employee,
+            row.date,
+            row.amount,
+            row.status
+        ]);
+        const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `requests_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        setExportCsvModalOpen(false);
     };
 
     // Get unique request types for filter buttons
@@ -262,70 +328,12 @@ const ManagerPendingRequest = () => {
                     <ActionButton 
                         text="Export PDF" 
                         width="auto"
-                        onClick={() => {
-                            const printContent = `
-                                <html>
-                                <head>
-                                    <title>Pending Requests Report</title>
-                                    <style>
-                                        body { font-family: Arial, sans-serif; padding: 20px; }
-                                        h1 { color: #333; }
-                                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                                        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-                                        th { background-color: #4CAF50; color: white; }
-                                        tr:nth-child(even) { background-color: #f2f2f2; }
-                                        .approved { color: #4CAF50; }
-                                        .rejected { color: #F44336; }
-                                        .pending { color: #FF9800; }
-                                    </style>
-                                </head>
-                                <body>
-                                    <h1>Pending Requests Report</h1>
-                                    <p>Generated: ${new Date().toLocaleString()}</p>
-                                    <table>
-                                        <thead>
-                                            <tr><th>Request Type</th><th>Employee</th><th>Date</th><th>Details</th><th>Status</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            ${filteredRequests.map(row => `
-                                                <tr>
-                                                    <td>${row.requestType}</td>
-                                                    <td>${row.employee}</td>
-                                                    <td>${row.date}</td>
-                                                    <td>${row.amount}</td>
-                                                    <td class="${row.status.toLowerCase()}">${row.status}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </body>
-                                </html>
-                            `;
-                            const printWindow = window.open('', '_blank');
-                            printWindow.document.write(printContent);
-                            printWindow.document.close();
-                            printWindow.print();
-                        }}
+                        onClick={() => setExportPdfModalOpen(true)}
                     />
                     <ActionButton 
                         text="Export CSV" 
                         width="auto"
-                        onClick={() => {
-                            const headers = ['Request Type', 'Employee', 'Date', 'Details', 'Status'];
-                            const csvData = filteredRequests.map(row => [
-                                row.requestType,
-                                row.employee,
-                                row.date,
-                                row.amount,
-                                row.status
-                            ]);
-                            const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
-                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = `requests_${new Date().toISOString().split('T')[0]}.csv`;
-                            link.click();
-                        }}
+                        onClick={() => setExportCsvModalOpen(true)}
                     />
                 </Box>
             </Box>
@@ -506,18 +514,18 @@ const ManagerPendingRequest = () => {
             {/* MODAL */}
             <BoxModal open={open} onClose={handleClose}>
                 {selectedRequest && (
-                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", color: "#fff" }}>
                         <Typography
                             variant="h5"
                             sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#fff", mb: 2
                             }}
                         >
                             Request Details
                         </Typography>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                             <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                 Employee Name
                             </Typography>
                             <TextField
@@ -544,7 +552,7 @@ const ManagerPendingRequest = () => {
                         >
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Request Type
                                 </Typography>
                                 <TextField
@@ -564,7 +572,7 @@ const ManagerPendingRequest = () => {
                             </Box>
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Details
                                 </Typography>
                                 <TextField
@@ -592,7 +600,7 @@ const ManagerPendingRequest = () => {
                         >
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Date Filed
                                 </Typography>
                                 <TextField
@@ -612,7 +620,7 @@ const ManagerPendingRequest = () => {
                             </Box>
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Status
                                 </Typography>
                                 <TextField
@@ -635,7 +643,7 @@ const ManagerPendingRequest = () => {
                         {/* Rejection Reason */}
                         {selectedRequest.status?.toLowerCase() === "rejected" && (
                             <Box display="flex" flexDirection="column" gap={1} mt={2}>
-                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Reason for Rejection
                                 </Typography>
                                 <TextField
@@ -663,17 +671,31 @@ const ManagerPendingRequest = () => {
 
             <BoxModal open={openApproveModal} onClose={handleCloseApproveModal}>
                 {selectedRequest && (
-                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center", fontSize: "20px", color: theme.palette.text.primary
-                            }}
-                        >
-                            Are you sure you want to approve request for {selectedRequest.employee}?
-                        </Typography>
+                    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
 
-                        <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+                        <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontSize: "24px",
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 1
+                                }}
+                            >
+                                Approve Request
+                            </Typography>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center", fontSize: "20px", color: "#fff",
+                                }}
+                            >
+                                Are you sure you want to approve request for {selectedRequest.employee}?
+                            </Typography>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center", mt: 1}}>
                             <Box
                                 component="button"
                                 onClick={handleCloseApproveModal}
@@ -727,19 +749,33 @@ const ManagerPendingRequest = () => {
 
             <BoxModal open={openModal} onClose={handleCloseModal}>
                 {showReasonInput && (
-                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
-                        <Typography
-                            variant="h5"
-                            sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "20px", color: theme.palette.text.primary, mb: 2
-                            }}
-                        >
-                            Are you sure you want to reject this request for {selectedRequest?.employee}?
-                        </Typography>
+                    <Box sx={{ display: "flex", flexDirection: "column", color: "#fff" }}>
+
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontSize: "24px",
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 1
+                                }}
+                            >
+                                Reject Request
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 1
+                                }}
+                            >
+                                Are you sure you want to reject this request for {selectedRequest?.employee}?
+                            </Typography>
+                        </Box>
 
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#a32020", fontSize: "16px" }}>
                                 Enter Reason for Rejection
                             </Typography>
                             <TextField
@@ -809,6 +845,130 @@ const ManagerPendingRequest = () => {
                         </Box>
                     </Box>
                 )}
+            </BoxModal>
+
+            {/* Export PDF Confirmation Modal */}
+            <BoxModal open={exportPdfModalOpen} onClose={() => setExportPdfModalOpen(false)} width={400}>
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Export PDF
+                    </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
+                        Are you sure you want to download the pending requests as PDF?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+                        <Box
+                            variant="outlined"
+                            onClick={() => setExportPdfModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            variant="contained"
+                            onClick={handleExportPdf}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            Download
+                        </Box>
+                    </Box>
+                </Box>
+            </BoxModal>
+
+            {/* Export CSV Confirmation Modal */}
+            <BoxModal open={exportCsvModalOpen} onClose={() => setExportCsvModalOpen(false)} width={400}>
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Export CSV
+                    </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
+                        Are you sure you want to download the pending requests as CSV?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+                        <Box
+                            variant="outlined"
+                            onClick={() => setExportCsvModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            variant="contained"
+                            onClick={handleExportCsv}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            Download
+                        </Box>
+                    </Box>
+                </Box>
             </BoxModal>
         </Box>
     );

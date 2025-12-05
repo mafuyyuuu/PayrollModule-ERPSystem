@@ -419,29 +419,33 @@ const ManagerTimesheets = () => {
                             fontFamily: "'TTHoves-Bold', sans-serif",
                             fontSize: "24px",
                             color: "#FFFFFF",
-                            mb: 2,
-                            textAlign: "center"
+                            mb: 1,
                         }}
                     >
                         Export Timesheet Report
                     </Typography>
-                    <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                    <Typography sx={{ color: "#fff", mb: 2 }}>
                         {filteredData.length} records will be exported
                     </Typography>
-                    <Box sx={{ 
-                        backgroundColor: "rgba(255,255,255,0.1)", 
+                    <Box sx={{
+                        backgroundColor: "#cacace",
                         borderRadius: "12px", 
                         p: 2, 
                         mb: 2,
-                        textAlign: "center"
                     }}>
-                        <Typography sx={{ color: "#4CAF50", fontSize: "14px" }}>
+                        <Typography sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#4CAF50", fontSize: "14px" }}>
                             Approved: {filteredData.filter(r => r.status === 'Approved').length}
                         </Typography>
-                        <Typography sx={{ color: "#FF9800", fontSize: "14px" }}>
+                        <Typography sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#FF9800", fontSize: "14px" }}>
                             Pending: {filteredData.filter(r => r.status === 'Pending').length}
                         </Typography>
-                        <Typography sx={{ color: "#F44336", fontSize: "14px" }}>
+                        <Typography sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#F44336", fontSize: "14px" }}>
                             Rejected: {filteredData.filter(r => r.status === 'Rejected').length}
                         </Typography>
                     </Box>
@@ -481,15 +485,23 @@ const ManagerTimesheets = () => {
                             fontFamily: "'TTHoves-Bold', sans-serif",
                             fontSize: "24px",
                             color: "#FFFFFF",
-                            textAlign: "center"
+                            textAlign: "center",
+                            mb: 1
                         }}
                     >
                         Export Timesheet to CSV
                     </Typography>
-                    <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2,
+                            textAlign: "center"
+                        }}
+                    >
                         This will export {filteredData.length} timesheet records
                     </Typography>
-                    <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
+                    <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 1}}>
                         <Box
                             onClick={handleExportCSV}
                             component="button"
@@ -833,7 +845,7 @@ const ManagerTimesheets = () => {
                             <Typography
                                 variant="h5"
                                 sx={{
-                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary
+                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#fff"
                                 }}
                             >
                                 Timesheet Details
@@ -866,7 +878,7 @@ const ManagerTimesheets = () => {
                         {/* Employee Field */}
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                             <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                 Employee
                             </Typography>
                             <TextField
@@ -898,7 +910,7 @@ const ManagerTimesheets = () => {
                             {/* Date */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Date
                                 </Typography>
                                 <TextField
@@ -922,7 +934,7 @@ const ManagerTimesheets = () => {
                             {/* Status */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                     Status
                                 </Typography>
                                 <TextField
@@ -953,7 +965,7 @@ const ManagerTimesheets = () => {
                             {/* Time In */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}
                                 >
                                     Time In
                                 </Typography>
@@ -980,7 +992,7 @@ const ManagerTimesheets = () => {
                             {/* Time Out */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}
                                 >
                                     Time Out
                                 </Typography>
@@ -1014,7 +1026,7 @@ const ManagerTimesheets = () => {
                             {/* Total Hours */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}
                                 >
                                     Total Hours
                                 </Typography>
@@ -1039,7 +1051,7 @@ const ManagerTimesheets = () => {
                             {/* Overtime */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}
                                 >
                                     Overtime (auto-calculated)
                                 </Typography>
@@ -1067,7 +1079,7 @@ const ManagerTimesheets = () => {
                             <Box mt={2}>
                                 <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                     <Typography
-                                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}
                                     >
                                         Break (hours)
                                     </Typography>
@@ -1125,11 +1137,14 @@ const ManagerTimesheets = () => {
 
             {/* ADD MANUAL ENTRY MODAL */}
             <BoxModal open={openAddModal} onClose={() => setOpenAddModal(false)}>
-                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                <Box sx={{ display: "flex", flexDirection: "column", color: "#fff", }}>
                     <Typography
-                        variant="h5"
+                        variant="h6"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
                         }}
                     >
                         Add Manual Time Entry
@@ -1137,7 +1152,8 @@ const ManagerTimesheets = () => {
 
                     {/* Employee Select */}
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif",                             color: "#fff",
+                            fontSize: "16px"}}>
                             Employee *
                         </Typography>
                         <FormControl fullWidth size="small">
@@ -1162,7 +1178,9 @@ const ManagerTimesheets = () => {
 
                     {/* Date */}
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: "#fff",
+                            fontSize: "16px"}}>
                             Date *
                         </Typography>
                         <TextField
@@ -1186,7 +1204,8 @@ const ManagerTimesheets = () => {
                     {/* Time In / Time Out */}
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: "#fff", fontSize: "16px"}}>
                                 Time In *
                             </Typography>
                             <TextField
@@ -1207,7 +1226,7 @@ const ManagerTimesheets = () => {
                             />
                         </Box>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                 Time Out *
                             </Typography>
                             <TextField
@@ -1232,7 +1251,7 @@ const ManagerTimesheets = () => {
                     {/* Break / Overtime */}
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                 Break (hours)
                             </Typography>
                             <TextField
@@ -1253,7 +1272,7 @@ const ManagerTimesheets = () => {
                             />
                         </Box>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                                 Overtime (auto)
                             </Typography>
                             <TextField
@@ -1266,7 +1285,7 @@ const ManagerTimesheets = () => {
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: "10px",
-                                        backgroundColor: "#e0e0e0",
+                                        backgroundColor: "#cacace",
                                         "& fieldset": { border: "none" },
                                     },
                                     "& .MuiInputBase-input": { color: "#1F2829" },
@@ -1275,30 +1294,31 @@ const ManagerTimesheets = () => {
                         </Box>
                     </Box>
 
-                    {/* Calculated Hours Display */}
-                    <Box sx={{ 
-                        backgroundColor: "#fff",
-                        borderRadius: "12px", 
-                        p: 2, 
-                        mb: 2,
-                        border: `1px solid ${theme.palette.divider}`
-                    }}>
-                        <Typography sx={{ color: "#1F2829", fontSize: "14px", fontFamily: "'TTHoves-DemiBold', sans-serif", mb: 1 }}>
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                             Calculated Hours:
                         </Typography>
-                        <Box display="flex" gap={3}>
-                            <Typography sx={{ color: "#388E3C", fontSize: "18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                                Total: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).totalHours}h
-                            </Typography>
-                            <Typography sx={{ color: "#F57C00", fontSize: "18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
-                                Overtime: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).overtime}h
-                            </Typography>
+                        <Box sx={{
+                            backgroundColor: "#cacace",
+                            borderRadius: "12px",
+                            p: 1.5,
+                            mb: 2,
+                            display: "flex",
+                            flexDirection: "column",
+                            border: `1px solid ${theme.palette.divider}`
+                        }}>
+                                <Typography sx={{ color: "#388E3C", fontSize: "18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                                    Total: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).totalHours}h
+                                </Typography>
+                                <Typography sx={{ color: "#F57C00", fontSize: "18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                                    Overtime: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).overtime}h
+                                </Typography>
                         </Box>
                     </Box>
 
                     {/* Remarks */}
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px"}}>
                             Remarks
                         </Typography>
                         <TextField
@@ -1317,7 +1337,7 @@ const ManagerTimesheets = () => {
                         />
                     </Box>
 
-                <Box display="flex" justifyContent="center" mt={3}>
+                <Box display="flex" justifyContent="center" mt={1}>
                     <Box
                         component="button"
                         onClick={() => showSaveConfirmation('add')}
@@ -1345,30 +1365,35 @@ const ManagerTimesheets = () => {
                 </Box>
             </BoxModal>
 
-
             {/* REJECTION MODAL */}
             <BoxModal open={openRejectModal} onClose={() => { setOpenRejectModal(false); setRejectionReason(""); }}>
-                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
                     <Typography
-                        variant="h5"
+                        variant="h6"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", 
-                            fontSize: "24px", 
-                            color: theme.palette.text.primary,
-                            mb: 2
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
                         }}
                     >
                         Reject Timesheet
                     </Typography>
                     
                     {rejectingRow && (
-                        <Typography sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 1
+                            }}
+                        >
                             Rejecting timesheet for <strong>{rejectingRow.employee}</strong> on {rejectingRow.date}
                         </Typography>
                     )}
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#a32020", fontSize: "16px" }}>
                             Reason for Rejection *
                         </Typography>
                         <TextField
@@ -1389,26 +1414,20 @@ const ManagerTimesheets = () => {
                         />
                     </Box>
 
-                    <Box display="flex" justifyContent="center" gap={2} mt={3}>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
                         <Box
                             component="button"
                             onClick={() => { setOpenRejectModal(false); setRejectionReason(""); }}
                             sx={{
-                                fontSize: "16px",
+                                fontSize: "14px",
                                 backgroundColor: "#bdbdbd",
                                 color: "#333",
-                                padding: "10px 0",
+                                padding: "10px 24px",
                                 borderRadius: "15px",
                                 cursor: "pointer",
                                 border: "none",
-                                transition: "all 0.3s ease",
-                                width: "120px",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": {
-                                    backgroundColor: "#a0a0a0",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                },
+                                "&:hover": { backgroundColor: "#a0a0a0" }
                             }}
                         >
                             Cancel
@@ -1417,20 +1436,16 @@ const ManagerTimesheets = () => {
                             component="button"
                             onClick={handleConfirmReject}
                             sx={{
-                                fontSize: "16px",
+                                fontSize: "14px",
                                 backgroundColor: "#8b1a1a",
                                 color: "#fff",
-                                padding: "10px 0",
+                                padding: "10px 24px",
                                 borderRadius: "15px",
                                 cursor: "pointer",
                                 border: "none",
-                                transition: "all 0.3s ease",
-                                width: "150px",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
                                 "&:hover": {
                                     backgroundColor: "#a32020",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
                                 },
                             }}
                         >
@@ -1447,18 +1462,32 @@ const ManagerTimesheets = () => {
 
             {/* SAVE CONFIRMATION MODAL */}
             <BoxModal open={saveConfirmModalOpen} onClose={() => setSaveConfirmModalOpen(false)} width={400} height={200}>
-                <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <Box>
-                        <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontSize: "24px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 1
+                            }}
+                        >
                             Confirm Save
                         </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
-                            {pendingSaveAction === 'edit' 
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 2
+                            }}
+                        >
+                            {pendingSaveAction === 'edit'
                                 ? "Are you sure you want to save the changes to this timesheet entry?"
                                 : "Are you sure you want to add this new timesheet entry?"}
                         </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
                         <Box
                             component="button"
                             onClick={() => setSaveConfirmModalOpen(false)}

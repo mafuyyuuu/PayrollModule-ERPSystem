@@ -548,6 +548,7 @@ export default function AdminReports() {
                             backgroundColor: theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
                                 : "#fff",
+                            border: `1px solid ${theme.palette.divider}`,
                             minHeight: 150,
                             display: "flex",
                             flexDirection: "column",
@@ -612,10 +613,13 @@ export default function AdminReports() {
                                             labelLine={false}
                                         >
                                             {departmentData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={theme.palette.mode === 'dark' ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                                />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => `${value} employees`} />
+                                        <Tooltip formatter={(value) => `${value} employees`} contentStyle={{ backgroundColor: "#fff", color: "#000000" }} labelStyle={{ color: "#000000" }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (

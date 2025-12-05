@@ -17,7 +17,7 @@ import ActionButton from "../../components/ActionButton.jsx";
 import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill, RiCalculatorLine, RiSaveLine, RiArrowLeftLine, RiArrowRightLine, RiArrowDownSLine, RiMailSendLine, RiAlertLine, RiTimeLine} from "react-icons/ri";
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
-import {PDFViewer, pdf} from "@react-pdf/renderer";
+import {PDFViewer, pdf, PDFDownloadLink} from "@react-pdf/renderer";
 
 const steps = ['Select Pay Period', 'Review Timesheets', 'Calculate Payroll', 'Review & Approve'];
 
@@ -55,6 +55,10 @@ export default function PayoutProcessing() {
     
     // Confirmation modal state
     const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
+    const [downloadConfirmModalOpen, setDownloadConfirmModalOpen] = useState(false);
+    const [emailConfirmModalOpen, setEmailConfirmModalOpen] = useState(false);
+    const [pendingDownloadEmployee, setPendingDownloadEmployee] = useState(null);
+    const [pendingEmailEmployees, setPendingEmailEmployees] = useState(null);
     const [error, setError] = useState(null);
 
     // Tab state for switching between new payroll and existing payroll
@@ -632,11 +636,27 @@ export default function PayoutProcessing() {
 
             case 2:
                 return (
-                    <Box sx={{ p: 3 }}>
+                    <>
                         <Typography variant="h6" sx={{ mb: 2, color: theme.palette.text.primary, fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             Calculated Payroll ({calculatedPayrolls.length} employees)
                         </Typography>
-                        <TableContainer component={Paper} sx={{ borderRadius: '12px', maxHeight: '350px' }}>
+                        <TableContainer
+                            component={Paper}
+                            sx={{
+                                borderRadius: '12px',
+                                maxHeight: '350px',
+                                overflowY: "auto",
+
+                                /* Hide scrollbar (Chrome, Edge, Safari) */
+                                "&::-webkit-scrollbar": { display: "none" },
+
+                                /* Hide scrollbar (Firefox) */
+                                scrollbarWidth: "none",
+
+                                /* Hide scrollbar (IE/Edge Legacy) */
+                                msOverflowStyle: "none",
+                            }}
+                        >
                             <Table stickyHeader size="small">
                                 <TableHead>
                                     <TableRow>
@@ -717,7 +737,7 @@ export default function PayoutProcessing() {
                                 }}
                             />
                         </Box>
-                    </Box>
+                    </>
                 );
 
             case 3:
@@ -852,12 +872,23 @@ export default function PayoutProcessing() {
                             Payslip for {selectedEmployee.name}
                         </Typography>
 
-                        <PDFViewer width="100%" height={600} showToolbar={false}>
+                        <PDFViewer 
+                            width="100%" 
+                            height={650} 
+                            showToolbar={false}
+                            style={{ border: "none" }}
+                        >
                             <PayslipDocument employee={selectedEmployee}/>
                         </PDFViewer>
 
                         <Box sx={{mt: 2}}>
-                            <PayslipActions employee={selectedEmployee}/>
+                            <PayslipActions 
+                                employee={selectedEmployee}
+                                onDownloadClick={() => {
+                                    setPendingDownloadEmployee(selectedEmployee);
+                                    setDownloadConfirmModalOpen(true);
+                                }}
+                            />
                         </Box>
                     </>
                 ) : null;
@@ -867,16 +898,27 @@ export default function PayoutProcessing() {
                 return (
                     <>
                         <Typography
-                            variant="h5"
-                            sx={{color: "#fff", fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center"}}
+                            variant="h6"
+                            sx={{
+                                fontSize: "24px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 1
+                            }}
                         >
                             Release {releaseableCount} payout(s)?
                         </Typography>
-                        <Typography variant="body2" sx={{color: "#ccc", textAlign: "center", mt: 1}}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 2
+                            }}
+                        >
                             This will mark them as released and ready for disbursement.
                         </Typography>
 
-                        <Box sx={{display: "flex", justifyContent: "center", gap: 2, mt: 3}}>
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 1 }}>
                             <Box
                                 onClick={handleReleasePayouts}
                                 component="button"
@@ -1578,9 +1620,8 @@ export default function PayoutProcessing() {
                                                                         <IconButton
                                                                             size="small"
                                                                             onClick={() => {
-                                                                                setSelectedEmployee([{ ...emp, name: emp.employeeName }]);
-                                                                                setModalType("sendToEmails");
-                                                                                setOpen(true);
+                                                                                setPendingEmailEmployees([{ ...emp, name: emp.employeeName }]);
+                                                                                setEmailConfirmModalOpen(true);
                                                                             }}
                                                                             sx={{ backgroundColor: '#F3E5F5', color: '#9C27B0', '&:hover': { backgroundColor: '#9C27B0', color: '#fff' } }}
                                                                         >
@@ -1628,9 +1669,8 @@ export default function PayoutProcessing() {
                                     setSnackbar({ open: true, message: "Select processed or released payslips to send emails.", severity: 'warning' });
                                     return;
                                 }
-                                setSelectedEmployee(emailableEmployees);
-                                setModalType("sendToEmails");
-                                setOpen(true);
+                                setPendingEmailEmployees(emailableEmployees);
+                                setEmailConfirmModalOpen(true);
                             }}
                             text={`Send to Emails (${selectedEmployees.filter(e => e.status === "Processed" || e.status === "Released").length})`}
                             width="200px"
@@ -1652,11 +1692,25 @@ export default function PayoutProcessing() {
                 onClose={() => setSaveConfirmModalOpen(false)}
                 width={450}
             >
-                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
-                    <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
                         Confirm Save Payroll
                     </Typography>
-                    <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary, mb: 3 }}>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
                         Are you sure you want to save {calculatedPayrolls.length} payroll record(s)? This action will create official payroll entries in the system.
                     </Typography>
                     <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
@@ -1672,12 +1726,7 @@ export default function PayoutProcessing() {
                                 cursor: "pointer",
                                 border: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                transition: "all 0.3s ease",
-                                "&:hover": { 
-                                    backgroundColor: "#a0a0a0",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                }
+                                "&:hover": { backgroundColor: "#a0a0a0" }
                             }}
                         >
                             Cancel
@@ -1694,15 +1743,159 @@ export default function PayoutProcessing() {
                                 cursor: "pointer",
                                 border: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                transition: "all 0.3s ease",
-                                "&:hover": { 
-                                    backgroundColor: "#1f2f31",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                }
+                                "&:hover": { backgroundColor: "#1f2f31" }
                             }}
                         >
-                            Confirm Save
+                            Confirm
+                        </Box>
+                    </Box>
+                </Box>
+            </BoxModal>
+
+            {/* Download Payslip Confirmation Modal */}
+            <BoxModal
+                open={downloadConfirmModalOpen}
+                onClose={() => setDownloadConfirmModalOpen(false)}
+                width={400}
+            >
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Download Payslip
+                    </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
+                        Are you sure you want to download the payslip for {pendingDownloadEmployee?.name}?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+                        <Box
+                            component="button"
+                            onClick={() => setDownloadConfirmModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        {pendingDownloadEmployee && (
+                            <Box
+                                sx={{
+                                    fontSize: "14px",
+                                    backgroundColor: "#172224",
+                                    color: "#fff",
+                                    padding: "10px 24px",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": { backgroundColor: "#1f2f31" }
+                                }}
+                            >
+                                <PDFDownloadLink
+                                    document={<PayslipDocument employee={pendingDownloadEmployee} />}
+                                    fileName={`${pendingDownloadEmployee.name}.pdf`}
+                                    style={{
+                                        color: "#fff",
+                                        textDecoration: "none",
+                                    }}
+                                    onClick={() => setDownloadConfirmModalOpen(false)}
+                                >
+                                    {({ loading }) => (loading ? "Generating..." : "Download")}
+                                </PDFDownloadLink>
+                            </Box>
+                        )}
+                    </Box>
+                </Box>
+            </BoxModal>
+
+            {/* Send Email Confirmation Modal */}
+            <BoxModal
+                open={emailConfirmModalOpen}
+                onClose={() => setEmailConfirmModalOpen(false)}
+                width={400}
+            >
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Send to Email
+                    </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
+                        {pendingEmailEmployees?.length === 1 
+                            ? `Are you sure you want to send the payslip to ${pendingEmailEmployees[0]?.name}'s email?`
+                            : `Are you sure you want to send payslips to ${pendingEmailEmployees?.length} employees' emails?`}
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, alignContent:"center"}}>
+                        <Box
+                            component="button"
+                            onClick={() => setEmailConfirmModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            component="button"
+                            onClick={() => {
+                                setEmailConfirmModalOpen(false);
+                                setSelectedEmployee(pendingEmailEmployees);
+                                setModalType("sendToEmails");
+                                setOpen(true);
+                            }}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            Send
                         </Box>
                     </Box>
                 </Box>

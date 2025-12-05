@@ -493,7 +493,13 @@ export default function AdminUserManagement() {
                             <span>{user.id}</span>
                             <span>{user.name}</span>
                             <span>{user.role}</span>
-                            <span>{user.status}</span>
+                            <span style={{
+                                color: user.status === 'Active' ? '#28a745'  // green
+                                    : user.status === 'Inactive' ? '#dc3545' // red
+                                        : '#333' // default
+                            }}>
+                                {user.status}
+                            </span>
                             <Box sx={{display: "flex", justifyContent: "center", gap: "8px"}}>
                                 <IconButton
                                     onClick={() => handleEditUser(user)}
@@ -975,7 +981,7 @@ export default function AdminUserManagement() {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
+                    <Box sx={{display: "flex", gap: 2, justifyContent: "center", alignContent: "center"}}>
                         <Box
                             component="button"
                             onClick={() => setSaveConfirmModalOpen(false)}
@@ -988,7 +994,7 @@ export default function AdminUserManagement() {
                                 cursor: "pointer",
                                 border: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": { backgroundColor: "#a0a0a0" }
+                                "&:hover": {backgroundColor: "#a0a0a0"}
                             }}
                         >
                             Cancel
@@ -1005,7 +1011,7 @@ export default function AdminUserManagement() {
                                 cursor: "pointer",
                                 border: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": { backgroundColor: "#1f2f31" }
+                                "&:hover": {backgroundColor: "#1f2f31"}
                             }}
                         >
                             Confirm

@@ -11,7 +11,7 @@ export default function Landing() {
             <div className="typing-wrapper">
                 <TextType
                     className="typing-text"
-                    text={["Payroll Management", "Lenscape Studio"]}
+                    text={["Payroll Management", "Eco Company"]}
                     typingSpeed={120}
                     pauseDuration={2000}
                     showCursor={true}

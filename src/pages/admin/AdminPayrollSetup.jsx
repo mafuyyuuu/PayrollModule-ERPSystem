@@ -437,7 +437,7 @@ export default function AdminPayrollSetup() {
                     </Box>
                     <Box
                         sx={{
-                            maxHeight: "400px",
+                            maxHeight: "700px",
                             overflowY: "auto",
                             "&::-webkit-scrollbar": {width: 0, height: 0},
                             scrollbarWidth: "none",
@@ -547,7 +547,7 @@ export default function AdminPayrollSetup() {
 
                     <Box
                         sx={{
-                            maxHeight: "400px",
+                            maxHeight: "700px",
                             overflowY: "auto",
                             "&::-webkit-scrollbar": {width: 0, height: 0},
                             scrollbarWidth: "none",
@@ -635,18 +635,19 @@ export default function AdminPayrollSetup() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 1,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF",
                         }}
                     >
                         {selectedIntegration?.name} Settings
                     </Typography>
                     
-                    <Typography sx={{ fontSize: "14px", color: "#aaa", mb: 2 }}>
+                    <Typography
+                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                         {selectedIntegration?.description}
                     </Typography>
 
                     {/* Status Toggle */}
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2}}>
                         <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px" }}>
                             Status:
                         </Typography>
@@ -734,7 +735,9 @@ export default function AdminPayrollSetup() {
                     {selectedIntegration?.name === "E-Wallet (GCash/Maya)" && (
                         <>
                             <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
+                                <Typography
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}
+                                >
                                     Provider
                                 </Typography>
                                 <Select
@@ -859,14 +862,21 @@ export default function AdminPayrollSetup() {
                     )}
 
                     {/* Action Buttons */}
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 1 }}>
                         <Box
                             component="button"
                             onClick={handleCloseModal}
                             sx={{
-                                fontSize: "16px", backgroundColor: "#666", color: "#fff", padding: "10px 0",
-                                borderRadius: "15px", cursor: "pointer", border: "none", width: "150px",
-                                fontFamily: "'TTHoves-Regular', sans-serif", transition: "all 0.3s ease",
+                                fontSize: "16px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                width: "150px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                transition: "all 0.3s ease",
                                 "&:hover": { backgroundColor: "#777", transform: "translateY(-2px)" },
                             }}
                         >
@@ -900,7 +910,7 @@ export default function AdminPayrollSetup() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
                         }}
                     >
                         Edit Tax Setting
@@ -908,7 +918,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Tax Type
                         </Typography>
 
@@ -938,7 +948,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Rate
                         </Typography>
 
@@ -962,7 +972,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Description
                         </Typography>
 
@@ -994,20 +1004,16 @@ export default function AdminPayrollSetup() {
                             onClick={handleCloseModal}
                             sx={{
                                 fontSize: "16px",
-                                backgroundColor: "#666",
-                                color: "#fff",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
                                 padding: "10px 0",
                                 borderRadius: "15px",
                                 cursor: "pointer",
                                 border: "none",
-                                transition: "all 0.3s ease",
                                 width: "200px",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": {
-                                    backgroundColor: "#777",
-                                    transform: "translateY(-2px)",
-                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-                                },
+                                transition: "all 0.3s ease",
+                                "&:hover": { backgroundColor: "#777", transform: "translateY(-2px)" },
                             }}
                         >
                             Cancel
@@ -1051,7 +1057,7 @@ export default function AdminPayrollSetup() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
                         }}
                     >
                         {isEditing ? "Edit Pay Component" : "Add Pay Component"}
@@ -1059,7 +1065,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Component Name
                         </Typography>
 
@@ -1082,7 +1088,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}
                         >
                             Type
                         </Typography>
@@ -1113,7 +1119,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Formula or Fixed Amount
                         </Typography>
 
@@ -1136,7 +1142,7 @@ export default function AdminPayrollSetup() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}
                         >
                             Status
                         </Typography>
@@ -1340,16 +1346,30 @@ export default function AdminPayrollSetup() {
                     width={400}
                     height={200}
                 >
-                    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
                         <Box>
-                            <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontSize: "24px",
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 1
+                                }}
+                            >
                                 Confirm Save
                             </Typography>
-                            <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 2
+                                }}
+                            >
                                 Are you sure you want to save these changes?
                             </Typography>
                         </Box>
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+                        <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
                             <Box
                                 component="button"
                                 onClick={() => setSaveConfirmModalOpen(false)}

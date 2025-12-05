@@ -1,10 +1,11 @@
-import {Box, Typography} from "@mui/material";
+import {Box, Typography, Button} from "@mui/material";
 import {useTheme} from "@mui/material/styles";
 import DashboardCard from "../../components/DashboardCard.jsx";
 import "remixicon/fonts/remixicon.css";
 import SearchBar from "../../components/SearchBar.jsx";
 import React, {useState, useEffect} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
 
 const ManagerPayrollSummary = () => {
     const [employeePayrollData, setEmployeePayrollData] = useState([]);
@@ -12,6 +13,7 @@ const ManagerPayrollSummary = () => {
     const [loading, setLoading] = useState(true);
     const [logsLoading, setLogsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [exportModalOpen, setExportModalOpen] = useState(false);
     const [stats, setStats] = useState({
         totalPayrollCost: 0,
         totalDeductions: 0,
@@ -183,7 +185,7 @@ const ManagerPayrollSummary = () => {
                             <ActionButton
                                 text="Export CSV"
                                 width="auto"
-                                onClick={exportToCSV}
+                                onClick={() => setExportModalOpen(true)}
                             />
                             <SearchBar
                                 placeholder="Search Employee"
@@ -395,6 +397,71 @@ const ManagerPayrollSummary = () => {
                     </Box>
                 </Box>
             </Box>
+
+            {/* Export CSV Confirmation Modal */}
+            <BoxModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} width={400}>
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Export CSV
+                    </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 2
+                        }}
+                    >
+                        Are you sure you want to download the payroll summary as CSV?
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
+                        <Box
+                            variant="outlined"
+                            onClick={() => setExportModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            variant="contained"
+                            onClick={() => {
+                                exportToCSV();
+                                setExportModalOpen(false);
+                            }}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            Download
+                        </Box>
+                    </Box>
+                </Box>
+            </BoxModal>
         </Box>
     );
 };

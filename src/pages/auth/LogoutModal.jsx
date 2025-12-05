@@ -1,9 +1,8 @@
-// javascript
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../components/UserContext.jsx";
 import * as faceapi from "face-api.js";
-import "./Logout.css";
+import { Modal, Box, Typography, Button } from "@mui/material";
 
 function LogoutModal({ show, onClose }) {
     const THRESHOLD = 75.0; // percent - adjust as needed
@@ -180,48 +179,110 @@ function LogoutModal({ show, onClose }) {
     if (!show) return null;
 
     return (
-        <div className="logout-modal-overlay" onClick={onClose}>
-            <div className="logout-container" onClick={(e) => e.stopPropagation()}>
-                <div className="right-container">
-                    <h2>Facial Recognition Logout</h2>
+        <Modal open={show} onClose={onClose}>
+            <Box
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    p: 4,
+                    borderRadius: 10,
+                    width: 450,
+                    maxWidth: "90vw",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                }}
+            >
+                <Typography
+                    variant="h6"
+                    sx={{
+                        fontSize: "24px",
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        color: "#fff",
+                        mb: 1
+                    }}
+                >
+                    Facial Recognition Logout
+                </Typography>
 
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        muted
-                        width="400"
-                        height="300"
-                        style={{ borderRadius: "10px", border: "2px solid #ccc" }}
-                    />
-                    <img
-                        id="face-preview"
-                        alt="Face preview"
-                        style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
-                    />
-                    <p>{status}</p>
+                <Box
+                    component="video"
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    sx={{
+                        width: 320,
+                        height: 240,
+                        borderRadius: "10px",
+                        border: "none",
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+                    }}
+                />
 
-                    <button
-                        onClick={handleFaceLogout}
-                        className="login-btn"
-                        disabled={loading}
-                        style={{ marginTop: "10px" }}
-                    >
-                        {loading ? "Processing..." : "Logout with Face"}
-                    </button>
+                <Typography
+                    sx={{
+                        fontFamily: "'TTHoves-Bold', sans-serif",
+                        color: "#fff",
+                        mt: 2,
+                        mb: 2
+                    }}
+                >
+                    {status}
+                </Typography>
 
-                    <button
+                <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
+                    <Box
+                        variant="outlined"
                         onClick={() => {
                             stopCamera();
                             onClose();
                         }}
-                        className="login-btn"
-                        style={{ marginTop: "10px", backgroundColor: "#6c757d" }}
+                        sx={{
+                            fontSize: "14px",
+                            backgroundColor: "#bdbdbd",
+                            color: "#333",
+                            padding: "10px 24px",
+                            borderRadius: "15px",
+                            cursor: "pointer",
+                            border: "none",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            "&:hover": { backgroundColor: "#a0a0a0" }
+                        }}
                     >
                         Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Box>
+                    <Box
+                        variant="contained"
+                        onClick={handleFaceLogout}
+                        disabled={loading}
+                        sx={{
+                            fontSize: "14px",
+                            backgroundColor: "#172224",
+                            color: "#fff",
+                            padding: "10px 24px",
+                            borderRadius: "15px",
+                            cursor: "pointer",
+                            border: "none",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            "&:hover": { backgroundColor: "#1f2f31" }
+                        }}
+                    >
+                        {loading ? "Processing..." : "Logout with Face"}
+                    </Box>
+                </Box>
+            </Box>
+        </Modal>
     );
 }
 

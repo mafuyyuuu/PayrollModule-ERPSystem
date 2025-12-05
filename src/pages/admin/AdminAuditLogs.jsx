@@ -312,25 +312,16 @@ export default function AdminAuditLogs() {
                         <span>{formatDate(log.date)}</span>
                         <span>{log.user}</span>
                         <span style={{
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            backgroundColor: log.action === 'CREATE' ? '#d4edda'
-                                : log.action === 'UPDATE' ? '#d1ecf1'
-                                : log.action === 'DELETE' ? '#f8d7da'
-                                : '#f0f0f0',
-                            color: log.action === 'DELETE' ? '#721c24'
-                                : log.action === 'CREATE' ? '#155724'
-                                : log.action === 'UPDATE' ? '#0c5460'
-                                : '#333'
+                            color: log.action === 'EMAIL_SENT' ? '#1a73e8' // blue
+                                : log.action === 'CREATE'     ? '#155724' // green
+                                    : log.action === 'Approved'   ? '#28a745' // bright green
+                                        : log.action === 'Rejected'   ? '#dc3545' // red
+                                            : log.action === 'Created'    ? '#ffc107' // yellow
+                                                : log.action === 'Processed'  ? '#17a2b8' // teal
+                                                    : '#333'                      // default
+
                         }}>{log.action}</span>
-                        <span style={{ 
-                            textAlign: "left", 
-                            overflow: "hidden", 
-                            textOverflow: "ellipsis", 
-                            whiteSpace: "nowrap",
-                            paddingLeft: "8px"
-                        }} title={log.description}>{log.description}</span>
+                        <span title={log.description}>{log.description}</span>
                     </Box>))
                 )}
             </Box>
@@ -343,34 +334,41 @@ export default function AdminAuditLogs() {
             width="400px"
         >
             <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
-                    fontFamily: "'TTHoves-Bold', sans-serif",
                     fontSize: "24px",
-                    color: theme.palette.text.primary,
-                    mb: 2,
-                    textAlign: "center"
+                    fontFamily: "'TTHoves-Bold', sans-serif",
+                    color: "#fff",
+                    textAlign: "center",
+                    mb: 1
                 }}
             >
                 Export Audit Logs
             </Typography>
-            <Typography sx={{ color: theme.palette.text.secondary, textAlign: "center", mb: 2 }}>
+            <Typography
+                sx={{
+                    fontFamily: "'TTHoves-Bold', sans-serif",
+                    color: "#fff",
+                    textAlign: "center",
+                    mb: 2
+                }}
+            >
                 Export {filteredLogs.length} log(s) to {exportType.toUpperCase()}?
             </Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
                 <Box
                     onClick={() => setIsExportModalOpen(false)}
                     component="button"
                     sx={{
-                        fontSize: "16px",
-                        backgroundColor: "#666",
-                        color: "#fff",
-                        padding: "10px 30px",
+                        fontSize: "14px",
+                        backgroundColor: "#bdbdbd",
+                        color: "#333",
+                        padding: "10px 24px",
                         borderRadius: "15px",
                         cursor: "pointer",
                         border: "none",
                         fontFamily: "'TTHoves-Regular', sans-serif",
-                        "&:hover": { backgroundColor: "#555" },
+                        "&:hover": { backgroundColor: "#a0a0a0" }
                     }}
                 >
                     Cancel
