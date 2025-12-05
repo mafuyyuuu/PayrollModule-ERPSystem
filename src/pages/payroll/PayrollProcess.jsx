@@ -491,13 +491,13 @@ export default function PayoutProcessing() {
         switch (step) {
             case 0:
                 return (
-                    <Box sx={{ p: 3 }}>
+                    <Box sx={{ p: 2,}}>
                         <Typography variant="h6" sx={{ mb: 3, color: theme.palette.text.primary, fontFamily: "'TTHoves-DemiBold', sans-serif" }}>
                             Select Pay Period
                         </Typography>
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
                             <Box>
-                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
+                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.primary}}>
                                     Cutoff Start Date
                                 </Typography>
                                 <TextField
@@ -509,12 +509,15 @@ export default function PayoutProcessing() {
                                         "& .MuiOutlinedInput-root": {
                                             borderRadius: "12px",
                                             backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#fff",
+                                        },
+                                        "& input::-webkit-calendar-picker-indicator": {
+                                            filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
                                         }
                                     }}
                                 />
                             </Box>
                             <Box>
-                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
+                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.primary}}>
                                     Cutoff End Date
                                 </Typography>
                                 <TextField
@@ -526,12 +529,15 @@ export default function PayoutProcessing() {
                                         "& .MuiOutlinedInput-root": {
                                             borderRadius: "12px",
                                             backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#fff",
+                                        },
+                                        "& input::-webkit-calendar-picker-indicator": {
+                                            filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
                                         }
                                     }}
                                 />
                             </Box>
                             <Box>
-                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.secondary }}>
+                                <Typography variant="body2" sx={{ mb: 1, color: theme.palette.text.primary }}>
                                     Pay Date
                                 </Typography>
                                 <TextField
@@ -542,14 +548,20 @@ export default function PayoutProcessing() {
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
                                             borderRadius: "12px",
-                                            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "#fff",
+                                            backgroundColor: theme.palette.mode === "dark" ? "rgba(251,251,251,0.05)" : "#fff",
+                                        },
+                                        "& input::-webkit-calendar-picker-indicator": {
+                                            filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
                                         }
                                     }}
                                 />
                             </Box>
                         </Box>
-                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end'}}>
                             <ActionButton
+                                sx={{
+                                    width: "auto"
+                                }}
                                 text="Fetch Timesheets"
                                 onClick={() => {
                                     fetchTimesheets();
@@ -610,6 +622,9 @@ export default function PayoutProcessing() {
                                 text={isCalculating ? "Calculating..." : "Calculate Payroll"}
                                 onClick={handleCalculatePayroll}
                                 disabled={isCalculating || timesheetData.length === 0}
+                                sx={{
+                                    width: "auto"
+                                }}
                             />
                         </Box>
                     </Box>
@@ -697,6 +712,9 @@ export default function PayoutProcessing() {
                                 text={isSaving ? "Saving..." : "Save & Create Payroll Records"}
                                 onClick={showSaveConfirmation}
                                 disabled={isSaving || calculatedPayrolls.length === 0}
+                                sx={{
+                                    width: "auto"
+                                }}
                             />
                         </Box>
                     </Box>
@@ -799,12 +817,12 @@ export default function PayoutProcessing() {
                                     fontSize: "16px",
                                     backgroundColor: "#172224",
                                     color: "#fff",
-                                    padding: "10px 0",
+                                    padding: "10px 24px",
                                     borderRadius: "15px",
                                     cursor: "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    width: "200px",
+                                    width: "auto",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
                                         backgroundColor: "#1f2f31",
@@ -866,12 +884,12 @@ export default function PayoutProcessing() {
                                     fontSize: "16px",
                                     backgroundColor: "#172224",
                                     color: "#fff",
-                                    padding: "10px 0",
+                                    padding: "10px 24px",
                                     borderRadius: "15px",
                                     cursor: "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    width: "200px",
+                                    width: "auto",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
                                         backgroundColor: "#1f2f31",
@@ -920,12 +938,12 @@ export default function PayoutProcessing() {
                                     fontSize: "16px",
                                     backgroundColor: "#388E3C",
                                     color: "#fff",
-                                    padding: "10px 0",
+                                    padding: "10px 24px",
                                     borderRadius: "15px",
                                     cursor: "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    width: "200px",
+                                    width: "auto",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
                                         backgroundColor: "#2E7D32",
@@ -996,12 +1014,12 @@ export default function PayoutProcessing() {
                                     fontSize: "16px",
                                     backgroundColor: "#D32F2F",
                                     color: "#fff",
-                                    padding: "10px 0",
+                                    padding: "10px 24px",
                                     borderRadius: "15px",
                                     cursor: "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    width: "200px",
+                                    width: "auto",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
                                         backgroundColor: "#B71C1C",
@@ -1075,63 +1093,109 @@ export default function PayoutProcessing() {
                 </Typography>
                 
                 {/* Tab Buttons */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                    <Box
-                        onClick={() => setCurrentTab(0)}
-                        sx={{
-                            px: 3,
-                            py: 1.5,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            backgroundColor: currentTab === 0 
-                                ? (theme.palette.mode === 'dark' ? 'rgba(31, 40, 41, 0.9)' : 'rgba(23, 34, 36, 0.9)')
-                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'),
-                            backdropFilter: "blur(8px)",
-                            color: currentTab === 0 ? '#fff' : theme.palette.text.primary,
-                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            transition: 'all 0.3s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            boxShadow: currentTab === 0 ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
-                            border: `1px solid ${currentTab === 0 ? 'transparent' : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-                            '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-                            }
-                        }}
-                    >
-                        <RiCalculatorLine size={18} />
-                        Calculate New Payroll
+                <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Box
+                            onClick={() => setCurrentTab(0)}
+                            sx={{
+                                px: 3,
+                                py: 1.5,
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                backgroundColor: currentTab === 0 
+                                    ? (theme.palette.mode === 'dark' ? 'rgba(31, 40, 41, 0.9)' : 'rgba(23, 34, 36, 0.9)')
+                                    : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'),
+                                backdropFilter: "blur(8px)",
+                                color: currentTab === 0 ? '#fff' : theme.palette.text.primary,
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                boxShadow: currentTab === 0 ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
+                                border: `1px solid ${currentTab === 0 ? 'transparent' : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                                }
+                            }}
+                        >
+                            <RiCalculatorLine size={18} />
+                            Calculate New Payroll
+                        </Box>
+                        <Box
+                            onClick={() => setCurrentTab(1)}
+                            sx={{
+                                px: 3,
+                                py: 1.5,
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                backgroundColor: currentTab === 1 
+                                    ? (theme.palette.mode === 'dark' ? 'rgba(31, 40, 41, 0.9)' : 'rgba(23, 34, 36, 0.9)')
+                                    : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'),
+                                backdropFilter: "blur(8px)",
+                                color: currentTab === 1 ? '#fff' : theme.palette.text.primary,
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                boxShadow: currentTab === 1 ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
+                                border: `1px solid ${currentTab === 1 ? 'transparent' : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                                }
+                            }}
+                        >
+                            <RiEyeFill size={18} />
+                            Manage Existing Payroll
+                        </Box>
                     </Box>
-                    <Box
-                        onClick={() => setCurrentTab(1)}
-                        sx={{
-                            px: 3,
-                            py: 1.5,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            backgroundColor: currentTab === 1 
-                                ? (theme.palette.mode === 'dark' ? 'rgba(31, 40, 41, 0.9)' : 'rgba(23, 34, 36, 0.9)')
-                                : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)'),
-                            backdropFilter: "blur(8px)",
-                            color: currentTab === 1 ? '#fff' : theme.palette.text.primary,
-                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            transition: 'all 0.3s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            boxShadow: currentTab === 1 ? '0 4px 15px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
-                            border: `1px solid ${currentTab === 1 ? 'transparent' : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-                            '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-                            }
-                        }}
-                    >
-                        <RiEyeFill size={18} />
-                        Manage Existing Payroll
-                    </Box>
+
+                    {/* Filters - only show for Manage Existing tab */}
+                    {currentTab === 1 && (
+                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <SearchBar 
+                                placeholder="Search employee..." 
+                                width="250px"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+
+                            <FilterSelect
+                                value={urgencyFilter}
+                                onChange={(e) => setUrgencyFilter(e.target.value)}
+                                options={urgencyFilterOptions}
+                                placeholder="Filter by Urgency"
+                                width={180}
+                            />
+
+                            <FilterSelect
+                                value={filter}
+                                onChange={(e) => setFilter(e.target.value)}
+                                options={statusFilterOptions}
+                                placeholder="Filter by Status"
+                                width={180}
+                            />
+
+                            {/* Clear filters button */}
+                            {hasActiveFilters && (
+                                <Chip
+                                    label="Clear Filters"
+                                    onDelete={handleClearFilters}
+                                    deleteIcon={<RiCloseLine />}
+                                    sx={{
+                                        backgroundColor: theme.palette.primary.main,
+                                        color: theme.palette.primary.contrastText,
+                                        '& .MuiChip-deleteIcon': {
+                                            color: theme.palette.primary.contrastText,
+                                        }
+                                    }}
+                                />
+                            )}
+                        </Box>
+                    )}
                 </Box>
             </Box>
 
@@ -1140,13 +1204,13 @@ export default function PayoutProcessing() {
                 /* Calculate New Payroll Tab */
                 <Box
                     sx={{
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.7)",
-                        border: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"}`,
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgb(209,210,210)",
+                        border: `1px solid ${theme.palette.divider}`,
                         borderRadius: "15px",
                         backdropFilter: "blur(12px)",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                        p: 3,
-                        minHeight: '500px',
+                        p: 6,
+                        height: '630px',
                         transition: 'all 0.3s ease',
                         '&:hover': {
                             boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
@@ -1183,58 +1247,6 @@ export default function PayoutProcessing() {
             ) : (
                 /* Manage Existing Payroll Tab - Period-Based View */
                 <>
-                    {/* Filters and Search */}
-                    <Box
-                        sx={{
-                            alignItems: "center",
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            width: "100%",
-                            mb: 2,
-                            gap: 2,
-                            flexWrap: "wrap",
-                        }}
-                    >
-                        <SearchBar 
-                            placeholder="Search employee..." 
-                            width="250px"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-
-                        <FilterSelect
-                            value={urgencyFilter}
-                            onChange={(e) => setUrgencyFilter(e.target.value)}
-                            options={urgencyFilterOptions}
-                            placeholder="Filter by Urgency"
-                            width={180}
-                        />
-
-                        <FilterSelect
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            options={statusFilterOptions}
-                            placeholder="Filter by Status"
-                            width={180}
-                        />
-
-                        {/* Clear filters button */}
-                        {hasActiveFilters && (
-                            <Chip
-                                label="Clear Filters"
-                                onDelete={handleClearFilters}
-                                deleteIcon={<RiCloseLine />}
-                                sx={{
-                                    backgroundColor: theme.palette.primary.main,
-                                    color: theme.palette.primary.contrastText,
-                                    '& .MuiChip-deleteIcon': {
-                                        color: theme.palette.primary.contrastText,
-                                    }
-                                }}
-                            />
-                        )}
-                    </Box>
-
                     {error && (
                         <Box sx={{ color: 'error.main', p: 2, textAlign: 'center', mb: 2 }}>
                             Error: {error}
@@ -1261,7 +1273,7 @@ export default function PayoutProcessing() {
                         </Box>
                     ) : (
                         /* Period Accordions */
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 'calc(100vh - 280px)', overflowY: 'auto', pb: 2, scrollbarWidth: 'none', msOverflowStyle: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
                             {filteredPeriods.map((period) => {
                                 const urgencyStyle = getUrgencyStyle(period.urgency);
                                 const progressPercent = period.stats.total > 0 
@@ -1440,7 +1452,7 @@ export default function PayoutProcessing() {
                                             </Box>
 
                                             {/* Employee Rows */}
-                                            <Box sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                            <Box sx={{ maxHeight: '300px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
                                                 {periodPayrolls.map((emp) => (
                                                     <Box 
                                                         key={emp.payrollId}
@@ -1456,9 +1468,10 @@ export default function PayoutProcessing() {
                                                             fontSize: '14px',
                                                             color: '#1b2223',
                                                             transition: 'all 0.2s ease',
+                                                            cursor: "pointer",
                                                             '&:hover': {
-                                                                transform: 'translateX(4px)',
                                                                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                                backgroundColor: "#ecebeb"
                                                             }
                                                         }}
                                                     >
@@ -1588,7 +1601,7 @@ export default function PayoutProcessing() {
                     )}
 
                     {/* Bulk Action Buttons */}
-                    <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
+                    <Box display="flex" justifyContent="flex-end" gap="15px" mt="10px" mb="20px">
                         <ActionButton
                             text={`Mark as Processed (${selectedEmployees.filter(e => e.status === "Pending").length})`}
                             width="220px"
@@ -1638,17 +1651,14 @@ export default function PayoutProcessing() {
                 open={saveConfirmModalOpen}
                 onClose={() => setSaveConfirmModalOpen(false)}
                 width={450}
-                height={220}
             >
-                <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                    <Box>
-                        <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
-                            Confirm Save Payroll
-                        </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
-                            Are you sure you want to save {calculatedPayrolls.length} payroll record(s)? This action will create official payroll entries in the system.
-                        </Typography>
-                    </Box>
+                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                    <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+                        Confirm Save Payroll
+                    </Typography>
+                    <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary, mb: 3 }}>
+                        Are you sure you want to save {calculatedPayrolls.length} payroll record(s)? This action will create official payroll entries in the system.
+                    </Typography>
                     <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
                         <Box
                             component="button"
@@ -1662,7 +1672,12 @@ export default function PayoutProcessing() {
                                 cursor: "pointer",
                                 border: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": { backgroundColor: "#a0a0a0" }
+                                transition: "all 0.3s ease",
+                                "&:hover": { 
+                                    backgroundColor: "#a0a0a0",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                }
                             }}
                         >
                             Cancel
@@ -1679,7 +1694,12 @@ export default function PayoutProcessing() {
                                 cursor: "pointer",
                                 border: "none",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": { backgroundColor: "#1f2f31" }
+                                transition: "all 0.3s ease",
+                                "&:hover": { 
+                                    backgroundColor: "#1f2f31",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                }
                             }}
                         >
                             Confirm Save

@@ -673,7 +673,7 @@ const EmployeeDashboard = () => {
                     lg: "repeat(4, 1fr)",
                 }}
                 gap="16px"
-                mb={3}
+                mb={2}
             >
                 {dashboardLoading ? (
                     <>
@@ -812,9 +812,10 @@ const EmployeeDashboard = () => {
                     lg: "2fr 1fr 1fr",
                 }}
                 gap="16px"
+                sx={{ height: "calc(100% - 160px)" }}
             >
                 {/* EARNINGS CHART */}
-                <Box sx={{ ...cardStyle, p: 3 }}>
+                <Box sx={{ ...cardStyle, p: 3, display: "flex", flexDirection: "column" }}>
                     <Typography
                         sx={{
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
@@ -826,7 +827,7 @@ const EmployeeDashboard = () => {
                         Earnings Overview
                     </Typography>
 
-                    <Box sx={{ height: "280px" }}>
+                    <Box sx={{ flex: 1, minHeight: "250px" }}>
                         {earningsLoading ? (
                             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                                 <CircularProgress size={32} />
@@ -905,7 +906,7 @@ const EmployeeDashboard = () => {
                 </Box>
 
                 {/* QUICK ACTIONS */}
-                <Box sx={{ ...cardStyle, p: 3 }}>
+                <Box sx={{ ...cardStyle, p: 3, display: "flex", flexDirection: "column" }}>
                     <Typography
                         sx={{
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
@@ -917,7 +918,7 @@ const EmployeeDashboard = () => {
                         Quick Actions
                     </Typography>
 
-                    <Box display="flex" flexDirection="column" gap={1.5}>
+                    <Box display="flex" flexDirection="column" gap={1.5} flex={1}>
                         {[
                             { type: 'leave', icon: 'ri-calendar-check-line', label: 'Request Leave' },
                             { type: 'overtime', icon: 'ri-timer-flash-line', label: 'Log Overtime' },
@@ -1014,9 +1015,9 @@ const EmployeeDashboard = () => {
                 </Box>
 
                 {/* PENDING REQUESTS & RECENT PAYSLIPS */}
-                <Box display="flex" flexDirection="column" gap={2}>
+                <Box display="flex" flexDirection="column" gap={2} sx={{ height: "100%" }}>
                     {/* Pending Requests */}
-                    <Box sx={{ ...cardStyle, p: 3, flex: 1 }}>
+                    <Box sx={{ ...cardStyle, p: 3, flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
                         <Typography
                             sx={{
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
@@ -1081,7 +1082,7 @@ const EmployeeDashboard = () => {
                     </Box>
 
                     {/* Recent Payslips */}
-                    <Box sx={{ ...cardStyle, p: 3, flex: 1 }}>
+                    <Box sx={{ ...cardStyle, p: 3, flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
                         <Typography
                             sx={{
                                 fontFamily: "'TTHoves-DemiBold', sans-serif",
@@ -1247,6 +1248,14 @@ const EmployeeDashboard = () => {
                                             onChange={(e) => setFromDate(e.target.value)}
                                             fullWidth
                                             size="small"
+                                            sx={{
+                                                "& input::-webkit-calendar-picker-indicator": {
+                                                    display: "none",
+                                                },
+                                                "& input[type='date']::-webkit-inner-spin-button": {
+                                                    display: "none",
+                                                },
+                                            }}
                                             InputProps={{
                                                 endAdornment: (
                                                     <InputAdornment position="end">
@@ -1269,6 +1278,14 @@ const EmployeeDashboard = () => {
                                             onChange={(e) => setToDate(e.target.value)}
                                             fullWidth
                                             size="small"
+                                            sx={{
+                                                "& input::-webkit-calendar-picker-indicator": {
+                                                    display: "none",
+                                                },
+                                                "& input[type='date']::-webkit-inner-spin-button": {
+                                                    display: "none",
+                                                },
+                                            }}
                                             InputProps={{
                                                 endAdornment: (
                                                     <InputAdornment position="end">
@@ -1344,7 +1361,15 @@ const EmployeeDashboard = () => {
                                     onChange={handleOvertimeInputChange}
                                     fullWidth
                                     size="small"
-                                    sx={{ mb: 2 }}
+                                    sx={{
+                                        mb: 2,
+                                        "& input::-webkit-calendar-picker-indicator": {
+                                            display: "none",
+                                        },
+                                        "& input[type='date']::-webkit-inner-spin-button": {
+                                            display: "none",
+                                        },
+                                    }}
                                     InputProps={{
                                         endAdornment: (
                                             <InputAdornment position="end">
@@ -1368,6 +1393,11 @@ const EmployeeDashboard = () => {
                                             onChange={handleOvertimeInputChange}
                                             fullWidth
                                             size="small"
+                                            sx={{
+                                                "& input::-webkit-calendar-picker-indicator": {
+                                                    filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
+                                                },
+                                            }}
                                         />
                                     </Box>
                                     <Box flex={1}>
@@ -1381,6 +1411,11 @@ const EmployeeDashboard = () => {
                                             onChange={handleOvertimeInputChange}
                                             fullWidth
                                             size="small"
+                                            sx={{
+                                                "& input::-webkit-calendar-picker-indicator": {
+                                                    filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
+                                                },
+                                            }}
                                         />
                                     </Box>
                                 </Box>
@@ -1634,6 +1669,14 @@ const EmployeeDashboard = () => {
                                             onChange={handleReimbursementInputChange}
                                             fullWidth
                                             size="small"
+                                            sx={{
+                                                "& input::-webkit-calendar-picker-indicator": {
+                                                    display: "none",
+                                                },
+                                                "& input[type='date']::-webkit-inner-spin-button": {
+                                                    display: "none",
+                                                },
+                                            }}
                                             InputProps={{
                                                 endAdornment: (
                                                     <InputAdornment position="end">

@@ -137,7 +137,7 @@ const ManagerDashboard = () => {
                             display: "grid",
                             gridTemplateColumns: "50px 2fr 1.5fr 1fr 1fr 1fr",
                             fontWeight: 700,
-                            p: "8px 0",
+                            p: "12px 16px",
                             borderBottom: `1px solid ${theme.palette.divider}`,
                             fontSize: "14px",
                         }}
@@ -165,7 +165,7 @@ const ManagerDashboard = () => {
                                     sx={{
                                         display: "grid",
                                         gridTemplateColumns: "50px 2fr 1.5fr 1fr 1fr 1fr",
-                                        p: "12px 0",
+                                        p: "12px 16px",
                                         borderBottom: `1px solid ${theme.palette.divider}`,
                                         fontSize: "14px",
                                         alignItems: "center",
@@ -179,7 +179,7 @@ const ManagerDashboard = () => {
                                     <span style={{ fontWeight: 700, color: emp.rank <= 3 ? "#4CAF50" : "inherit" }}>
                                         {emp.rank}
                                     </span>
-                                    <span style={{ fontWeight: 500 }}>{emp.name}</span>
+                                    <span style={{ fontWeight: 700 }}>{emp.name}</span>
                                     <span style={{ color: theme.palette.text.secondary }}>{emp.position}</span>
                                     <span>{emp.daysPresent} days</span>
                                     <span>{emp.avgHours}h</span>
@@ -232,7 +232,7 @@ const ManagerDashboard = () => {
                             No earnings data available
                         </Box>
                     ) : (
-                        <ResponsiveContainer width="100%" height={200}>
+                        <ResponsiveContainer width="100%" height={280}>
                             <LineChart data={earningsData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                                 <XAxis 

@@ -256,7 +256,7 @@ export default function ManagerReports() {
                     display: "flex",
                     justifyContent: "space-between",
                     width: "100%",
-                    mb: 3,
+                    mb: 2,
                 }}
             >
                 <Typography
@@ -289,7 +289,7 @@ export default function ManagerReports() {
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
                     backdropFilter: "blur(12px)",
-                    p: 2,
+                    p: 2.5,
                     overflowY: "auto",
                     "&::-webkit-scrollbar": { width: 6 },
                     "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: 3 },
@@ -300,6 +300,7 @@ export default function ManagerReports() {
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
+                        mb: 2
                     }}
                 >
                     <Typography
@@ -310,11 +311,11 @@ export default function ManagerReports() {
                             color: theme.palette.text.primary,
                         }}
                     >
-                        Employee Deductions Report
+                        Payroll Summary Report
                     </Typography>
                     <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                         {/* Filter Buttons */}
-                        <Box sx={{ display: "flex", gap: 0.5, mr: 1 }}>
+                        <Box sx={{ display: "flex", gap: 1, mr: 1 }}>
                             {[
                                 { value: "all", label: "All" },
                                 { value: "high", label: "High (≥₱5k)" },
@@ -364,7 +365,7 @@ export default function ManagerReports() {
                     <Box
                         sx={{
                             flex: 1.2,
-                            height: 267,
+                            height: 277,
                             backgroundColor: theme.palette.mode === "dark"
                                 ? "rgba(255, 255, 255, 0.05)"
                                 : "#fff",
@@ -379,9 +380,9 @@ export default function ManagerReports() {
                         {chartData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="90%">
                                 <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₱${v/1000}k`} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"} />
+                                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: theme.palette.text.primary }} />
+                                    <YAxis tick={{ fontSize: 10, fill: theme.palette.text.primary }} tickFormatter={(v) => `₱${v/1000}k`} />
                                     <Tooltip formatter={(value) => formatCurrency(value)} />
                                     <Legend wrapperStyle={{ fontSize: "10px" }} />
                                     <Bar dataKey="Tax" fill="#1b2223" stackId="a" />
@@ -473,8 +474,8 @@ export default function ManagerReports() {
                                             fontSize: "12px",
                                         }}
                                     >
-                                        <span style={{ 
-                                            textAlign: "left", 
+                                        <span style={{
+                                            textAlign: "left",
                                             paddingLeft: "8px",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
@@ -547,7 +548,33 @@ export default function ManagerReports() {
                                             outerRadius={70}
                                             paddingAngle={2}
                                             dataKey="value"
-                                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                            label={({ name, percent, cx, cy, midAngle, outerRadius }) => {
+                                                const RADIAN = Math.PI / 180;
+                                                const radius = outerRadius + 25;
+                                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                                                return (
+                                                    <text
+                                                        x={x}
+                                                        y={y}
+                                                        textAnchor={x > cx ? 'start' : 'end'}
+                                                        dominantBaseline="central"
+                                                        style={{
+                                                            fontSize: 11,
+                                                            fill: theme.palette.text.primary,
+                                                            backgroundColor: theme.palette.background.paper,
+                                                        }}
+                                                    >
+                                                        <tspan
+                                                            style={{
+                                                                filter: `drop-shadow(0 0 3px ${theme.palette.background.default}) drop-shadow(0 0 3px ${theme.palette.background.default})`,
+                                                            }}
+                                                        >
+                                                            {`${name} (${(percent * 100).toFixed(0)}%)`}
+                                                        </tspan>
+                                                    </text>
+                                                );
+                                            }}
                                             labelLine={false}
                                         >
                                             {departmentData.map((entry, index) => (
@@ -565,7 +592,7 @@ export default function ManagerReports() {
                         </Box>
                     </Box>
 
-                    {/* Timesheet Summary - Pie Chart */}
+                    {/* Timesheet Summary - Bar Chart */}
                     <Box
                         sx={{
                             borderRadius: "12px",
@@ -600,9 +627,9 @@ export default function ManagerReports() {
                             {timesheetData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={timesheetData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                                        <YAxis tick={{ fontSize: 11 }} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#7e7d7d"} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
+                                        <YAxis tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
                                         <Tooltip />
                                         <Bar dataKey="value" fill="#1b2223" radius={[4, 4, 0, 0]} />
                                     </BarChart>

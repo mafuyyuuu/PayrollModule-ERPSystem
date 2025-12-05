@@ -157,105 +157,177 @@ const ManagerPendingRequest = () => {
                 >
                     Pending Request
                 </Typography>
-                <Box
-                    sx={{
-                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
-                    }}
-                >
+            </Box>
+
+            {/* Filter Buttons and Search */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <Button
+                        onClick={() => setFilter("all")}
+                        sx={{
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: filter === "all" || !filter ? "#334042" : "#e0e0e0",
+                            color: filter === "all" || !filter ? "#fff" : "#333",
+                            opacity: filter === "all" || !filter ? 1 : 0.6,
+                            "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
+                        }}
+                    >
+                        All
+                    </Button>
+                    {requestTypes.map((type) => (
+                        <Button
+                            key={type}
+                            onClick={() => setFilter(type)}
+                            sx={{
+                                fontSize: "14px",
+                                px: 3,
+                                py: 1,
+                                borderRadius: "10px",
+                                textTransform: "none",
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                backgroundColor: filter === type ? "#334042" : "#e0e0e0",
+                                color: filter === type ? "#fff" : "#333",
+                                opacity: filter === type ? 1 : 0.6,
+                                "&:hover": { backgroundColor: filter === type ? "#2a3435" : "#d0d0d0" },
+                            }}
+                        >
+                            {type}
+                        </Button>
+                    ))}
+                    <Button
+                        onClick={() => setFilter("Pending")}
+                        sx={{
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: filter === "Pending" ? "#f0ad4e" : "#e0e0e0",
+                            color: filter === "Pending" ? "#fff" : "#333",
+                            opacity: filter === "Pending" ? 1 : 0.6,
+                            "&:hover": { backgroundColor: filter === "Pending" ? "#ec971f" : "#d0d0d0" },
+                        }}
+                    >
+                        Pending
+                    </Button>
+                    <Button
+                        onClick={() => setFilter("Manager_Approved")}
+                        sx={{
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: filter === "Manager_Approved" ? "#17a2b8" : "#e0e0e0",
+                            color: filter === "Manager_Approved" ? "#fff" : "#333",
+                            opacity: filter === "Manager_Approved" ? 1 : 0.6,
+                            "&:hover": { backgroundColor: filter === "Manager_Approved" ? "#138496" : "#d0d0d0" },
+                        }}
+                    >
+                        Awaiting Payroll
+                    </Button>
+                    <Button
+                        onClick={() => setFilter("Rejected")}
+                        sx={{
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
+                            color: filter === "Rejected" ? "#fff" : "#333",
+                            opacity: filter === "Rejected" ? 1 : 0.6,
+                            "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
+                        }}
+                    >
+                        Rejected
+                    </Button>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <SearchBar
                         placeholder="Enter Employee Name"
                         width="300px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                </Box>
-            </Box>
-
-            {/* Filter Buttons */}
-            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-                <Button
-                    onClick={() => setFilter("all")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "all" || !filter ? "#1b2223" : "#e0e0e0",
-                        color: filter === "all" || !filter ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
-                    }}
-                >
-                    All
-                </Button>
-                {requestTypes.map((type) => (
-                    <Button
-                        key={type}
-                        onClick={() => setFilter(type)}
-                        sx={{
-                            fontSize: "12px",
-                            px: 2,
-                            py: 0.5,
-                            borderRadius: "8px",
-                            textTransform: "none",
-                            fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            backgroundColor: filter === type ? "#1b2223" : "#e0e0e0",
-                            color: filter === type ? "#fff" : "#333",
-                            "&:hover": { backgroundColor: filter === type ? "#2a3435" : "#d0d0d0" },
+                    <ActionButton 
+                        text="Export PDF" 
+                        width="auto"
+                        onClick={() => {
+                            const printContent = `
+                                <html>
+                                <head>
+                                    <title>Pending Requests Report</title>
+                                    <style>
+                                        body { font-family: Arial, sans-serif; padding: 20px; }
+                                        h1 { color: #333; }
+                                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                                        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                                        th { background-color: #4CAF50; color: white; }
+                                        tr:nth-child(even) { background-color: #f2f2f2; }
+                                        .approved { color: #4CAF50; }
+                                        .rejected { color: #F44336; }
+                                        .pending { color: #FF9800; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <h1>Pending Requests Report</h1>
+                                    <p>Generated: ${new Date().toLocaleString()}</p>
+                                    <table>
+                                        <thead>
+                                            <tr><th>Request Type</th><th>Employee</th><th>Date</th><th>Details</th><th>Status</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            ${filteredRequests.map(row => `
+                                                <tr>
+                                                    <td>${row.requestType}</td>
+                                                    <td>${row.employee}</td>
+                                                    <td>${row.date}</td>
+                                                    <td>${row.amount}</td>
+                                                    <td class="${row.status.toLowerCase()}">${row.status}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </body>
+                                </html>
+                            `;
+                            const printWindow = window.open('', '_blank');
+                            printWindow.document.write(printContent);
+                            printWindow.document.close();
+                            printWindow.print();
                         }}
-                    >
-                        {type}
-                    </Button>
-                ))}
-                <Button
-                    onClick={() => setFilter("Pending")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Pending" ? "#f0ad4e" : "#e0e0e0",
-                        color: filter === "Pending" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "Pending" ? "#ec971f" : "#d0d0d0" },
-                    }}
-                >
-                    Pending
-                </Button>
-                <Button
-                    onClick={() => setFilter("Manager_Approved")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Manager_Approved" ? "#17a2b8" : "#e0e0e0",
-                        color: filter === "Manager_Approved" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "Manager_Approved" ? "#138496" : "#d0d0d0" },
-                    }}
-                >
-                    Awaiting Payroll
-                </Button>
-                <Button
-                    onClick={() => setFilter("Rejected")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
-                        color: filter === "Rejected" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
-                    }}
-                >
-                    Rejected
-                </Button>
+                    />
+                    <ActionButton 
+                        text="Export CSV" 
+                        width="auto"
+                        onClick={() => {
+                            const headers = ['Request Type', 'Employee', 'Date', 'Details', 'Status'];
+                            const csvData = filteredRequests.map(row => [
+                                row.requestType,
+                                row.employee,
+                                row.date,
+                                row.amount,
+                                row.status
+                            ]);
+                            const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = `requests_${new Date().toISOString().split('T')[0]}.csv`;
+                            link.click();
+                        }}
+                    />
+                </Box>
             </Box>
 
             {/* TABLE CONTAINER */}
@@ -431,105 +503,21 @@ const ManagerPendingRequest = () => {
                 </Box>
             </Box>
 
-            {/* EXPORT BUTTONS */}
-            <Box
-                sx={{
-                    display: "flex", justifyContent: "flex-end", gap: 2, flexWrap: "wrap", mt: "20px"
-                }}
-            >
-                <ActionButton 
-                    text="Export PDF" 
-                    width="150px"
-                    onClick={() => {
-                        const printContent = `
-                            <html>
-                            <head>
-                                <title>Pending Requests Report</title>
-                                <style>
-                                    body { font-family: Arial, sans-serif; padding: 20px; }
-                                    h1 { color: #333; }
-                                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                                    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-                                    th { background-color: #4CAF50; color: white; }
-                                    tr:nth-child(even) { background-color: #f2f2f2; }
-                                    .approved { color: #4CAF50; }
-                                    .rejected { color: #F44336; }
-                                    .pending { color: #FF9800; }
-                                </style>
-                            </head>
-                            <body>
-                                <h1>Pending Requests Report</h1>
-                                <p>Generated: ${new Date().toLocaleString()}</p>
-                                <table>
-                                    <thead>
-                                        <tr><th>Request Type</th><th>Employee</th><th>Date</th><th>Details</th><th>Status</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        ${filteredRequests.map(row => `
-                                            <tr>
-                                                <td>${row.requestType}</td>
-                                                <td>${row.employee}</td>
-                                                <td>${row.date}</td>
-                                                <td>${row.amount}</td>
-                                                <td class="${row.status.toLowerCase()}">${row.status}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </body>
-                            </html>
-                        `;
-                        const printWindow = window.open('', '_blank');
-                        printWindow.document.write(printContent);
-                        printWindow.document.close();
-                        printWindow.print();
-                    }}
-                />
-                <ActionButton 
-                    text="Export CSV" 
-                    width="150px"
-                    onClick={() => {
-                        const headers = ['Request Type', 'Employee', 'Date', 'Details', 'Status'];
-                        const csvData = filteredRequests.map(row => [
-                            row.requestType,
-                            row.employee,
-                            row.date,
-                            row.amount,
-                            row.status
-                        ]);
-                        const csvContent = [headers.join(','), ...csvData.map(row => row.join(','))].join('\n');
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = `requests_${new Date().toISOString().split('T')[0]}.csv`;
-                        link.click();
-                    }}
-                />
-            </Box>
-
             {/* MODAL */}
             <BoxModal open={open} onClose={handleClose}>
                 {selectedRequest && (
-                    <>
-                        <Box
+                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                        <Typography
+                            variant="h5"
                             sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                mb: 2
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2
                             }}
                         >
-                            <Typography
-                                variant="h5"
-                                sx={{
-                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
-                                }}
-                            >
-                                Timesheet Approval Details
-                            </Typography>
-                        </Box>
+                            Request Details
+                        </Typography>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                             <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                 Employee Name
                             </Typography>
                             <TextField
@@ -540,20 +528,11 @@ const ManagerPendingRequest = () => {
                                 InputProps={{readOnly: true}}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
+                                        borderRadius: "10px",
                                         backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {
-                                            border: "none",
-                                        },
-                                        "&:hover fieldset": {
-                                            border: "none",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            border: "none",
-                                        },
-                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
                                 }}
                             />
                         </Box>
@@ -565,11 +544,7 @@ const ManagerPendingRequest = () => {
                         >
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        color: "#FFFFFF",
-                                        fontSize: "18px"
-                                    }}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                     Request Type
                                 </Typography>
                                 <TextField
@@ -579,31 +554,18 @@ const ManagerPendingRequest = () => {
                                     InputProps={{readOnly: true}}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        color: "#FFFFFF",
-                                        fontSize: "18px"
-                                    }}>
-                                    Amount
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                    Details
                                 </Typography>
                                 <TextField
                                     value={selectedRequest?.amount || ""}
@@ -613,20 +575,11 @@ const ManagerPendingRequest = () => {
                                     InputProps={{readOnly: true}}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -639,11 +592,7 @@ const ManagerPendingRequest = () => {
                         >
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        color: "#FFFFFF",
-                                        fontSize: "18px"
-                                    }}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                     Date Filed
                                 </Typography>
                                 <TextField
@@ -653,30 +602,17 @@ const ManagerPendingRequest = () => {
                                     InputProps={{readOnly: true}}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{
-                                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                        color: "#FFFFFF",
-                                        fontSize: "18px"
-                                    }}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                     Status
                                 </Typography>
                                 <TextField
@@ -687,20 +623,11 @@ const ManagerPendingRequest = () => {
                                     InputProps={{readOnly: true}}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -708,11 +635,7 @@ const ManagerPendingRequest = () => {
                         {/* Rejection Reason */}
                         {selectedRequest.status?.toLowerCase() === "rejected" && (
                             <Box display="flex" flexDirection="column" gap={1} mt={2}>
-                                <Typography sx={{
-                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px"
-                                }}>
+                                <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                     Reason for Rejection
                                 </Typography>
                                 <TextField
@@ -721,55 +644,63 @@ const ManagerPendingRequest = () => {
                                     variant="outlined"
                                     size="small"
                                     multiline
-                                    rows={4}
-                                    maxRows={10}
+                                    rows={3}
                                     InputProps={{readOnly: true}}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
                         )}
-                    </>
+                    </Box>
                 )}
             </BoxModal>
 
             <BoxModal open={openApproveModal} onClose={handleCloseApproveModal}>
                 {selectedRequest && (
-                    <>
+                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
                         <Typography
                             variant="h5"
                             sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center", fontSize: "24px", color: "#FFFFFF"
+                                fontFamily: "'TTHoves-Bold', sans-serif", textAlign: "center", fontSize: "20px", color: theme.palette.text.primary
                             }}
                         >
                             Are you sure you want to approve request for {selectedRequest.employee}?
                         </Typography>
 
-                        <Box
-                            sx={{
-                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
-                            }}
-                        >
+                        <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+                            <Box
+                                component="button"
+                                onClick={handleCloseApproveModal}
+                                sx={{
+                                    fontSize: "16px",
+                                    backgroundColor: "#bdbdbd",
+                                    color: "#333",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "120px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#a0a0a0",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Cancel
+                            </Box>
                             <Box
                                 component="button"
                                 onClick={handleConfirmApprove}
                                 sx={{
-                                    display: "flex-end",
                                     fontSize: "16px",
                                     backgroundColor: "#172224",
                                     color: "#fff",
@@ -778,7 +709,7 @@ const ManagerPendingRequest = () => {
                                     cursor: "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    width: "200px",
+                                    width: "150px",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
                                         backgroundColor: "#1f2f31",
@@ -790,25 +721,25 @@ const ManagerPendingRequest = () => {
                                 Approve
                             </Box>
                         </Box>
-                    </>
+                    </Box>
                 )}
             </BoxModal>
 
             <BoxModal open={openModal} onClose={handleCloseModal}>
                 {showReasonInput && (
-                    <>
+                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
                         <Typography
                             variant="h5"
                             sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "20px", color: theme.palette.text.primary, mb: 2
                             }}
                         >
                             Are you sure you want to reject this request for {selectedRequest?.employee}?
                         </Typography>
 
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                             <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                 Enter Reason for Rejection
                             </Typography>
                             <TextField
@@ -820,24 +751,42 @@ const ManagerPendingRequest = () => {
                                 fullWidth
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
-                                        borderRadius: "12px",
+                                        borderRadius: "10px",
                                         backgroundColor: "#cacace",
-                                        "& fieldset": {border: "none"},
+                                        "& fieldset": { border: "none" },
                                     },
-                                    "& .MuiInputBase-input": {fontSize: "16px"},
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
                                 }}
                             />
                         </Box>
-                        <Box
-                            sx={{
-                                display: "flex", justifyContent: "center", gap: 2, mt: 3,
-                            }}
-                        >
+                        <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
                             <Box
                                 component="button"
-                                onClick={handleConfirmReject} // call confirm reject directly
+                                onClick={handleCloseModal}
                                 sx={{
-                                    display: "flex-end",
+                                    fontSize: "16px",
+                                    backgroundColor: "#bdbdbd",
+                                    color: "#333",
+                                    padding: "10px 0",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    transition: "all 0.3s ease",
+                                    width: "120px",
+                                    fontFamily: "'TTHoves-Regular', sans-serif",
+                                    "&:hover": {
+                                        backgroundColor: "#a0a0a0",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    },
+                                }}
+                            >
+                                Cancel
+                            </Box>
+                            <Box
+                                component="button"
+                                onClick={handleConfirmReject}
+                                sx={{
                                     fontSize: "16px",
                                     backgroundColor: "#8b1a1a",
                                     color: "#fff",
@@ -846,7 +795,7 @@ const ManagerPendingRequest = () => {
                                     cursor: "pointer",
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    width: "200px",
+                                    width: "150px",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": {
                                         backgroundColor: "#a32020",
@@ -858,7 +807,7 @@ const ManagerPendingRequest = () => {
                                 Reject
                             </Box>
                         </Box>
-                    </>
+                    </Box>
                 )}
             </BoxModal>
         </Box>
