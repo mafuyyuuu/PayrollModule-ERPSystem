@@ -336,7 +336,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
 
         THRESHOLD = 0.75
 
-        print(f"🎯 Best match: Employee {best_match_id} with score {best_score:.4f} (threshold: {THRESHOLD})")
+        print(f"[MATCH] Best match: Employee {best_match_id} with score {best_score:.4f} (threshold: {THRESHOLD})")
 
         if not best_match_id or best_score < THRESHOLD:
             return {
@@ -506,7 +506,7 @@ async def recognize_face(file: UploadFile = File(...), action: str = Form(...)):
             print("[WARNING] Error writing attendance to DB:", db_log_error)
 
         # Return success to frontend with role
-        print(f"🎉 Successful login: {name} (ID: {employee_id}, Role: {user_role})")
+        print(f"[SUCCESS] Successful login: {name} (ID: {employee_id}, Role: {user_role})")
         return {
             "matched": True,
             "employee_id": employee_id,

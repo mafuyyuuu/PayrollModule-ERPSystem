@@ -44,7 +44,7 @@ export default function FaceCapture() {
         formData.append("name", name);
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/register", {
+            const response = await fetch("http://127.0.0.1:8001/register", {
                 method: "POST",
                 body: formData,
             });

@@ -120,7 +120,7 @@ function LogoutModal({ show, onClose }) {
             formData.append("action", "time_out");
             formData.append("employee_id", user.employee_id);
 
-            const response = await fetch("http://127.0.0.1:8000/recognize", {
+            const response = await fetch("http://127.0.0.1:8001/recognize", {
                 method: "POST",
                 body: formData,
             });

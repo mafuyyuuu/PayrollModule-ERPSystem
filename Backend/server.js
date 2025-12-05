@@ -553,19 +553,21 @@ app.delete('/api/admin/users/:id', async (req, res) => {
 // UPLOAD EMPLOYEE PHOTOS
 // =====================================================
 
+// Ensure uploads folder exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Configure multer for photo uploads
 const photoStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, 'uploads', 'employee-photos');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+        cb(null, path.join(__dirname, 'uploads'));
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
-        cb(null, `employee-${req.body.employee_id}-${uniqueSuffix}${ext}`);
+        cb(null, `temp-${uniqueSuffix}${ext}`);
     }
 });
 
@@ -583,7 +585,7 @@ const uploadPhotos = multer({
 
 app.post('/api/admin/users/photos', uploadPhotos.array('photos', 10), async (req, res) => {
     try {
-        const { employee_id } = req.body;
+        const { employee_id, role_id } = req.body;
         const files = req.files;
 
         if (!files || files.length === 0) {
@@ -598,10 +600,51 @@ app.post('/api/admin/users/photos', uploadPhotos.array('photos', 10), async (req
             );
         }
 
+        // Get employee name for face registration
+        const [empRows] = await hrDB.execute(
+            `SELECT CONCAT(first_name, ' ', last_name) as name FROM employees WHERE employee_id = ?`,
+            [employee_id]
+        );
+        const employeeName = empRows.length > 0 ? empRows[0].name : `Employee_${employee_id}`;
+
+        // Register face with FastAPI face recognition server
+        const FormData = (await import('form-data')).default;
+        const formData = new FormData();
+        
+        for (const file of files) {
+            const filePath = path.join(__dirname, 'uploads', file.filename);
+            formData.append('files', fs.createReadStream(filePath), file.originalname);
+        }
+        formData.append('employee_id', employee_id);
+        formData.append('name', employeeName);
+        formData.append('role_id', role_id || 4);
+
+        const faceResponse = await fetch('http://127.0.0.1:8001/register', {
+            method: 'POST',
+            body: formData,
+            headers: formData.getHeaders()
+        });
+        const faceResult = await faceResponse.json();
+
+        if (!faceResult.success) {
+            console.warn('Face registration warning:', faceResult.error);
+        } else {
+            console.log(`[SUCCESS] Face registered for ${employeeName} (ID: ${employee_id})`);
+        }
+
+        // Clean up temp files after FastAPI has saved them to faces_db
+        for (const file of files) {
+            const filePath = path.join(__dirname, 'uploads', file.filename);
+            fs.unlink(filePath, (err) => {
+                if (err) console.warn('Could not delete temp file:', filePath);
+            });
+        }
+
         res.json({ 
             success: true, 
             message: `${files.length} photos uploaded successfully`,
-            files: files.map(f => f.filename)
+            files: files.map(f => f.filename),
+            faceRegistration: faceResult
         });
     } catch (err) {
         console.error('Error uploading photos:', err);

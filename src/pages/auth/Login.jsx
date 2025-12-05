@@ -90,7 +90,7 @@ function Login() {
             formData.append("action", "time_in");
 
             // Send to backend
-            const response = await fetch("http://127.0.0.1:8000/recognize", {
+            const response = await fetch("http://127.0.0.1:8001/recognize", {
                 method: "POST",
                 body: formData,
             });
