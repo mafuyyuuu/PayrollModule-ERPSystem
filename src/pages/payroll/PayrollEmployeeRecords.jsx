@@ -379,7 +379,7 @@ export default function PayrollEmployeeRecords() {
                 <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
                     <Typography
                         variant="h5"
-                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2 }}
+                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#fff", mb: 2 }}
                     >
                         Employee Record
                     </Typography>
@@ -387,7 +387,7 @@ export default function PayrollEmployeeRecords() {
                     {/* Row 1: Employee ID + Name */}
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                                 Employee ID
                             </Typography>
                             <TextField
@@ -408,7 +408,7 @@ export default function PayrollEmployeeRecords() {
                         </Box>
 
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                                 Name
                             </Typography>
                             <TextField
@@ -432,7 +432,7 @@ export default function PayrollEmployeeRecords() {
                     {/* Row 2: Department + Position */}
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                                 Department
                             </Typography>
                             <TextField
@@ -453,7 +453,7 @@ export default function PayrollEmployeeRecords() {
                         </Box>
 
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                                 Position
                             </Typography>
                             <TextField
@@ -477,7 +477,7 @@ export default function PayrollEmployeeRecords() {
                     {/* Row 3: Employment Type + Status */}
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                                 Employment Type
                             </Typography>
                             <TextField
@@ -498,7 +498,7 @@ export default function PayrollEmployeeRecords() {
                         </Box>
 
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                                 Status
                             </Typography>
                             <TextField
@@ -521,7 +521,7 @@ export default function PayrollEmployeeRecords() {
 
                     {/* Row 4: Tax Info */}
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#fff", fontSize: "16px" }}>
                             Tax / Government IDs
                         </Typography>
                         <TextField
@@ -551,23 +551,30 @@ export default function PayrollEmployeeRecords() {
                 onClose={() => setIsExportModalOpen(false)}
                 width="400px"
             >
-                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                <Box sx={{ display: "flex", flexDirection: "column", color: "#fff", }}>
                     <Typography
                         variant="h5"
                         sx={{
                             fontFamily: "'TTHoves-Bold', sans-serif",
                             fontSize: "20px",
-                            color: theme.palette.text.primary,
+                            color: "#fff",
                             mb: 2,
                             textAlign: "center"
                         }}
                     >
                         Export Employee Records
                     </Typography>
-                    <Typography sx={{ color: theme.palette.text.secondary, textAlign: "center", mb: 2 }}>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            textAlign: "center",
+                            mb: 2
+                        }}
+                    >
                         Export {filteredRecords.length} record(s) to {exportType.toUpperCase()}?
                     </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
                         <Box
                             onClick={() => setIsExportModalOpen(false)}
                             component="button"

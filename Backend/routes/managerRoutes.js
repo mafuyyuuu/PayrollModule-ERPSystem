@@ -204,7 +204,7 @@ router.put('/timesheets/:id/reject', async (req, res) => {
         );
         
         const [result] = await payrollDB.query(
-            `UPDATE Timesheets SET approved_by = ?, remarks = ? WHERE timesheet_id = ?`,
+            `UPDATE Timesheets SET status = 'Rejected', approved_by = ?, remarks = ? WHERE timesheet_id = ?`,
             [approved_by || 1, `Rejected: ${reason || remarks || 'No reason provided'}`, id]
         );
 

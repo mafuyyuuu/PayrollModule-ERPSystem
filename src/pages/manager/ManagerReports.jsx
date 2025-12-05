@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {Box, Typography, useTheme, CircularProgress, Button} from "@mui/material";
 import ActionButton from "../../components/ActionButton.jsx";
+import BoxModal from "../../components/BoxModal.jsx";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line
@@ -16,8 +17,12 @@ export default function ManagerReports() {
     const [chartData, setChartData] = useState([]);
     const [departmentData, setDepartmentData] = useState([]);
     const [timesheetData, setTimesheetData] = useState([]);
+    const [exportModalOpen, setExportModalOpen] = useState(false);
+    const [exportModalType, setExportModalType] = useState("");
 
     const COLORS = ['#1b2223', '#3a4f50', '#5a7f80', '#7ab0b0', '#9ad0d0', '#bae0e0'];
+    const darkColors = ["#6cb4ee", "#66cc99", "#ff9966", "#ff6666"];
+    const lightColors = ["#1b2223", "#3a4f50", "#5a7f80", "#7ab0b0"];
 
     useEffect(() => {
         fetchReportsData();
@@ -246,6 +251,20 @@ export default function ManagerReports() {
         handleExportPDF('Employee Deductions');
     };
 
+    const openExportModal = (type) => {
+        setExportModalType(type);
+        setExportModalOpen(true);
+    };
+
+    const confirmExport = () => {
+        setExportModalOpen(false);
+        if (exportModalType === 'Generate Report') {
+            handleExportPDF('Employee Deductions');
+        } else {
+            handleExportPDF(exportModalType);
+        }
+    };
+
     const filteredData = getFilteredData();
 
     return (
@@ -274,7 +293,7 @@ export default function ManagerReports() {
                     <ActionButton
                         text={generating ? "Generating..." : "Generate Report"}
                         width="180px"
-                        onClick={handleGenerateReport}
+                        onClick={() => openExportModal('Generate Report')}
                         disabled={generating}
                     />
                 </Box>
@@ -347,7 +366,7 @@ export default function ManagerReports() {
                         <ActionButton
                             text="Export PDF"
                             width="120px"
-                            onClick={() => handleExportPDF('Employee Deductions')}
+                            onClick={() => openExportModal('Employee Deductions')}
                         />
                     </Box>
                 </Box>
@@ -383,12 +402,36 @@ export default function ManagerReports() {
                                     <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"} />
                                     <XAxis dataKey="name" tick={{ fontSize: 10, fill: theme.palette.text.primary }} />
                                     <YAxis tick={{ fontSize: 10, fill: theme.palette.text.primary }} tickFormatter={(v) => `₱${v/1000}k`} />
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Legend wrapperStyle={{ fontSize: "10px" }} />
-                                    <Bar dataKey="Tax" fill="#1b2223" stackId="a" />
-                                    <Bar dataKey="SSS" fill="#3a4f50" stackId="a" />
-                                    <Bar dataKey="PhilHealth" fill="#5a7f80" stackId="a" />
-                                    <Bar dataKey="Pag-IBIG" fill="#7ab0b0" stackId="a" />
+                                    <Tooltip formatter={(value) => formatCurrency(value)}
+                                             contentStyle={{ backgroundColor: "#fff", color: "#000000" }}
+                                             labelStyle={{ color: "#000000", fontWeight: "bold" }}/>
+                                    <Legend
+                                        wrapperStyle={{
+                                            fontFamily: "TTHoves-Demibold",
+                                            fontSize: "10px",
+                                            color: theme.palette.text.primary
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="Tax"
+                                        fill={theme.palette.mode === "dark" ? "#f28b82" : "#1b2223"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="SSS"
+                                        fill={theme.palette.mode === "dark" ? "#fbbc04" : "#3a4f50"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="PhilHealth"
+                                        fill={theme.palette.mode === "dark" ? "#34a853" : "#5a7f80"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="Pag-IBIG"
+                                        fill={theme.palette.mode === "dark" ? "#4285f4" : "#7ab0b0"}
+                                        stackId="a"
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (
@@ -440,8 +483,15 @@ export default function ManagerReports() {
                             gap: 1,
                             overflowY: "auto",
                             flex: 1,
-                            "&::-webkit-scrollbar": { width: 4 },
-                            "&::-webkit-scrollbar-thumb": { backgroundColor: "#ccc", borderRadius: 2 },
+
+                            /* Hides scrollbar (Chrome, Edge, Safari) */
+                            "&::-webkit-scrollbar": { display: "none" },
+
+                            /* Hides scrollbar (Firefox) */
+                            scrollbarWidth: "none",
+
+                            /* Hides scrollbar (Edge/IE) */
+                            msOverflowStyle: "none",
                         }}>
                             {loading ? (
                                 <Box display="flex" justifyContent="center" alignItems="center" height="150px">
@@ -533,7 +583,7 @@ export default function ManagerReports() {
                             <ActionButton
                                 text="Export PDF"
                                 width="120px"
-                                onClick={() => handleExportPDF('Department Summary')}
+                                onClick={() => openExportModal('Department Summary')}
                             />
                         </Box>
                         <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -578,10 +628,13 @@ export default function ManagerReports() {
                                             labelLine={false}
                                         >
                                             {departmentData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={theme.palette.mode === 'dark' ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                                />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => `${value} employees`} />
+                                        <Tooltip formatter={(value) => `${value} employees`} contentStyle={{ backgroundColor: "#fff", color: "#000000" }} labelStyle={{ color: "#000000" }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -620,7 +673,7 @@ export default function ManagerReports() {
                             <ActionButton
                                 text="Export PDF"
                                 width="120px"
-                                onClick={() => handleExportPDF('Timesheet Summary')}
+                                onClick={() => openExportModal('Timesheet Summary')}
                             />
                         </Box>
                         <Box sx={{ flex: 1 }}>
@@ -630,8 +683,15 @@ export default function ManagerReports() {
                                         <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#7e7d7d"} />
                                         <XAxis dataKey="name" tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
                                         <YAxis tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
-                                        <Tooltip />
-                                        <Bar dataKey="value" fill="#1b2223" radius={[4, 4, 0, 0]} />
+                                        <Tooltip contentStyle={{ backgroundColor: "#fff", color: "#000000" }} labelStyle={{ color: "#000000" }} />
+                                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                            {timesheetData.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={theme.palette.mode === "dark" ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                                />
+                                            ))}
+                                        </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -645,6 +705,70 @@ export default function ManagerReports() {
                     </Box>
                 </Box>
             </Box>
+
+            {/* Export Confirmation Modal */}
+            <BoxModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} width={400}>
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        {exportModalType === 'Generate Report' ? 'Generate Report' : 'Export PDF'}
+                    </Typography>
+                    <Typography
+                        sx={{
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        {exportModalType === 'Generate Report' 
+                            ? 'Are you sure you want to generate the report?' 
+                            : `Are you sure you want to export ${exportModalType} as PDF?`}
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+                        <Box
+                            variant="outlined"
+                            onClick={() => setExportModalOpen(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            variant="contained"
+                            onClick={confirmExport}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#1f2f31" }
+                            }}
+                        >
+                            {exportModalType === 'Generate Report' ? 'Generate' : 'Download'}
+                        </Box>
+                    </Box>
+                </Box>
+            </BoxModal>
         </Box>
     );
 }

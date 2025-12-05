@@ -185,7 +185,8 @@ const AdminDashboard = () => {
                                     display: "flex",
                                     flexDirection: "column",
                                     width: "100%",
-                                    bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "#fff",
+                                    bgcolor: "#fff",
+                                    color: "#1b2223",
                                     p: 2,
                                     borderRadius: "10px",
                                     border: `1px solid ${theme.palette.divider}`,
@@ -199,7 +200,7 @@ const AdminDashboard = () => {
                                         style={{
                                             fontSize: "16px",
                                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                            color: theme.palette.mode === "dark" ? "#fff" : "#1b2223",
+                                            color: "#1b2223",
                                             margin: "0 0 5px 0",
                                             paddingLeft: "8px",
                                         }}
@@ -208,8 +209,8 @@ const AdminDashboard = () => {
                                     </h3>
                                     {notif.date && (
                                         <span style={{ 
-                                            fontSize: "12px", 
-                                            color: theme.palette.text.secondary,
+                                            fontSize: "12px",
+                                            color: "#1b2223",
                                             whiteSpace: "nowrap"
                                         }}>
                                             {new Date(notif.date).toLocaleString()}
@@ -220,7 +221,7 @@ const AdminDashboard = () => {
                                     style={{
                                         fontSize: "14px",
                                         lineHeight: 1.4,
-                                        color: theme.palette.mode === "dark" ? "#ccc" : "#333",
+                                        color: "#1b2223",
                                         margin: 0,
                                         paddingLeft: "8px",
                                     }}
@@ -229,8 +230,8 @@ const AdminDashboard = () => {
                                 </p>
                                 {notif.user && (
                                     <span style={{ 
-                                        fontSize: "12px", 
-                                        color: theme.palette.text.secondary,
+                                        fontSize: "12px",
+                                        color: "#1b2223",
                                         paddingLeft: "8px",
                                         marginTop: "4px"
                                     }}>

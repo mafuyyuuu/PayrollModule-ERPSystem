@@ -1,14 +1,18 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import "../components/Sidebar.css";
 import { useUser } from "./UserContext.jsx";
 import logo from "../assets/violin.png";
 import { useState } from "react";
 import LogoutModal from '../pages/auth/LogoutModal.jsx';
+import BoxModal from './BoxModal.jsx';
+import { Box, Typography, Button } from "@mui/material";
 
 export default function Sidebar() {
-    const { user } = useUser();
+    const { user, setUser } = useUser();
+    const navigate = useNavigate();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     const roleBasePath = {
         admin: "/admin",
@@ -18,7 +22,23 @@ export default function Sidebar() {
     };
 
     const handleLogout = () => {
-        setShowLogoutModal(true);
+        if (user?.role === 'employee') {
+            setShowLogoutModal(true);
+        } else {
+            setShowConfirmModal(true);
+        }
+    };
+
+    const handleConfirmLogout = async () => {
+        try {
+            await fetch("/api/logout", { method: "POST", credentials: "include" });
+        } catch (err) {
+            console.error("Session logout failed:", err);
+        }
+        setUser(null);
+        localStorage.removeItem("user");
+        setShowConfirmModal(false);
+        navigate("/", { replace: true });
     };
 
     const basePath = roleBasePath[user?.role] || "";
@@ -104,6 +124,57 @@ export default function Sidebar() {
                 show={showLogoutModal}
                 onClose={() => setShowLogoutModal(false)}
             />
+
+            <BoxModal open={showConfirmModal} onClose={() => setShowConfirmModal(false)} width={400}>
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontSize: "24px",
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            color: "#fff",
+                            mb: 1
+                        }}
+                    >
+                        Are you sure you want to logout?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
+                        <Box
+                            variant="outlined"
+                            onClick={() => setShowConfirmModal(false)}
+                            sx={{
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": { backgroundColor: "#a0a0a0" }
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            variant="contained"
+                            onClick={handleConfirmLogout}
+                            sx={{
+                                fontSize: "14px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                backgroundColor: "#dc3545",
+                                padding: "10px 24px",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                "&:hover": { backgroundColor: "#c82333" }
+                            }}
+                        >
+                            Logout
+                        </Box>
+                    </Box>
+                </Box>
+            </BoxModal>
         </>
     );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../components/UserContext.jsx';
 import * as faceapi from "face-api.js";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './ManualLogin.css';
 
 function Login() {
@@ -212,10 +213,6 @@ function Login() {
         <div className="login-container">
             {/* Left side - Face Recognition */}
             <div className="left-container">
-                <button className="back-icon" onClick={handleBack}>
-                    <i className="bx bx-arrow-back"></i>
-                </button>
-                
                 <video
                     ref={videoRef}
                     autoPlay
@@ -251,7 +248,27 @@ function Login() {
 
             {/* Right side - Manual Login */}
             <div className="right-container">
-                <h2>Login</h2>
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "380px"
+                }}>
+                    <h2 style={{
+                        margin: 0,
+                        lineHeight: "1"  // fixes vertical alignment
+                    }}>
+                        Login
+                    </h2>
+
+                    <button
+                        className="back-icon"
+                        onClick={handleBack}
+                        style={{ display: "flex", alignItems: "center" }} // keeps icon centered
+                    >
+                        <ArrowBackIcon />
+                    </button>
+                </div>
 
                 <form onSubmit={handleLogin}>
                     <div className="input-field">

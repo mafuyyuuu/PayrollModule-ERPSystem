@@ -1279,7 +1279,7 @@ export default function AdminConfiguration() {
                         <Typography
                             variant="h5"
                             sx={{
-                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary
+                                fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF",
                             }}
                         >
                             {editingRule ? "Edit Rule" : "Add Rule"}
@@ -1297,7 +1297,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Rule Name
                         </Typography>
 
@@ -1321,7 +1321,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Rule Type
                         </Typography>
 
@@ -1347,7 +1347,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Formula or Calculation
                         </Typography>
 
@@ -1371,7 +1371,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                         <Typography
-                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Description
                         </Typography>
 
@@ -1428,20 +1428,20 @@ export default function AdminConfiguration() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2,
                         }}
                     >
                         {editingCutoff ? "Edit Cutoff Period" : "Add Cutoff Period"}
                     </Typography>
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px" }}>
                             Payroll Period
                         </Typography>
 
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
-                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
+                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
                                     Start Date
                                 </Typography>
                                 <input
@@ -1466,7 +1466,7 @@ export default function AdminConfiguration() {
                                 />
                             </Box>
                             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
-                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
+                                <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
                                     End Date
                                 </Typography>
                                 <input
@@ -1494,7 +1494,7 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 2 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
                             Period Name
                         </Typography>
                         <TextField
@@ -1515,7 +1515,7 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 2 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-Demibold', sans-serif", color: theme.palette.text.primary, fontSize: "14px" }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-Demibold', sans-serif", color: "#FFFFFF", fontSize: "14px" }}>
                             Pay Date
                         </Typography>
                         <input
@@ -1538,7 +1538,7 @@ export default function AdminConfiguration() {
                     </Box>
 
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, mt: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "14px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Frequency
                         </Typography>
                         <Select
@@ -1599,12 +1599,12 @@ export default function AdminConfiguration() {
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF",
                         }}
                     >
                         {editingWorkflow ? "Edit Workflow" : "Add Workflow"}
                     </Typography>
-                        <Tooltip title="Active or Inactive?">
+                        <Tooltip title="Inactive or Active?">
                             <ModernSwitch
                                 checked={workflowForm.active}
                                 onChange={(e) => setWorkflowForm(prev => ({...prev, active: e.target.checked}))}
@@ -1612,7 +1612,7 @@ export default function AdminConfiguration() {
                         </Tooltip>
                     </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                             Workflow Name
                         </Typography>
                         <TextField
@@ -1635,7 +1635,7 @@ export default function AdminConfiguration() {
 
                     <Box sx={{display: "flex", gap: 1, mt: 2}}>
                         <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                                 Type
                             </Typography>
                             <Select
@@ -1662,7 +1662,7 @@ export default function AdminConfiguration() {
                         </Box>
 
                         <Box sx={{flex: 1, display: "flex", flexDirection: "column", gap: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px"}}>
                                 Approval Role
                             </Typography>
                             <Select
@@ -1905,7 +1905,7 @@ export default function AdminConfiguration() {
                     width={400}
                     height={200}
                 >
-                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary, textAlign: "center" }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
                         <Typography
                             variant="h6"
                             sx={{
@@ -1952,6 +1952,7 @@ export default function AdminConfiguration() {
                                     fontSize: "14px",
                                     backgroundColor: saving ? "#666" : "#8b1a1a",
                                     color: "#fff",
+                                    padding: "10px 24px",
                                     borderRadius: "15px",
                                     cursor: "pointer",
                                     border: "none",
@@ -1999,7 +2000,7 @@ export default function AdminConfiguration() {
                         </Box>
 
                         {/* BUTTONS */}
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
                             <Box
                                 component="button"
                                 onClick={() => setShowSaveModal(false)}
