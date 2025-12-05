@@ -1,15 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useUser } from "../../components/UserContext.jsx";
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../components/UserContext.jsx';
 import * as faceapi from "face-api.js";
-import ActionButton from "../../components/ActionButton.jsx";
+import './ManualLogin.css';
 
 function Login() {
     const videoRef = useRef();
     const navigate = useNavigate();
     const { setUser } = useUser();
-    const [status, setStatus] = useState("Initializing camera...");
+    
+    // Face recognition states
+    const [faceStatus, setFaceStatus] = useState("Initializing camera...");
+    const [faceLoading, setFaceLoading] = useState(false);
+    
+    // Manual login states
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     // Load face-api models and start webcam
@@ -18,20 +26,34 @@ function Login() {
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoRef.current.srcObject = stream;
-                setStatus("Camera ready. Please position your face.");
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+                setFaceStatus("Position your face and click to login");
             } catch (err) {
                 console.error(err);
-                setStatus("Camera access denied or unavailable.");
+                setFaceStatus("Camera unavailable");
             }
         };
         loadModels();
+
+        // Cleanup camera on unmount
+        return () => {
+            if (videoRef.current?.srcObject) {
+                const tracks = videoRef.current.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+        };
     }, []);
 
-    // Capture face and send for recognition
+    const handleBack = () => {
+        navigate('/');
+    };
+
+    // Face recognition login
     const handleFaceLogin = async () => {
-        setLoading(true);
-        setStatus("Detecting face...");
+        setFaceLoading(true);
+        setFaceStatus("Detecting face...");
 
         try {
             const detection = await faceapi.detectSingleFace(
@@ -40,8 +62,8 @@ function Login() {
             );
 
             if (!detection) {
-                setStatus("No face detected. Please position yourself in front of the camera.");
-                setLoading(false);
+                setFaceStatus("No face detected. Try again.");
+                setFaceLoading(false);
                 return;
             }
 
@@ -54,17 +76,11 @@ function Login() {
             const ctx = canvas.getContext("2d");
             ctx.drawImage(videoRef.current, x, y, width, height, 0, 0, width, height);
 
-            // // Optional: preview cropped face
-            // const previewImg = document.getElementById("face-preview");
-            // if (previewImg) {
-            //     previewImg.src = canvas.toDataURL("image/jpeg");
-            // }
-
             // Convert face image to Blob
             const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg"));
             if (!blob) {
-                setStatus("Failed to capture face. Please try again.");
-                setLoading(false);
+                setFaceStatus("Failed to capture. Try again.");
+                setFaceLoading(false);
                 return;
             }
 
@@ -80,24 +96,21 @@ function Login() {
             });
 
             const data = await response.json();
-            console.log("Backend response:", data);
 
-            // Handle backend results
             if (data.matched) {
                 const confidence = data.confidence || (data.similarity * 100).toFixed(2);
-                setStatus(`✅ Welcome ${data.name}! (Confidence: ${confidence}%)`);
+                setFaceStatus(`✅ Welcome ${data.name}!`);
 
                 const userData = {
                     name: data.name,
-                    role: data.role,  // Use 'role' (string) for navigation
-                    role_id: data.role_id,  // Keep role_id for reference
+                    role: data.role,
+                    role_id: data.role_id,
                     employee_id: data.employee_id,
                 };
                 setUser(userData);
 
-                // Redirect after 1.5s delay
                 setTimeout(() => {
-                    switch (userData.role) {  // Use 'role' not 'role_id'
+                    switch (userData.role) {
                         case "admin":
                             navigate("/admin/dashboard");
                             break;
@@ -113,96 +126,173 @@ function Login() {
                     }
                 }, 1500);
             } else {
-                // Handle failed match or low confidence
-                const confidence = data.confidence ? `${data.confidence}%` : "N/A";
-                const msg =
-                    data.message ||
-                    (data.error
-                        ? `Error: ${data.error}`
-                        : "Face not recognized. Please try again.");
-
-                setStatus(`${msg} (Confidence: ${confidence})`);
+                setFaceStatus("Face not recognized. Try again.");
             }
         } catch (err) {
             console.error("Error during face login:", err);
-            setStatus("Error during face recognition. Please try again.");
+            setFaceStatus("Recognition error. Try again.");
+        } finally {
+            setFaceLoading(false);
+        }
+    };
+
+    // Manual login
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:8080/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.message || 'Login failed');
+                setLoading(false);
+                return;
+            }
+
+            setUser({
+                id: data.id,
+                employeeId: data.employeeId,
+                name: data.name || data.username,
+                username: data.username,
+                email: data.email,
+                role: data.role,
+                status: data.status,
+                firstName: data.firstName,
+                middleName: data.middleName,
+                lastName: data.lastName,
+                position: data.position,
+                department: data.department,
+                employmentType: data.employmentType,
+                dateHired: data.dateHired,
+                birthday: data.birthday,
+                sex: data.sex,
+                nationality: data.nationality,
+                maritalStatus: data.maritalStatus,
+                address: data.address,
+                contactNumber: data.contactNumber,
+                emergencyContactName: data.emergencyContactName,
+                emergencyContactNumber: data.emergencyContactNumber,
+            });
+
+            switch (data.role) {
+                case 'admin':
+                    navigate('/admin/dashboard');
+                    break;
+                case 'manager':
+                    navigate('/manager/dashboard');
+                    break;
+                case 'payroll':
+                    navigate('/payroll/dashboard');
+                    break;
+                case 'employee':
+                    navigate('/employee/dashboard');
+                    break;
+                default:
+                    setError('Unknown role');
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Unable to connect to server');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <Box
-            sx={{
-                backdropFilter: "blur(30px)",
-                WebkitBackdropFilter: "blur(30px)",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                borderRadius: "4rem",
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                p: 4,
-                width: { xs: "90%", sm: "600px", md: "800px" },
-                height: { xs: "auto", sm: "70%", md: "600px" },
-                maxHeight: "90vh",
-                overflowY: "auto",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-        >
-            <Box
-                sx={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                <Typography
-                    variant="h2"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "30px", color: "#FFFFFF", mb: 2,
-                    }}
-                >
-                    Facial Recognition Login
-                </Typography>
-
+        <div className="login-container">
+            {/* Left side - Face Recognition */}
+            <div className="left-container">
+                <button className="back-icon" onClick={handleBack}>
+                    <i className="bx bx-arrow-back"></i>
+                </button>
+                
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
-                    width="400"
-                    height="300"
-                    style={{ borderRadius: "10px", border: "2px solid #ccc" }}
-                />
-
-                <img
-                    id="face-preview"
-                    alt="Face preview"
-                    style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
-                />
-
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "18px", color: "#FFFFFF", mb: 2,
+                    style={{ 
+                        width: "280px", 
+                        height: "210px", 
+                        borderRadius: "15px", 
+                        border: "2px solid rgba(255,255,255,0.3)",
+                        objectFit: "cover"
                     }}
-                >
-                    {status}
-                </Typography>
-
-                <ActionButton
-                    text={loading ? "Processing..." : "Login with Face"}
-                    width="200px"
-                    onClick={handleFaceLogin}
-                    disabled={loading}
                 />
-            </Box>
-        </Box>
+                
+                <p style={{ 
+                    color: "#fff", 
+                    fontSize: "0.85rem", 
+                    textAlign: "center", 
+                    marginTop: "10px",
+                    fontFamily: "'TTHoves-Regular', sans-serif"
+                }}>
+                    {faceStatus}
+                </p>
+                
+                <button 
+                    className="login-btn" 
+                    onClick={handleFaceLogin}
+                    disabled={faceLoading}
+                    style={{ width: "200px", marginTop: "10px" }}
+                >
+                    {faceLoading ? "Processing..." : "Login with Face"}
+                </button>
+            </div>
+
+            {/* Right side - Manual Login */}
+            <div className="right-container">
+                <h2>Login</h2>
+
+                <form onSubmit={handleLogin}>
+                    <div className="input-field">
+                        <label htmlFor="username">Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="input-field">
+                        <label htmlFor="password">Password</label>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="show-forgot">
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={showPassword}
+                                onChange={() => setShowPassword(!showPassword)}
+                            />
+                            Show Password
+                        </label>
+                        <a href="#">Forgot Password?</a>
+                    </div>
+                    {error && <p style={{ color: 'red', alignSelf: 'center' }}>{error}</p>}
+
+                    <button type="submit" className="login-btn" disabled={loading}>
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
+                </form>
+            </div>
+        </div>
     );
 }
 

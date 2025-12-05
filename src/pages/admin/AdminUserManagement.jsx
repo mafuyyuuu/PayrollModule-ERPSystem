@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useRef, useState, useEffect } from "react";
+import React, {useRef, useState, useEffect} from "react";
 import {
     Modal, Box, IconButton, MenuItem, Select, TextField, Typography, useTheme, CircularProgress, Button
 } from "@mui/material";
@@ -33,10 +33,10 @@ export default function AdminUserManagement() {
 
     // Role options
     const roleOptions = [
-        { id: 1, name: "Admin" },
-        { id: 2, name: "Manager" },
-        { id: 3, name: "Payroll" },
-        { id: 4, name: "Employee" }
+        {id: 1, name: "Admin"},
+        {id: 2, name: "Manager"},
+        {id: 3, name: "Payroll"},
+        {id: 4, name: "Employee"}
     ];
 
     // Fetch users from database
@@ -117,15 +117,15 @@ export default function AdminUserManagement() {
 
     const handleAddUser = () => {
         setSelectedUser({
-            id: "", 
+            id: "",
             employeeId: "",
             firstName: "",
             middleName: "",
             lastName: "",
-            username: "", 
-            email: "", 
-            role: "", 
-            roleId: "", 
+            username: "",
+            email: "",
+            role: "",
+            roleId: "",
             status: "Active",
             password: ""
         });
@@ -218,12 +218,12 @@ export default function AdminUserManagement() {
         setSaveConfirmModalOpen(false);
         setSaving(true);
         try {
-            const url = isEditing 
+            const url = isEditing
                 ? `http://localhost:8080/api/admin/users/${selectedUser.id}`
                 : 'http://localhost:8080/api/admin/users';
-            
+
             const method = isEditing ? 'PUT' : 'POST';
-            
+
             const userData = {
                 username: selectedUser.username.trim(),
                 email: selectedUser.email.trim(),
@@ -237,7 +237,7 @@ export default function AdminUserManagement() {
 
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(userData)
             });
 
@@ -309,8 +309,8 @@ export default function AdminUserManagement() {
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.username?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesRole = roleFilter === "all" || 
-            user.role === roleFilter || 
+        const matchesRole = roleFilter === "all" ||
+            user.role === roleFilter ||
             user.status === roleFilter;
         return matchesSearch && matchesRole;
     });
@@ -341,8 +341,15 @@ export default function AdminUserManagement() {
             </Box>
 
             {/* Filter Buttons */}
-            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Box sx={{
+                display: "flex",
+                gap: 1,
+                mb: 2,
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                alignItems: "center"
+            }}>
+                <Box sx={{display: "flex", gap: 1, flexWrap: "wrap"}}>
                     <Button
                         onClick={() => setRoleFilter("all")}
                         sx={{
@@ -355,7 +362,7 @@ export default function AdminUserManagement() {
                             backgroundColor: roleFilter === "all" ? "#334042" : "#e0e0e0",
                             color: roleFilter === "all" ? "#fff" : "#333",
                             opacity: roleFilter === "all" ? 1 : 0.6,
-                            "&:hover": { backgroundColor: roleFilter === "all" ? "#2a3435" : "#d0d0d0" },
+                            "&:hover": {backgroundColor: roleFilter === "all" ? "#2a3435" : "#d0d0d0"},
                         }}
                     >
                         All Users
@@ -374,7 +381,7 @@ export default function AdminUserManagement() {
                                 backgroundColor: roleFilter === role ? "#334042" : "#e0e0e0",
                                 color: roleFilter === role ? "#fff" : "#333",
                                 opacity: roleFilter === role ? 1 : 0.6,
-                                "&:hover": { backgroundColor: roleFilter === role ? "#2a3435" : "#d0d0d0" },
+                                "&:hover": {backgroundColor: roleFilter === role ? "#2a3435" : "#d0d0d0"},
                             }}
                         >
                             {role}
@@ -394,16 +401,16 @@ export default function AdminUserManagement() {
                                 backgroundColor: roleFilter === status ? "#334042" : "#e0e0e0",
                                 color: roleFilter === status ? "#fff" : "#333",
                                 opacity: roleFilter === status ? 1 : 0.6,
-                                "&:hover": { backgroundColor: roleFilter === status ? "#2a3435" : "#d0d0d0" },
+                                "&:hover": {backgroundColor: roleFilter === status ? "#2a3435" : "#d0d0d0"},
                             }}
                         >
                             {status}
                         </Button>
                     ))}
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <SearchBar 
-                        placeholder="Enter Username" 
+                <Box sx={{display: "flex", alignItems: "center", gap: 2}}>
+                    <SearchBar
+                        placeholder="Enter Username"
                         width="300px"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -457,11 +464,11 @@ export default function AdminUserManagement() {
                 >
                     {loading ? (
                         <Box display="flex" justifyContent="center" alignItems="center" height="200px">
-                            <CircularProgress />
+                            <CircularProgress/>
                         </Box>
                     ) : filteredUsers.length === 0 ? (
                         <Box display="flex" justifyContent="center" alignItems="center" height="200px">
-                            <Typography sx={{ color: theme.palette.text.secondary }}>No users found</Typography>
+                            <Typography sx={{color: theme.palette.text.secondary}}>No users found</Typography>
                         </Box>
                     ) : (
                         filteredUsers.map((user, i) => (<Box
@@ -491,19 +498,19 @@ export default function AdminUserManagement() {
                                 <IconButton
                                     onClick={() => handleEditUser(user)}
                                     sx={{
-                                    backgroundColor: "#172224",
-                                    color: "#fff",
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: "50%",
-                                    transition: "all 0.2s ease",
-                                    "&:hover": {
-                                        backgroundColor: "#2E3B3D",
+                                        backgroundColor: "#172224",
                                         color: "#fff",
-                                        transform: "translateY(-3px)",
-                                    },
-                                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                                }}
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: "50%",
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: "#2E3B3D",
+                                            color: "#fff",
+                                            transform: "translateY(-3px)",
+                                        },
+                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                                    }}
                                 >
                                     <RiPencilFill style={{fontSize: 19}}/>
                                 </IconButton>
@@ -530,7 +537,8 @@ export default function AdminUserManagement() {
                 {/* Employee Selection (only for new users) */}
                 {!isEditing && (
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, mb: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Select Employee *
                         </Typography>
                         <Select
@@ -541,9 +549,9 @@ export default function AdminUserManagement() {
                             sx={{
                                 borderRadius: "10px",
                                 backgroundColor: "#cacace",
-                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                "& .MuiSelect-select": { color: "#1F2829" },
-                                "& .MuiSelect-icon": { color: "#1F2829" },
+                                "& .MuiOutlinedInput-notchedOutline": {border: "none"},
+                                "& .MuiSelect-select": {color: "#1F2829"},
+                                "& .MuiSelect-icon": {color: "#1F2829"},
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span style={{color: "#888"}}>Select an employee</span>;
@@ -567,7 +575,8 @@ export default function AdminUserManagement() {
                 {/* Row 1: Name display (read-only when creating, shows selected employee) */}
                 <Box sx={{display: "flex", gap: 1, mb: 2}}>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             First Name
                         </Typography>
                         <TextField
@@ -581,15 +590,19 @@ export default function AdminUserManagement() {
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    "& fieldset": { border: "none" },
+                                    "& fieldset": {border: "none"},
                                 },
-                                "& .MuiInputBase-input": { color: "#1F2829" },
-                                "& .MuiInputBase-input.Mui-disabled": { color: "#1F2829", WebkitTextFillColor: "#1F2829" },
+                                "& .MuiInputBase-input": {color: "#1F2829"},
+                                "& .MuiInputBase-input.Mui-disabled": {
+                                    color: "#1F2829",
+                                    WebkitTextFillColor: "#1F2829"
+                                },
                             }}
                         />
                     </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Middle Name
                         </Typography>
                         <TextField
@@ -603,15 +616,19 @@ export default function AdminUserManagement() {
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    "& fieldset": { border: "none" },
+                                    "& fieldset": {border: "none"},
                                 },
-                                "& .MuiInputBase-input": { color: "#1F2829" },
-                                "& .MuiInputBase-input.Mui-disabled": { color: "#1F2829", WebkitTextFillColor: "#1F2829" },
+                                "& .MuiInputBase-input": {color: "#1F2829"},
+                                "& .MuiInputBase-input.Mui-disabled": {
+                                    color: "#1F2829",
+                                    WebkitTextFillColor: "#1F2829"
+                                },
                             }}
                         />
                     </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Last Name
                         </Typography>
                         <TextField
@@ -625,10 +642,13 @@ export default function AdminUserManagement() {
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    "& fieldset": { border: "none" },
+                                    "& fieldset": {border: "none"},
                                 },
-                                "& .MuiInputBase-input": { color: "#1F2829" },
-                                "& .MuiInputBase-input.Mui-disabled": { color: "#1F2829", WebkitTextFillColor: "#1F2829" },
+                                "& .MuiInputBase-input": {color: "#1F2829"},
+                                "& .MuiInputBase-input.Mui-disabled": {
+                                    color: "#1F2829",
+                                    WebkitTextFillColor: "#1F2829"
+                                },
                             }}
                         />
                     </Box>
@@ -637,7 +657,8 @@ export default function AdminUserManagement() {
                 {/* Row 2: Username and Email */}
                 <Box sx={{display: "flex", gap: 1, mb: 2}}>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Username *
                         </Typography>
                         <TextField
@@ -650,14 +671,15 @@ export default function AdminUserManagement() {
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    "& fieldset": { border: "none" },
+                                    "& fieldset": {border: "none"},
                                 },
-                                "& .MuiInputBase-input": { color: "#1F2829" },
+                                "& .MuiInputBase-input": {color: "#1F2829"},
                             }}
                         />
                     </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Email *
                         </Typography>
                         <TextField
@@ -670,9 +692,9 @@ export default function AdminUserManagement() {
                                 "& .MuiOutlinedInput-root": {
                                     borderRadius: "10px",
                                     backgroundColor: "#cacace",
-                                    "& fieldset": { border: "none" },
+                                    "& fieldset": {border: "none"},
                                 },
-                                "& .MuiInputBase-input": { color: "#1F2829" },
+                                "& .MuiInputBase-input": {color: "#1F2829"},
                             }}
                         />
                     </Box>
@@ -682,7 +704,8 @@ export default function AdminUserManagement() {
                 {!isEditing && (
                     <Box sx={{display: "flex", gap: 1, mb: 2}}>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                            <Typography
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                                 Password *
                             </Typography>
                             <TextField
@@ -696,9 +719,9 @@ export default function AdminUserManagement() {
                                     "& .MuiOutlinedInput-root": {
                                         borderRadius: "10px",
                                         backgroundColor: "#cacace",
-                                        "& fieldset": { border: "none" },
+                                        "& fieldset": {border: "none"},
                                     },
-                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                    "& .MuiInputBase-input": {color: "#1F2829"},
                                 }}
                             />
                         </Box>
@@ -708,7 +731,8 @@ export default function AdminUserManagement() {
                 {/* Row 4: Role and Status */}
                 <Box sx={{display: "flex", gap: 1, mb: 2}}>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Role *
                         </Typography>
                         <Select
@@ -723,9 +747,9 @@ export default function AdminUserManagement() {
                             sx={{
                                 backgroundColor: "#cacace",
                                 borderRadius: "10px",
-                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                "& .MuiSelect-select": { color: "#1F2829" },
-                                "& .MuiSelect-icon": { color: "#1F2829" },
+                                "& .MuiOutlinedInput-notchedOutline": {border: "none"},
+                                "& .MuiSelect-select": {color: "#1F2829"},
+                                "& .MuiSelect-icon": {color: "#1F2829"},
                             }}
                             renderValue={(selected) => {
                                 if (!selected) return <span style={{color: "#828689"}}>Select Role</span>;
@@ -740,7 +764,8 @@ export default function AdminUserManagement() {
                         </Select>
                     </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 0.5, flex: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
+                        <Typography
+                            sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px"}}>
                             Status
                         </Typography>
                         <Select
@@ -750,9 +775,9 @@ export default function AdminUserManagement() {
                             sx={{
                                 backgroundColor: "#cacace",
                                 borderRadius: "10px",
-                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                "& .MuiSelect-select": { color: "#1F2829" },
-                                "& .MuiSelect-icon": { color: "#1F2829" },
+                                "& .MuiOutlinedInput-notchedOutline": {border: "none"},
+                                "& .MuiSelect-select": {color: "#1F2829"},
+                                "& .MuiSelect-icon": {color: "#1F2829"},
                             }}
                         >
                             <MenuItem value="Active">Active</MenuItem>
@@ -764,19 +789,24 @@ export default function AdminUserManagement() {
                 {/* Photo Upload Section - Only shown when role is Employee (roleId === 4) */}
                 {selectedUser?.roleId === 4 && (
                     <Box sx={{mb: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "14px", mb: 1}}>
+                        <Typography sx={{
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            color: "#FFFFFF",
+                            fontSize: "14px",
+                            mb: 1
+                        }}>
                             Employee Photos (for Face Recognition)
                         </Typography>
-                        
+
                         <input
                             type="file"
                             ref={fileInputRef}
                             onChange={handlePhotoUpload}
                             accept="image/*"
                             multiple
-                            style={{ display: 'none' }}
+                            style={{display: 'none'}}
                         />
-                                
+
                         {/* Photo Upload Container with photos inside */}
                         <Box
                             sx={{
@@ -795,7 +825,7 @@ export default function AdminUserManagement() {
                         >
                             {/* Show uploaded photos inside the container */}
                             {uploadedPhotos.map((photo, index) => (
-                                <Box key={index} sx={{ position: "relative" }}>
+                                <Box key={index} sx={{position: "relative"}}>
                                     <img
                                         src={photo.preview}
                                         alt={`Preview ${index + 1}`}
@@ -816,14 +846,14 @@ export default function AdminUserManagement() {
                                             color: "#fff",
                                             width: 20,
                                             height: 20,
-                                            "&:hover": { backgroundColor: "#d32f2f" }
+                                            "&:hover": {backgroundColor: "#d32f2f"}
                                         }}
                                     >
-                                        <RiCloseLine style={{ fontSize: "14px" }} />
+                                        <RiCloseLine style={{fontSize: "14px"}}/>
                                     </IconButton>
                                 </Box>
                             ))}
-                            
+
                             {/* Add button - shows + when photos exist, or upload prompt when empty */}
                             <Box
                                 onClick={() => fileInputRef.current?.click()}
@@ -846,11 +876,13 @@ export default function AdminUserManagement() {
                                 }}
                             >
                                 {uploadedPhotos.length > 0 ? (
-                                    <Typography sx={{ fontSize: "32px", color: "#fff", fontWeight: "bold" }}>+</Typography>
+                                    <Typography
+                                        sx={{fontSize: "32px", color: "#fff", fontWeight: "bold"}}>+</Typography>
                                 ) : (
                                     <>
-                                        <RiUploadCloud2Line style={{ fontSize: "24px", color: "#fff", marginBottom: "8px" }} />
-                                        <Typography sx={{ color: "#fff", fontSize: "14px" }}>
+                                        <RiUploadCloud2Line
+                                            style={{fontSize: "24px", color: "#fff", marginBottom: "8px"}}/>
+                                        <Typography sx={{color: "#fff", fontSize: "14px"}}>
                                             Click to upload photos
                                         </Typography>
                                     </>
@@ -861,7 +893,7 @@ export default function AdminUserManagement() {
                 )}
 
                 {/* Action Buttons */}
-                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
+                <Box sx={{display: "flex", justifyContent: "flex-end", gap: 2, mt: 3}}>
                     {isEditing && (
                         <Box
                             component="button"
@@ -911,70 +943,52 @@ export default function AdminUserManagement() {
             </BoxModal>
 
             {/* Save Confirmation Modal */}
-            <Modal
+            <BoxModal
                 open={saveConfirmModalOpen}
                 onClose={() => setSaveConfirmModalOpen(false)}
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
+                width={400}
+                height={200}
             >
-                <Box
-                    sx={{
-                        bgcolor: "rgba(23, 34, 36, 0.95)",
-                        backdropFilter: "blur(12px)",
-                        WebkitBackdropFilter: "blur(12px)",
-                        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                        borderRadius: 3,
-                        p: 4,
-                        width: { xs: "90%", sm: "400px" },
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                    }}
-                >
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                            fontSize: "22px",
-                            color: "#FFFFFF",
-                            mb: 2,
-                            textAlign: "center",
-                        }}
-                    >
-                        Confirm Save
-                    </Typography>
-                    <Typography
-                        sx={{
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            fontSize: "16px",
-                            color: "#ccc",
-                            mb: 3,
-                            textAlign: "center",
-                        }}
-                    >
-                        Are you sure you want to save this user?
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 2 }}>
+                <Box sx={{display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between"}}>
+                    <Box sx={{textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontSize: "24px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 1
+                            }}
+                        >
+                            Confirm Save
+                        </Typography>
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                fontSize: "16px",
+                                color: "#fff",
+                                mb: 2,
+                                textAlign: "center",
+                            }}
+                        >
+                            Are you sure you want to save this user?
+                        </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
                         <Box
                             component="button"
                             onClick={() => setSaveConfirmModalOpen(false)}
                             sx={{
-                                fontSize: "16px",
-                                backgroundColor: "#555",
-                                color: "#fff",
-                                padding: "10px 30px",
+                                fontSize: "14px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 24px",
                                 borderRadius: "15px",
                                 cursor: "pointer",
                                 border: "none",
-                                transition: "all 0.3s ease",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": {
-                                    backgroundColor: "#666",
-                                    transform: "translateY(-2px)",
-                                },
+                                "&:hover": { backgroundColor: "#a0a0a0" }
                             }}
                         >
                             Cancel
@@ -983,26 +997,22 @@ export default function AdminUserManagement() {
                             component="button"
                             onClick={handleSaveUser}
                             sx={{
-                                fontSize: "16px",
+                                fontSize: "14px",
                                 backgroundColor: "#172224",
                                 color: "#fff",
-                                padding: "10px 30px",
+                                padding: "10px 24px",
                                 borderRadius: "15px",
                                 cursor: "pointer",
                                 border: "none",
-                                transition: "all 0.3s ease",
                                 fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": {
-                                    backgroundColor: "#1f2f31",
-                                    transform: "translateY(-2px)",
-                                },
+                                "&:hover": { backgroundColor: "#1f2f31" }
                             }}
                         >
                             Confirm
                         </Box>
                     </Box>
                 </Box>
-            </Modal>
+            </BoxModal>
 
             {/* Delete Confirmation Modal */}
             <Modal
@@ -1022,7 +1032,7 @@ export default function AdminUserManagement() {
                         boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                         borderRadius: 3,
                         p: 4,
-                        width: { xs: "90%", sm: "400px" },
+                        width: {xs: "90%", sm: "400px"},
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -1051,7 +1061,7 @@ export default function AdminUserManagement() {
                     >
                         Are you sure you want to delete this user? This action cannot be undone.
                     </Typography>
-                    <Box sx={{ display: "flex", gap: 2 }}>
+                    <Box sx={{display: "flex", gap: 2}}>
                         <Box
                             component="button"
                             onClick={() => setDeleteConfirmModalOpen(false)}
@@ -1118,8 +1128,8 @@ export default function AdminUserManagement() {
                                 : "0 8px 32px rgba(0,0,0,0.1)",
                         borderRadius: 3,
                         p: 4,
-                        width: { xs: "90%", sm: "600px", md: "800px" },
-                        height: { xs: "auto", sm: "70%", md: "600px" },
+                        width: {xs: "90%", sm: "600px", md: "800px"},
+                        height: {xs: "auto", sm: "70%", md: "600px"},
                         maxHeight: "90vh",
                         overflowY: "auto",
                         display: "flex",
@@ -1146,13 +1156,13 @@ export default function AdminUserManagement() {
                         muted
                         width="400"
                         height="300"
-                        style={{ borderRadius: "10px", border: "2px solid #ccc" }}
+                        style={{borderRadius: "10px", border: "2px solid #ccc"}}
                     />
 
                     <img
                         id="face-preview"
                         alt="Face preview"
-                        style={{ marginTop: "10px", width: "120px", borderRadius: "10px" }}
+                        style={{marginTop: "10px", width: "120px", borderRadius: "10px"}}
                     />
 
                     <Typography
