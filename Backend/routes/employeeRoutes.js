@@ -644,34 +644,39 @@ router.get('/payroll-history/:employeeId', async (req, res) => {
     try {
         let query = `
             SELECT 
-                payroll_id,
-                employee_id,
-                cutoff_start_date,
-                cutoff_end_date,
-                pay_date,
-                payroll_frequency,
-                prepared_by,
-                basic_pay,
-                overtime_pay,
-                bonuses,
-                status,
-                comments,
-                deductions,
-                net_pay,
-                payslip_reference_number
-            FROM Payroll
-            WHERE employee_id = ? 
-              AND LOWER(status) IN ('released', 'paid', 'completed')
+                p.payroll_id,
+                p.employee_id,
+                p.cutoff_start_date,
+                p.cutoff_end_date,
+                p.pay_date,
+                p.payroll_frequency,
+                p.prepared_by,
+                p.basic_pay,
+                p.overtime_pay,
+                p.bonuses,
+                p.status,
+                p.comments,
+                p.deductions,
+                p.net_pay,
+                p.payslip_reference_number,
+                tc.sss_contribution,
+                tc.philhealth_contribution,
+                tc.pagibig_contribution,
+                tc.withholding_tax
+            FROM Payroll p
+            LEFT JOIN TaxContributions tc ON p.payroll_id = tc.payroll_id
+            WHERE p.employee_id = ? 
+              AND LOWER(p.status) IN ('released', 'paid', 'completed')
         `;
 
         const params = [employeeId];
 
         if (year) {
-            query += ` AND YEAR(pay_date) = ? `;
+            query += ` AND YEAR(p.pay_date) = ? `;
             params.push(year);
         }
 
-        query += ` ORDER BY pay_date DESC`;
+        query += ` ORDER BY p.pay_date DESC`;
 
         if (limit) {
             query += ` LIMIT ?`;

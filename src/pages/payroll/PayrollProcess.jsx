@@ -10,7 +10,9 @@ import {
     IconButton, Checkbox, Snackbar, Alert, Chip,
     Stepper, Step, StepLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     CircularProgress, Divider, Tooltip, Accordion, AccordionSummary, AccordionDetails, LinearProgress,
+    Modal, Button,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import SearchBar from "../../components/SearchBar.jsx";
 import FilterSelect from "../../components/FilterSelect.jsx";
 import ActionButton from "../../components/ActionButton.jsx";
@@ -59,7 +61,21 @@ export default function PayoutProcessing() {
     const [emailConfirmModalOpen, setEmailConfirmModalOpen] = useState(false);
     const [pendingDownloadEmployee, setPendingDownloadEmployee] = useState(null);
     const [pendingEmailEmployees, setPendingEmailEmployees] = useState(null);
+    const [sendingEmail, setSendingEmail] = useState(false);
     const [error, setError] = useState(null);
+
+    // Modal style for MUI Modal
+    const modalStyle = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 500,
+        bgcolor: theme.palette.mode === 'dark' ? '#1b2223' : '#fff',
+        borderRadius: '15px',
+        boxShadow: 24,
+        p: 3,
+    };
 
     // Tab state for switching between new payroll and existing payroll
     const [currentTab, setCurrentTab] = useState(0); // 0 = Calculate New, 1 = Manage Existing
@@ -1607,7 +1623,24 @@ export default function PayoutProcessing() {
                                                                         <IconButton
                                                                             size="small"
                                                                             onClick={() => {
-                                                                                setSelectedEmployee({ ...emp, name: emp.employeeName, netpayDisplay: `₱${emp.netPay.toLocaleString()}`, earningDisplay: `₱${emp.grossPay.toLocaleString()}`, deductionDisplay: `₱${emp.deductions.toLocaleString()}` });
+                                                                                setSelectedEmployee({ 
+                                                                                    ...emp, 
+                                                                                    name: emp.employeeName, 
+                                                                                    period: period.periodName,
+                                                                                    payDate: new Date(period.payDate).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                                                                    grossPay: emp.grossPay,
+                                                                                    basicSalary: emp.basicPay,
+                                                                                    netPay: emp.netPay,
+                                                                                    deductions: emp.deductions,
+                                                                                    // Tax contributions breakdown
+                                                                                    sss: emp.sss,
+                                                                                    philhealth: emp.philhealth,
+                                                                                    pagibig: emp.pagibig,
+                                                                                    tax: emp.tax,
+                                                                                    netpayDisplay: `₱${emp.netPay.toLocaleString()}`, 
+                                                                                    earningDisplay: `₱${emp.grossPay.toLocaleString()}`, 
+                                                                                    deductionDisplay: `₱${emp.deductions.toLocaleString()}` 
+                                                                                });
                                                                                 setModalType("downloadPayslip");
                                                                                 setOpen(true);
                                                                             }}
@@ -1799,6 +1832,10 @@ export default function PayoutProcessing() {
                         </Box>
                         {pendingDownloadEmployee && (
                             <Box
+                                onClick={() => {
+                                    // Close modal after a short delay to allow download to start
+                                    setTimeout(() => setDownloadConfirmModalOpen(false), 500);
+                                }}
                                 sx={{
                                     fontSize: "14px",
                                     backgroundColor: "#172224",
@@ -1813,12 +1850,11 @@ export default function PayoutProcessing() {
                             >
                                 <PDFDownloadLink
                                     document={<PayslipDocument employee={pendingDownloadEmployee} />}
-                                    fileName={`${pendingDownloadEmployee.name}.pdf`}
+                                    fileName={`${pendingDownloadEmployee.name}_payslip.pdf`}
                                     style={{
                                         color: "#fff",
                                         textDecoration: "none",
                                     }}
-                                    onClick={() => setDownloadConfirmModalOpen(false)}
                                 >
                                     {({ loading }) => (loading ? "Generating..." : "Download")}
                                 </PDFDownloadLink>
@@ -1829,77 +1865,138 @@ export default function PayoutProcessing() {
             </BoxModal>
 
             {/* Send Email Confirmation Modal */}
-            <BoxModal
+            <Modal
                 open={emailConfirmModalOpen}
                 onClose={() => setEmailConfirmModalOpen(false)}
-                width={400}
+                aria-labelledby="send-email-modal"
             >
-                <Box sx={{ textAlign: "center" }}>
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            fontSize: "24px",
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                            color: "#fff",
-                            mb: 1
-                        }}
-                    >
-                        Send to Email
-                    </Typography>
-                    <Typography
-                        sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                            color: "#fff",
-                            mb: 2
-                        }}
-                    >
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Send Payslip via Email
+                        </Typography>
+                        <IconButton onClick={() => setEmailConfirmModalOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                    
+                    <Typography sx={{ mb: 2, color: theme.palette.text.secondary }}>
                         {pendingEmailEmployees?.length === 1 
-                            ? `Are you sure you want to send the payslip to ${pendingEmailEmployees[0]?.name}'s email?`
-                            : `Are you sure you want to send payslips to ${pendingEmailEmployees?.length} employees' emails?`}
+                            ? <>You are about to send the payslip to <strong>{pendingEmailEmployees[0]?.name}</strong>.</>
+                            : <>You are about to send payslips to <strong>{pendingEmailEmployees?.length} employees</strong>.</>}
                     </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, alignContent:"center"}}>
-                        <Box
-                            component="button"
+
+                    {pendingEmailEmployees && pendingEmailEmployees.length > 0 && (
+                        <Box sx={{ 
+                            maxHeight: 200, 
+                            overflowY: 'auto', 
+                            mb: 2,
+                            borderRadius: '10px',
+                            border: `1px solid ${theme.palette.divider}`,
+                        }}>
+                            {pendingEmailEmployees.map((emp, idx) => (
+                                <Box 
+                                    key={idx} 
+                                    sx={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        p: 1.5,
+                                        borderBottom: idx < pendingEmailEmployees.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#fafafa',
+                                    }}
+                                >
+                                    <Typography sx={{ color: theme.palette.text.primary, fontSize: '14px', fontWeight: 500 }}>
+                                        {emp.name || emp.employeeName}
+                                    </Typography>
+                                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+                                        {emp.email || 'No email'}
+                                    </Typography>
+                                </Box>
+                            ))}
+                        </Box>
+                    )}
+                    
+                    <Box sx={{ 
+                        p: 2, 
+                        borderRadius: '10px', 
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f5f5f5',
+                        mb: 3
+                    }}>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Recipients: {pendingEmailEmployees?.length || 0} employee(s)
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Content: Payslip PDF attachment
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                        <Button
                             onClick={() => setEmailConfirmModalOpen(false)}
                             sx={{
-                                fontSize: "14px",
-                                backgroundColor: "#bdbdbd",
-                                color: "#333",
-                                padding: "10px 24px",
-                                borderRadius: "15px",
-                                cursor: "pointer",
-                                border: "none",
-                                fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": { backgroundColor: "#a0a0a0" }
+                                textTransform: 'none',
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: theme.palette.text.secondary,
                             }}
                         >
                             Cancel
-                        </Box>
-                        <Box
-                            component="button"
-                            onClick={() => {
+                        </Button>
+                        <ActionButton
+                            text={sendingEmail ? "Sending..." : "Send Email"}
+                            width="130px"
+                            onClick={async () => {
+                                if (!pendingEmailEmployees || pendingEmailEmployees.length === 0) {
+                                    setSnackbar({ open: true, message: 'No employees selected', severity: 'warning' });
+                                    return;
+                                }
+
+                                setSendingEmail(true);
+                                try {
+                                    const payrollIds = pendingEmailEmployees.map(emp => emp.payrollId).filter(Boolean);
+                                    if (payrollIds.length === 0) {
+                                        setSnackbar({ open: true, message: 'No valid payroll records selected', severity: 'warning' });
+                                        setSendingEmail(false);
+                                        return;
+                                    }
+
+                                    const response = await fetch('http://localhost:8080/api/payroll/send-payslip-emails', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ payrollIds })
+                                    });
+
+                                    const result = await response.json();
+                                    
+                                    if (response.ok) {
+                                        setSnackbar({ 
+                                            open: true, 
+                                            message: `Sent ${result.results.sent.length} email(s)${result.results.failed.length > 0 ? `, ${result.results.failed.length} failed` : ''}`, 
+                                            severity: result.results.failed.length > 0 ? 'warning' : 'success' 
+                                        });
+                                    } else {
+                                        throw new Error(result.message || result.error || 'Failed to send emails');
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                    setSnackbar({ open: true, message: err.message || 'Failed to send payslips', severity: 'error' });
+                                }
+                                setSendingEmail(false);
                                 setEmailConfirmModalOpen(false);
-                                setSelectedEmployee(pendingEmailEmployees);
-                                setModalType("sendToEmails");
-                                setOpen(true);
                             }}
-                            sx={{
-                                fontSize: "14px",
-                                backgroundColor: "#172224",
-                                color: "#fff",
-                                padding: "10px 24px",
-                                borderRadius: "15px",
-                                cursor: "pointer",
-                                border: "none",
-                                fontFamily: "'TTHoves-Regular', sans-serif",
-                                "&:hover": { backgroundColor: "#1f2f31" }
-                            }}
-                        >
-                            Send
-                        </Box>
+                            disabled={sendingEmail}
+                        />
                     </Box>
                 </Box>
-            </BoxModal>
+            </Modal>
 
             {/* Snackbar for notifications */}
             <Snackbar

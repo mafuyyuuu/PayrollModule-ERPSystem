@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from "react";
-import {Box, Typography, useTheme, CircularProgress, Button} from "@mui/material";
+import {Box, Typography, useTheme, CircularProgress, Button, Modal, TextField, IconButton} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import ActionButton from "../../components/ActionButton.jsx";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -16,8 +17,15 @@ export default function PayrollReports() {
     const [chartData, setChartData] = useState([]);
     const [departmentData, setDepartmentData] = useState([]);
     const [payrollTrendData, setPayrollTrendData] = useState([]);
+    const [generateModalOpen, setGenerateModalOpen] = useState(false);
+    const [exportModalOpen, setExportModalOpen] = useState(false);
+    const [exportReportType, setExportReportType] = useState('');
+    const [reportTitle, setReportTitle] = useState('Payroll Summary Report');
+    const [reportDescription, setReportDescription] = useState('');
 
     const COLORS = ['#1b2223', '#3a4f50', '#5a7f80', '#7ab0b0', '#9ad0d0', '#bae0e0'];
+    const darkColors = ["#6cb4ee", "#66cc99", "#ff9966", "#ff6666"];
+    const lightColors = ["#1b2223", "#3a4f50", "#5a7f80", "#7ab0b0"];
 
     useEffect(() => {
         fetchReportsData();
@@ -263,10 +271,37 @@ export default function PayrollReports() {
     };
 
     const handleGenerateReport = () => {
+        setGenerateModalOpen(true);
+    };
+
+    const handleConfirmGenerate = () => {
+        setGenerateModalOpen(false);
         handleExportPDF('Payroll Summary');
     };
 
+    const openExportModal = (reportType) => {
+        setExportReportType(reportType);
+        setExportModalOpen(true);
+    };
+
+    const handleConfirmExport = () => {
+        setExportModalOpen(false);
+        handleExportPDF(exportReportType);
+    };
+
     const filteredData = getFilteredData();
+
+    const modalStyle = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 450,
+        bgcolor: theme.palette.mode === 'dark' ? '#1b2223' : '#fff',
+        borderRadius: '15px',
+        boxShadow: 24,
+        p: 3,
+    };
 
     return (
         <Box width="100%" height="100%" sx={{ fontFamily: theme.typography.fontFamily }}>
@@ -367,7 +402,7 @@ export default function PayrollReports() {
                         <ActionButton
                             text="Export PDF"
                             width="120px"
-                            onClick={() => handleExportPDF('Payroll Summary')}
+                            onClick={() => openExportModal('Payroll Summary')}
                         />
                     </Box>
                 </Box>
@@ -403,12 +438,35 @@ export default function PayrollReports() {
                                     <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"} />
                                     <XAxis dataKey="name" tick={{ fontSize: 10, fill: theme.palette.text.primary }} />
                                     <YAxis tick={{ fontSize: 10, fill: theme.palette.text.primary }} tickFormatter={(v) => `₱${v/1000}k`} />
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Legend wrapperStyle={{ fontSize: "10px" }} />
-                                    <Bar dataKey="Tax" fill="#1b2223" stackId="a" />
-                                    <Bar dataKey="SSS" fill="#3a4f50" stackId="a" />
-                                    <Bar dataKey="PhilHealth" fill="#5a7f80" stackId="a" />
-                                    <Bar dataKey="Pag-IBIG" fill="#7ab0b0" stackId="a" />
+                                    <Tooltip formatter={(value) => formatCurrency(value)}
+                                             labelStyle={{ color: "#000000", fontWeight: "bold" }}/>
+                                    <Legend
+                                        wrapperStyle={{
+                                            fontFamily: "TTHoves-Demibold",
+                                            fontSize: "10px",
+                                            color: theme.palette.text.primary
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="Tax"
+                                        fill={theme.palette.mode === "dark" ? "#f28b82" : "#1b2223"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="SSS"
+                                        fill={theme.palette.mode === "dark" ? "#fbbc04" : "#3a4f50"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="PhilHealth"
+                                        fill={theme.palette.mode === "dark" ? "#34a853" : "#5a7f80"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="Pag-IBIG"
+                                        fill={theme.palette.mode === "dark" ? "#4285f4" : "#7ab0b0"}
+                                        stackId="a"
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (
@@ -553,7 +611,7 @@ export default function PayrollReports() {
                             <ActionButton
                                 text="Export PDF"
                                 width="120px"
-                                onClick={() => handleExportPDF('Department Summary')}
+                                onClick={() => openExportModal('Department Summary')}
                             />
                         </Box>
                         <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -598,10 +656,13 @@ export default function PayrollReports() {
                                             labelLine={false}
                                         >
                                             {departmentData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={theme.palette.mode === 'dark' ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                                />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => `${value} employees`} />
+                                        <Tooltip formatter={(value) => `${value} employees`} contentStyle={{ backgroundColor: "#fff", color: "#000000" }} labelStyle={{ color: "#000000" }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -640,19 +701,26 @@ export default function PayrollReports() {
                             <ActionButton
                                 text="Export PDF"
                                 width="120px"
-                                onClick={() => handleExportPDF('Payroll Trend')}
+                                onClick={() => openExportModal('Payroll Trend')}
                             />
                         </Box>
                         <Box sx={{ flex: 1 }}>
                             {payrollTrendData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={payrollTrendData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"} />
+                                    <BarChart data={payrollTrendData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#7e7d7d"} />
                                         <XAxis dataKey="month" tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
                                         <YAxis tick={{ fontSize: 11, fill: theme.palette.text.primary }} tickFormatter={(v) => `₱${v/1000}k`} />
-                                        <Tooltip formatter={(value) => formatCurrency(value)} />
-                                        <Line type="monotone" dataKey="total" stroke="#1b2223" strokeWidth={2} dot={{ fill: '#1b2223' }} />
-                                    </LineChart>
+                                        <Tooltip formatter={(value) => formatCurrency(value)} contentStyle={{ backgroundColor: "#fff", color: "#000000" }} labelStyle={{ color: "#000000" }} />
+                                        <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                                            {payrollTrendData.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={theme.palette.mode === "dark" ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <Box display="flex" justifyContent="center" alignItems="center" height="100%">
@@ -665,6 +733,137 @@ export default function PayrollReports() {
                     </Box>
                 </Box>
             </Box>
+
+            {/* Generate Report Modal */}
+            <Modal
+                open={generateModalOpen}
+                onClose={() => setGenerateModalOpen(false)}
+                aria-labelledby="generate-report-modal"
+            >
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Generate Report
+                        </Typography>
+                        <IconButton onClick={() => setGenerateModalOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                    
+                    <TextField
+                        fullWidth
+                        label="Report Title"
+                        value={reportTitle}
+                        onChange={(e) => setReportTitle(e.target.value)}
+                        sx={{ mb: 2 }}
+                        InputProps={{
+                            sx: { borderRadius: '10px' }
+                        }}
+                    />
+                    
+                    <TextField
+                        fullWidth
+                        label="Description (Optional)"
+                        value={reportDescription}
+                        onChange={(e) => setReportDescription(e.target.value)}
+                        multiline
+                        rows={3}
+                        sx={{ mb: 3 }}
+                        InputProps={{
+                            sx: { borderRadius: '10px' }
+                        }}
+                    />
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                        <Button
+                            onClick={() => setGenerateModalOpen(false)}
+                            sx={{
+                                textTransform: 'none',
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: theme.palette.text.secondary,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <ActionButton
+                            text={generating ? "Generating..." : "Generate"}
+                            width="120px"
+                            onClick={handleConfirmGenerate}
+                            disabled={generating}
+                        />
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Export PDF Modal */}
+            <Modal
+                open={exportModalOpen}
+                onClose={() => setExportModalOpen(false)}
+                aria-labelledby="export-pdf-modal"
+            >
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Export PDF
+                        </Typography>
+                        <IconButton onClick={() => setExportModalOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                    
+                    <Typography sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                        You are about to export the <strong>{exportReportType}</strong> report as a PDF file.
+                    </Typography>
+                    
+                    <Box sx={{ 
+                        p: 2, 
+                        borderRadius: '10px', 
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f5f5f5',
+                        mb: 3
+                    }}>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Report Type: {exportReportType}
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Format: PDF Document
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                        <Button
+                            onClick={() => setExportModalOpen(false)}
+                            sx={{
+                                textTransform: 'none',
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: theme.palette.text.secondary,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <ActionButton
+                            text={generating ? "Exporting..." : "Export PDF"}
+                            width="120px"
+                            onClick={handleConfirmExport}
+                            disabled={generating}
+                        />
+                    </Box>
+                </Box>
+            </Modal>
         </Box>
     );
 }

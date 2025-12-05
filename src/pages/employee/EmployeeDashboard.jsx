@@ -14,8 +14,9 @@ import {
     Avatar,
     Divider
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import DashboardCard from "../../components/DashboardCard.jsx";
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell, Legend } from "recharts";
 import { useRef, useState, useEffect } from "react";
 import { FaRegCalendar, FaClock } from "react-icons/fa";
 import { useUser } from "../../components/UserContext.jsx";
@@ -30,6 +31,10 @@ const EmployeeDashboard = () => {
 
     // Get employee ID from either property name (supports both login methods)
     const employeeId = user?.employee_id || user?.employeeId;
+
+    // Color schemes matching AdminReports
+    const darkColors = ["#6cb4ee", "#66cc99", "#ff9966", "#ff6666"];
+    const lightColors = ["#1b2223", "#3a4f50", "#5a7f80", "#7ab0b0"];
 
     // State for dashboard data
     const [dashboardData, setDashboardData] = useState({
@@ -850,37 +855,43 @@ const EmployeeDashboard = () => {
                                 <BarChart data={earningsData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
                                     <CartesianGrid
                                         strokeDasharray="3 3"
-                                        stroke={theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}
+                                        stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"}
                                         vertical={false}
                                     />
                                     <XAxis
                                         dataKey="month"
-                                        stroke={theme.palette.text.secondary}
-                                        style={{ fontSize: '11px' }}
+                                        tick={{ fontSize: 10, fill: theme.palette.text.primary }}
                                         axisLine={false}
                                         tickLine={false}
                                     />
                                     <YAxis
-                                        stroke={theme.palette.text.secondary}
-                                        style={{ fontSize: '11px' }}
+                                        tick={{ fontSize: 10, fill: theme.palette.text.primary }}
                                         tickFormatter={(value) => `₱${(value / 1000).toFixed(0)}k`}
                                         axisLine={false}
                                         tickLine={false}
                                     />
                                     <Tooltip
                                         contentStyle={{
-                                            backgroundColor: theme.palette.mode === "dark" ? "#1a1a1a" : "#fff",
+                                            backgroundColor: "#fff",
+                                            color: "#000000",
                                             border: `1px solid ${theme.palette.divider}`,
                                             borderRadius: "8px",
                                             fontSize: "12px"
                                         }}
+                                        labelStyle={{ color: "#000000", fontWeight: "bold" }}
                                         formatter={(value) => [`${formatCurrency(value)}`, 'Net Pay']}
                                     />
                                     <Bar
                                         dataKey="earnings"
-                                        fill="#3A4F50"
                                         radius={[4, 4, 0, 0]}
-                                    />
+                                    >
+                                        {earningsData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={theme.palette.mode === "dark" ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                            />
+                                        ))}
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -1009,7 +1020,7 @@ const EmployeeDashboard = () => {
                                             borderRadius: 2,
                                             backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
                                             "& .MuiLinearProgress-bar": {
-                                                backgroundColor: "#3A4F50",
+                                                backgroundColor: theme.palette.mode === "dark" ? "#6cb4ee" : "#3A4F50",
                                                 borderRadius: 2
                                             }
                                         }}

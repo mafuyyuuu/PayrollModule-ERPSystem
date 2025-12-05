@@ -2366,7 +2366,7 @@ router.post('/send-payslip-emails', async (req, res) => {
 // GET payroll grouped by period with priority
 router.get('/payroll-by-period', async (req, res) => {
     try {
-        // Get all payroll records with cutoff info
+        // Get all payroll records with cutoff info and tax contributions
         const [payrolls] = await payrollDB.query(`
             SELECT 
                 p.payroll_id,
@@ -2384,9 +2384,14 @@ router.get('/payroll-by-period', async (req, res) => {
                 p.created_at,
                 p.updated_at,
                 pc.period_name,
-                pc.cutoff_id
+                pc.cutoff_id,
+                tc.sss_contribution,
+                tc.philhealth_contribution,
+                tc.pagibig_contribution,
+                tc.withholding_tax
             FROM Payroll p
             LEFT JOIN PayrollCutoffs pc ON p.cutoff_start_date = pc.start_date AND p.cutoff_end_date = pc.end_date
+            LEFT JOIN TaxContributions tc ON p.payroll_id = tc.payroll_id
             ORDER BY p.pay_date ASC, p.created_at ASC
         `);
 
@@ -2464,6 +2469,11 @@ router.get('/payroll-by-period', async (req, res) => {
                 grossPay,
                 deductions: parseFloat(payroll.deductions || 0),
                 netPay: parseFloat(payroll.net_pay || 0),
+                // Tax contributions breakdown
+                sss: parseFloat(payroll.sss_contribution || 0),
+                philhealth: parseFloat(payroll.philhealth_contribution || 0),
+                pagibig: parseFloat(payroll.pagibig_contribution || 0),
+                tax: parseFloat(payroll.withholding_tax || 0),
                 status: payroll.status || 'Pending',
                 comments: payroll.comments || '',
                 createdAt: payroll.created_at,

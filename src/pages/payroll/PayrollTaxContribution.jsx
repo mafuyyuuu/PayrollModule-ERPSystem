@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
-import {Box, Typography, useTheme, Chip} from "@mui/material";
-import {Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Bar, BarChart, Legend} from "recharts";
+import {Box, Typography, useTheme, Chip, Modal, TextField, IconButton, Button, CircularProgress} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import {Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Bar, BarChart, Legend, Cell} from "recharts";
 import React, {useState, useEffect} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
@@ -16,6 +17,57 @@ export default function PayrollTaxContribution() {
     const [deadlines, setDeadlines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [summaryData, setSummaryData] = useState({});
+    const [generateModalOpen, setGenerateModalOpen] = useState(false);
+    const [exportModalOpen, setExportModalOpen] = useState(false);
+    const [exportCSVModalOpen, setExportCSVModalOpen] = useState(false);
+    const [exportReportType, setExportReportType] = useState('');
+    const [reportTitle, setReportTitle] = useState('Tax Contributions Report');
+    const [reportDescription, setReportDescription] = useState('');
+    const [generating, setGenerating] = useState(false);
+
+    // Color schemes matching AdminReports
+    const darkColors = ["#6cb4ee", "#66cc99", "#ff9966", "#ff6666"];
+    const lightColors = ["#1b2223", "#3a4f50", "#5a7f80", "#7ab0b0"];
+
+    // Modal style
+    const modalStyle = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 450,
+        bgcolor: theme.palette.mode === 'dark' ? '#1b2223' : '#fff',
+        borderRadius: '15px',
+        boxShadow: 24,
+        p: 3,
+    };
+
+    // Modal handlers
+    const openExportModal = (reportType) => {
+        setExportReportType(reportType);
+        setExportModalOpen(true);
+    };
+
+    const handleConfirmGenerate = () => {
+        setGenerating(true);
+        setGenerateModalOpen(false);
+        handleExportPDF();
+        setTimeout(() => setGenerating(false), 1000);
+    };
+
+    const handleConfirmExport = () => {
+        setGenerating(true);
+        setExportModalOpen(false);
+        handleExportPDF();
+        setTimeout(() => setGenerating(false), 1000);
+    };
+
+    const handleConfirmCSVExport = () => {
+        setGenerating(true);
+        setExportCSVModalOpen(false);
+        handleExportCSV();
+        setTimeout(() => setGenerating(false), 1000);
+    };
 
     // Get deadline status based on current date
     const getDeadlineStatus = (deadlineDate, currentStatus) => {
@@ -368,18 +420,25 @@ export default function PayrollTaxContribution() {
                                 {earningsData.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <LineChart data={earningsData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                            <XAxis dataKey="month" stroke={theme.palette.text.primary} fontSize={12} />
-                                            <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"} />
+                                            <XAxis dataKey="month" tick={{ fontSize: 10, fill: theme.palette.text.primary }} />
+                                            <YAxis tick={{ fontSize: 10, fill: theme.palette.text.primary }} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
                                             <Tooltip 
                                                 formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
-                                                contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
+                                                contentStyle={{ backgroundColor: "#fff", color: "#000000" }}
+                                                labelStyle={{ color: "#000000", fontWeight: "bold" }}
                                             />
-                                            <Legend />
-                                            <Line type="monotone" dataKey="total" name="Total" stroke={theme.palette.primary.main} strokeWidth={3} dot={{r: 4}} />
-                                            <Line type="monotone" dataKey="sss" name="SSS" stroke={theme.palette.success.main} strokeWidth={2} dot={{r: 3}} />
-                                            <Line type="monotone" dataKey="philhealth" name="PhilHealth" stroke={theme.palette.info.main} strokeWidth={2} dot={{r: 3}} />
-                                            <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke="#E67E22" strokeWidth={2} dot={{r: 3}} />
+                                            <Legend 
+                                                wrapperStyle={{
+                                                    fontFamily: "TTHoves-Demibold",
+                                                    fontSize: "10px",
+                                                    color: theme.palette.text.primary
+                                                }}
+                                            />
+                                            <Line type="monotone" dataKey="total" name="Total" stroke={theme.palette.mode === "dark" ? "#6cb4ee" : "#1b2223"} strokeWidth={3} dot={{r: 4}} />
+                                            <Line type="monotone" dataKey="sss" name="SSS" stroke={theme.palette.mode === "dark" ? "#66cc99" : "#3a4f50"} strokeWidth={2} dot={{r: 3}} />
+                                            <Line type="monotone" dataKey="philhealth" name="PhilHealth" stroke={theme.palette.mode === "dark" ? "#ff9966" : "#5a7f80"} strokeWidth={2} dot={{r: 3}} />
+                                            <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke={theme.palette.mode === "dark" ? "#ff6666" : "#7ab0b0"} strokeWidth={2} dot={{r: 3}} />
                                         </LineChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -428,18 +487,25 @@ export default function PayrollTaxContribution() {
                                 {departmentData.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={departmentData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                                            <XAxis dataKey="name" stroke={theme.palette.text.primary} fontSize={12} />
-                                            <YAxis stroke={theme.palette.text.primary} fontSize={12} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#7e7d7d"} />
+                                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: theme.palette.text.primary }} />
+                                            <YAxis tick={{ fontSize: 10, fill: theme.palette.text.primary }} tickFormatter={(value) => `₱${(value/1000).toFixed(0)}k`} />
                                             <Tooltip 
                                                 formatter={(value) => [`₱${parseFloat(value).toLocaleString()}`, '']}
-                                                contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}` }}
+                                                contentStyle={{ backgroundColor: "#fff", color: "#000000" }}
+                                                labelStyle={{ color: "#000000", fontWeight: "bold" }}
                                             />
-                                            <Legend />
-                                            <Bar dataKey="sss" name="SSS" fill={theme.palette.success.main} />
-                                            <Bar dataKey="philhealth" name="PhilHealth" fill={theme.palette.info.main} />
-                                            <Bar dataKey="pagibig" name="Pag-IBIG" fill="#E67E22" />
-                                            <Bar dataKey="tax" name="Tax" fill={theme.palette.error.main} />
+                                            <Legend 
+                                                wrapperStyle={{
+                                                    fontFamily: "TTHoves-Demibold",
+                                                    fontSize: "10px",
+                                                    color: theme.palette.text.primary
+                                                }}
+                                            />
+                                            <Bar dataKey="sss" name="SSS" fill={theme.palette.mode === "dark" ? "#66cc99" : "#1b2223"} radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="philhealth" name="PhilHealth" fill={theme.palette.mode === "dark" ? "#6cb4ee" : "#3a4f50"} radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="pagibig" name="Pag-IBIG" fill={theme.palette.mode === "dark" ? "#ff9966" : "#5a7f80"} radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="tax" name="Tax" fill={theme.palette.mode === "dark" ? "#ff6666" : "#7ab0b0"} radius={[4, 4, 0, 0]} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -581,23 +647,22 @@ export default function PayrollTaxContribution() {
                 </Box>
             </Box>
 
-            <Box display="flex" justifyContent="flex-end" gap="15px">
+            <Box display="flex" justifyContent="flex-end" gap="15px" mt={2}>
+                <ActionButton
+                    text={generating ? "Generating..." : "Generate Report"}
+                    width="180px"
+                    onClick={() => setGenerateModalOpen(true)}
+                    disabled={generating}
+                />
                 <ActionButton
                     text="Export PDF"
-                    width="200px"
-                    onClick={() => {
-                        setModalType("exportPDF");
-                        setIsModalOpen(true);
-                    }}
+                    width="150px"
+                    onClick={() => openExportModal('Tax Contributions')}
                 />
-
                 <ActionButton
                     text="Export CSV"
-                    width="200px"
-                    onClick={() => {
-                        setModalType("exportCSV");
-                        setIsModalOpen(true);
-                    }}
+                    width="150px"
+                    onClick={() => setExportCSVModalOpen(true)}
                 />
             </Box>
 
@@ -607,6 +672,201 @@ export default function PayrollTaxContribution() {
             >
                 {renderModalCards()}
             </BoxModal>
+
+            {/* Generate Report Modal */}
+            <Modal
+                open={generateModalOpen}
+                onClose={() => setGenerateModalOpen(false)}
+                aria-labelledby="generate-report-modal"
+            >
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Generate Report
+                        </Typography>
+                        <IconButton onClick={() => setGenerateModalOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                    
+                    <TextField
+                        fullWidth
+                        label="Report Title"
+                        value={reportTitle}
+                        onChange={(e) => setReportTitle(e.target.value)}
+                        sx={{ mb: 2 }}
+                        InputProps={{
+                            sx: { borderRadius: '10px' }
+                        }}
+                    />
+                    
+                    <TextField
+                        fullWidth
+                        label="Description (Optional)"
+                        value={reportDescription}
+                        onChange={(e) => setReportDescription(e.target.value)}
+                        multiline
+                        rows={3}
+                        sx={{ mb: 3 }}
+                        InputProps={{
+                            sx: { borderRadius: '10px' }
+                        }}
+                    />
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                        <Button
+                            onClick={() => setGenerateModalOpen(false)}
+                            sx={{
+                                textTransform: 'none',
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: theme.palette.text.secondary,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <ActionButton
+                            text={generating ? "Generating..." : "Generate"}
+                            width="120px"
+                            onClick={handleConfirmGenerate}
+                            disabled={generating}
+                        />
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Export PDF Modal */}
+            <Modal
+                open={exportModalOpen}
+                onClose={() => setExportModalOpen(false)}
+                aria-labelledby="export-pdf-modal"
+            >
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Export PDF
+                        </Typography>
+                        <IconButton onClick={() => setExportModalOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                    
+                    <Typography sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                        You are about to export the <strong>{exportReportType}</strong> report as a PDF file.
+                    </Typography>
+                    
+                    <Box sx={{ 
+                        p: 2, 
+                        borderRadius: '10px', 
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f5f5f5',
+                        mb: 3
+                    }}>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Report Type: {exportReportType}
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Format: PDF Document
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                        <Button
+                            onClick={() => setExportModalOpen(false)}
+                            sx={{
+                                textTransform: 'none',
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: theme.palette.text.secondary,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <ActionButton
+                            text={generating ? "Exporting..." : "Export PDF"}
+                            width="120px"
+                            onClick={handleConfirmExport}
+                            disabled={generating}
+                        />
+                    </Box>
+                </Box>
+            </Modal>
+
+            {/* Export CSV Modal */}
+            <Modal
+                open={exportCSVModalOpen}
+                onClose={() => setExportCSVModalOpen(false)}
+                aria-labelledby="export-csv-modal"
+            >
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                            }}
+                        >
+                            Export CSV
+                        </Typography>
+                        <IconButton onClick={() => setExportCSVModalOpen(false)} size="small">
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+                    
+                    <Typography sx={{ mb: 2, color: theme.palette.text.secondary }}>
+                        You are about to export the <strong>Tax Contributions</strong> data as a CSV file.
+                    </Typography>
+                    
+                    <Box sx={{ 
+                        p: 2, 
+                        borderRadius: '10px', 
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f5f5f5',
+                        mb: 3
+                    }}>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Records: {deadlines.length} contribution entries
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Format: CSV (Comma Separated Values)
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.text.secondary }}>
+                            • Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                        <Button
+                            onClick={() => setExportCSVModalOpen(false)}
+                            sx={{
+                                textTransform: 'none',
+                                fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                color: theme.palette.text.secondary,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <ActionButton
+                            text={generating ? "Exporting..." : "Export CSV"}
+                            width="120px"
+                            onClick={handleConfirmCSVExport}
+                            disabled={generating}
+                        />
+                    </Box>
+                </Box>
+            </Modal>
         </Box>
     );
 }
