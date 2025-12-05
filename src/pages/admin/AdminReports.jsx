@@ -19,6 +19,8 @@ export default function AdminReports() {
     const [complianceData, setComplianceData] = useState([]);
 
     const COLORS = ['#1b2223', '#3a4f50', '#5a7f80', '#7ab0b0', '#9ad0d0', '#bae0e0'];
+    const darkColors = ["#6cb4ee", "#66cc99", "#ff9966", "#ff6666"];
+    const lightColors = ["#1b2223", "#3a4f50", "#5a7f80", "#7ab0b0"];
 
     useEffect(() => {
         fetchReportsData();
@@ -393,12 +395,35 @@ export default function AdminReports() {
                                     <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#e0e0e0"} />
                                     <XAxis dataKey="name" tick={{ fontSize: 10, fill: theme.palette.text.primary }} />
                                     <YAxis tick={{ fontSize: 10, fill: theme.palette.text.primary }} tickFormatter={(v) => `₱${v/1000}k`} />
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Legend wrapperStyle={{ fontSize: "10px" }} />
-                                    <Bar dataKey="Tax" fill="#1b2223" stackId="a" />
-                                    <Bar dataKey="SSS" fill="#3a4f50" stackId="a" />
-                                    <Bar dataKey="PhilHealth" fill="#5a7f80" stackId="a" />
-                                    <Bar dataKey="Pag-IBIG" fill="#7ab0b0" stackId="a" />
+                                    <Tooltip formatter={(value) => formatCurrency(value)}
+                                             labelStyle={{ color: "#000000", fontWeight: "bold" }}/>
+
+                                    <Legend
+                                        wrapperStyle={{
+                                            fontFamily: "TTHoves-Demibold",
+                                            fontSize: "10px",
+                                            color: theme.palette.text.primary
+                                        }}
+                                    />                                   <Bar
+                                    dataKey="Tax"
+                                    fill={theme.palette.mode === "dark" ? "#f28b82" : "#1b2223"}
+                                    stackId="a"
+                                />
+                                    <Bar
+                                        dataKey="SSS"
+                                        fill={theme.palette.mode === "dark" ? "#fbbc04" : "#3a4f50"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="PhilHealth"
+                                        fill={theme.palette.mode === "dark" ? "#34a853" : "#5a7f80"}
+                                        stackId="a"
+                                    />
+                                    <Bar
+                                        dataKey="Pag-IBIG"
+                                        fill={theme.palette.mode === "dark" ? "#4285f4" : "#7ab0b0"}
+                                        stackId="a"
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (
@@ -635,12 +660,20 @@ export default function AdminReports() {
                         <Box sx={{ flex: 1 }}>
                             {complianceData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={complianceData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#fff" : "#7e7d7d"} />
+                                    <BarChart data={complianceData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.mode === "dark" ? "#555" : "#7e7d7d"} />
                                         <XAxis dataKey="name" tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
                                         <YAxis tick={{ fontSize: 11, fill: theme.palette.text.primary }} />
-                                        <Tooltip />
-                                        <Bar dataKey="count" fill="#1b2223" radius={[4, 4, 0, 0]} />
+                                        <Tooltip contentStyle={{ backgroundColor: "#fff", color: "#000000" }} labelStyle={{ color: "#000000" }} />
+
+                                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                                            {complianceData.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={theme.palette.mode === "dark" ? darkColors[index % darkColors.length] : lightColors[index % lightColors.length]}
+                                                />
+                                            ))}
+                                        </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (

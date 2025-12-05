@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import "remixicon/fonts/remixicon.css";
 import "../components/Sidebar.css";
 import { useUser } from "./UserContext.jsx";
-import logo from "../assets/lenscape.png";
+import logo from "../assets/violin.png";
 import { useState } from "react";
 import LogoutModal from '../pages/auth/LogoutModal.jsx';
 

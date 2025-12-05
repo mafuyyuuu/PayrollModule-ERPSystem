@@ -789,7 +789,7 @@ export default function AdminConfiguration() {
                     </Box>
                     <Box
                         sx={{
-                            maxHeight: "400px",
+                            maxHeight: "500px",
                             overflowY: "auto",
                             "&::-webkit-scrollbar": {width: 0, height: 0},
                             scrollbarWidth: "none",
@@ -940,7 +940,7 @@ export default function AdminConfiguration() {
 
                     <Box
                         sx={{
-                            maxHeight: "400px",
+                            maxHeight: "500px",
                             overflowY: "auto",
                             "&::-webkit-scrollbar": {width: 0, height: 0},
                             scrollbarWidth: "none",
@@ -1055,7 +1055,7 @@ export default function AdminConfiguration() {
 
                     <Box
                         sx={{
-                            maxHeight: "400px",
+                            maxHeight: "500px",
                             overflowY: "auto",
                             "&::-webkit-scrollbar": {width: 0, height: 0},
                             scrollbarWidth: "none",
@@ -1155,7 +1155,7 @@ export default function AdminConfiguration() {
                     </Box>
                     <Box
                         sx={{
-                            maxHeight: "400px",
+                            maxHeight: "500px",
                             overflowY: "auto",
                             "&::-webkit-scrollbar": {width: 0, height: 0},
                             scrollbarWidth: "none",
@@ -1590,15 +1590,27 @@ export default function AdminConfiguration() {
                         color: theme.palette.text.primary,
                     }}
                 >
+                    <Box sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        mb: 2
+                    }}>
                     <Typography
                         variant="h5"
                         sx={{
-                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2,
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary,
                         }}
                     >
                         {editingWorkflow ? "Edit Workflow" : "Add Workflow"}
                     </Typography>
-
+                        <Tooltip title="Active or Inactive?">
+                            <ModernSwitch
+                                checked={workflowForm.active}
+                                onChange={(e) => setWorkflowForm(prev => ({...prev, active: e.target.checked}))}
+                            />
+                        </Tooltip>
+                    </Box>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                         <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                             Workflow Name
@@ -1675,34 +1687,6 @@ export default function AdminConfiguration() {
                                 ))}
                             </Select>
                         </Box>
-                    </Box>
-
-                    <Box sx={{display: "flex", alignItems: "center", gap: 2, mt: 2}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
-                            Status
-                        </Typography>
-                        <Switch
-                            checked={workflowForm.status === 'Active'}
-                            onChange={(e) => setWorkflowForm(prev => ({...prev, status: e.target.checked ? 'Active' : 'Inactive'}))}
-                            sx={{
-                                width: 50,
-                                height: 28,
-                                padding: 0,
-                                "& .MuiSwitch-switchBase": {
-                                    padding: "2px",
-                                    "&.Mui-checked": {
-                                        transform: "translateX(22px)",
-                                        color: "#fff",
-                                        "& + .MuiSwitch-track": { backgroundColor: "#3A4F50", opacity: 1 },
-                                    },
-                                },
-                                "& .MuiSwitch-thumb": { width: 24, height: 24, boxShadow: "0 2px 4px rgba(0,0,0,0.2)" },
-                                "& .MuiSwitch-track": { borderRadius: 14, backgroundColor: "#bdbdbd", opacity: 1 },
-                            }}
-                        />
-                        <Typography sx={{fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
-                            {workflowForm.status}
-                        </Typography>
                     </Box>
 
                     <Box sx={{display: "flex", justifyContent: editingWorkflow ? "center" : "flex-end", gap: 2, mt: 3}}>
@@ -1924,11 +1908,22 @@ export default function AdminConfiguration() {
                     <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary, textAlign: "center" }}>
                         <Typography
                             variant="h6"
-                            sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "20px", color: theme.palette.text.primary, mb: 2 }}
+                            sx={{
+                                fontSize: "24px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 1
+                            }}
                         >
                             Confirm Delete
                         </Typography>
-                        <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary, mb: 3 }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: "#fff",
+                                mb: 2
+                            }}
+                        >
                             Are you sure you want to delete "{deleteTarget.name}"? This action cannot be undone.
                         </Typography>
                         <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
@@ -1937,14 +1932,14 @@ export default function AdminConfiguration() {
                                 onClick={() => setShowDeleteModal(false)}
                                 sx={{
                                     fontSize: "14px",
-                                    backgroundColor: "transparent",
-                                    color: theme.palette.text.primary,
-                                    padding: "10px 25px",
-                                    borderRadius: "10px",
+                                    backgroundColor: "#bdbdbd",
+                                    color: "#333",
+                                    padding: "10px 24px",
+                                    borderRadius: "15px",
                                     cursor: "pointer",
-                                    border: `1px solid ${theme.palette.divider}`,
+                                    border: "none",
                                     fontFamily: "'TTHoves-Regular', sans-serif",
-                                    "&:hover": { backgroundColor: theme.palette.action.hover },
+                                    "&:hover": { backgroundColor: "#a0a0a0" }
                                 }}
                             >
                                 Cancel
@@ -1957,11 +1952,9 @@ export default function AdminConfiguration() {
                                     fontSize: "14px",
                                     backgroundColor: saving ? "#666" : "#8b1a1a",
                                     color: "#fff",
-                                    padding: "10px 25px",
-                                    borderRadius: "10px",
-                                    cursor: saving ? "not-allowed" : "pointer",
+                                    borderRadius: "15px",
+                                    cursor: "pointer",
                                     border: "none",
-                                    fontFamily: "'TTHoves-Regular', sans-serif",
                                     "&:hover": { backgroundColor: saving ? "#666" : "#a32020" },
                                 }}
                             >
@@ -1979,15 +1972,34 @@ export default function AdminConfiguration() {
                     height={200}
                 >
                     <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                        <Box>
-                            <Typography variant="h6" sx={{ fontFamily: "'TTHoves-Bold', sans-serif", color: theme.palette.text.primary, mb: 2 }}>
+
+                        {/* TOP CONTENT */}
+                        <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontSize: "24px",
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 1
+                                }}
+                            >
                                 Confirm Save
                             </Typography>
-                            <Typography sx={{ fontFamily: "'TTHoves-Regular', sans-serif", color: theme.palette.text.secondary }}>
+
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-Bold', sans-serif",
+                                    color: "#fff",
+                                    mb: 2
+                                }}
+                            >
                                 Are you sure you want to save these changes?
                             </Typography>
                         </Box>
-                        <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+
+                        {/* BUTTONS */}
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", alignContent:"center" }}>
                             <Box
                                 component="button"
                                 onClick={() => setShowSaveModal(false)}
@@ -2005,6 +2017,7 @@ export default function AdminConfiguration() {
                             >
                                 Cancel
                             </Box>
+
                             <Box
                                 component="button"
                                 onClick={confirmSave}
