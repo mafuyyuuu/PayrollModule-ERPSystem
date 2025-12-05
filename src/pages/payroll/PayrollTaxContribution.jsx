@@ -49,7 +49,7 @@ export default function PayrollTaxContribution() {
             case 'Overdue':
                 return theme.palette.error.main;
             case 'Due Soon':
-                return theme.palette.warning.main;
+                return '#E67E22';
             default:
                 return theme.palette.primary.main;
         }
@@ -329,14 +329,14 @@ export default function PayrollTaxContribution() {
                         </Typography>
                     </Box>
 
-                    <Box sx={{display: "flex", gap: 2, flexWrap: "wrap"}}>
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, flexWrap: "wrap"}}>
                         {/* Total Contributions Over Time Graph */}
                         <Box sx={{flex: 1, minWidth: 300}}>
                             <Typography
                                 variant="h5"
                                 sx={{
                                     mb: 1,
-                                    mt: 2,
+                                    mt: 1,
                                     fontSize: "16px",
                                     fontFamily: "'TTHoves-medium', sans-serif",
                                 }}
@@ -345,7 +345,7 @@ export default function PayrollTaxContribution() {
                             </Typography>
                             <Box
                                 borderRadius="12px"
-                                p="24px"
+                                p="15px"
                                 sx={{
                                     color: theme.palette.text.primary,
                                     backgroundColor:
@@ -359,7 +359,7 @@ export default function PayrollTaxContribution() {
                                         transform: "scale(1.02)",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
-                                    height: "250px",
+                                    height: "230px",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -379,7 +379,7 @@ export default function PayrollTaxContribution() {
                                             <Line type="monotone" dataKey="total" name="Total" stroke={theme.palette.primary.main} strokeWidth={3} dot={{r: 4}} />
                                             <Line type="monotone" dataKey="sss" name="SSS" stroke={theme.palette.success.main} strokeWidth={2} dot={{r: 3}} />
                                             <Line type="monotone" dataKey="philhealth" name="PhilHealth" stroke={theme.palette.info.main} strokeWidth={2} dot={{r: 3}} />
-                                            <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke={theme.palette.warning.main} strokeWidth={2} dot={{r: 3}} />
+                                            <Line type="monotone" dataKey="pagibig" name="Pag-IBIG" stroke="#E67E22" strokeWidth={2} dot={{r: 3}} />
                                         </LineChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -419,7 +419,7 @@ export default function PayrollTaxContribution() {
                                         transform: "scale(1.02)",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                                     },
-                                    height: "250px",
+                                    height: "230px",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -438,7 +438,7 @@ export default function PayrollTaxContribution() {
                                             <Legend />
                                             <Bar dataKey="sss" name="SSS" fill={theme.palette.success.main} />
                                             <Bar dataKey="philhealth" name="PhilHealth" fill={theme.palette.info.main} />
-                                            <Bar dataKey="pagibig" name="Pag-IBIG" fill={theme.palette.warning.main} />
+                                            <Bar dataKey="pagibig" name="Pag-IBIG" fill="#E67E22" />
                                             <Bar dataKey="tax" name="Tax" fill={theme.palette.error.main} />
                                         </BarChart>
                                     </ResponsiveContainer>

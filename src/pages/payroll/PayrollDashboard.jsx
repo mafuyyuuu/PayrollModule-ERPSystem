@@ -186,6 +186,7 @@ const PayrollDashboard = () => {
                 gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
                 gap="20px"
                 height="calc(100% - 140px)"
+                overflow="hidden"
             >
                 {/* PAYOUT SCHEDULE TIMELINE */}
                 <Box
@@ -203,6 +204,9 @@ const PayrollDashboard = () => {
                         "&:hover": {
                             boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                         },
+                        overflow: "hidden",
+                        display: "flex",
+                        flexDirection: "column",
                     }}
                 >
                     <Typography
@@ -252,7 +256,7 @@ const PayrollDashboard = () => {
                     </Box>
 
                     {/* Area Chart */}
-                    <Box sx={{ width: '100%', height: 280 }}>
+                    <Box sx={{ width: '100%', flex: 1, minHeight: 0 }}>
                         {filteredData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={filteredData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -333,6 +337,7 @@ const PayrollDashboard = () => {
                         },
                         display: "flex",
                         flexDirection: "column",
+                        overflow: "hidden",
                     }}
                 >
                     <Typography
@@ -351,8 +356,10 @@ const PayrollDashboard = () => {
                         sx={{
                             flex: 1,
                             overflowY: "auto",
-                            "&::-webkit-scrollbar": { width: 4 },
-                            "&::-webkit-scrollbar-thumb": { backgroundColor: theme.palette.divider, borderRadius: 2 },
+                            overflowX: "hidden",
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                            "&::-webkit-scrollbar": { display: "none" },
                         }}
                     >
                         {recentActivity.length > 0 ? (
@@ -370,7 +377,9 @@ const PayrollDashboard = () => {
                                         transition: "all 0.2s ease",
                                         cursor: "pointer",
                                         "&:hover": {
-                                            transform: "translateX(4px)",
+                                            backgroundColor: theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.08)"
+                                                : "rgba(255, 255, 255, 0.8)",
                                             boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                                         },
                                     }}
@@ -402,7 +411,7 @@ const PayrollDashboard = () => {
                                     <Typography
                                         variant="body2"
                                         sx={{
-                                            color: theme.palette.text.secondary,
+                                            color: theme.palette.text.primary,
                                             fontSize: "13px",
                                         }}
                                     >
@@ -412,7 +421,7 @@ const PayrollDashboard = () => {
                                         <Typography
                                             variant="caption"
                                             sx={{
-                                                color: theme.palette.text.disabled,
+                                                color: theme.palette.text.primary,
                                                 fontSize: "11px",
                                             }}
                                         >
@@ -422,7 +431,7 @@ const PayrollDashboard = () => {
                                             <Typography
                                                 variant="caption"
                                                 sx={{
-                                                    color: theme.palette.primary.main,
+                                                    color: theme.palette.text.primary,
                                                     fontSize: "10px",
                                                     fontStyle: "italic",
                                                 }}

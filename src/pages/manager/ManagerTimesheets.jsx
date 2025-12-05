@@ -521,7 +521,7 @@ const ManagerTimesheets = () => {
     };
 
     return (
-        <Box width="100%" height="80%">
+        <Box width="100%" height="100%" display="flex" flexDirection="column">
             {/* FILTER BAR */}
             <Box
                 sx={{
@@ -543,15 +543,85 @@ const ManagerTimesheets = () => {
                 >
                     Timesheet Approval
                 </Typography>
-                <Box
+            </Box>
+
+            {/* Filter Buttons and Search */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                    onClick={() => setFilter("all")}
                     sx={{
-                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "all" || !filter ? "#334042" : "#e0e0e0",
+                        color: filter === "all" || !filter ? "#fff" : "#333",
+                        opacity: filter === "all" || !filter ? 1 : 0.6,
+                        "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
                     }}
                 >
-                    {/* Add Manual Entry Button */}
+                    All
+                </Button>
+                <Button
+                    onClick={() => setFilter("Pending")}
+                    sx={{
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Pending" ? "#f0ad4e" : "#e0e0e0",
+                        color: filter === "Pending" ? "#fff" : "#333",
+                        opacity: filter === "Pending" ? 1 : 0.6,
+                        "&:hover": { backgroundColor: filter === "Pending" ? "#ec971f" : "#d0d0d0" },
+                    }}
+                >
+                    Pending
+                </Button>
+                <Button
+                    onClick={() => setFilter("Approved")}
+                    sx={{
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Approved" ? "#5cb85c" : "#e0e0e0",
+                        color: filter === "Approved" ? "#fff" : "#333",
+                        opacity: filter === "Approved" ? 1 : 0.6,
+                        "&:hover": { backgroundColor: filter === "Approved" ? "#449d44" : "#d0d0d0" },
+                    }}
+                >
+                    Approved
+                </Button>
+                <Button
+                    onClick={() => setFilter("Rejected")}
+                    sx={{
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
+                        color: filter === "Rejected" ? "#fff" : "#333",
+                        opacity: filter === "Rejected" ? 1 : 0.6,
+                        "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
+                    }}
+                >
+                    Rejected
+                </Button>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                     <ActionButton 
                         text="Add Manual Entry" 
-                        width="150px" 
+                        width="auto" 
                         onClick={() => setOpenAddModal(true)}
                     />
 
@@ -564,90 +634,22 @@ const ManagerTimesheets = () => {
                     
                     <ActionButton 
                         text="Export PDF" 
-                        width="110px" 
+                        width="auto" 
                         onClick={() => { setExportModalType('pdf'); setIsExportModalOpen(true); }}
                     />
                     <ActionButton 
                         text="Export CSV" 
-                        width="110px" 
+                        width="auto" 
                         onClick={() => { setExportModalType('csv'); setIsExportModalOpen(true); }}
                     />
                 </Box>
-
-            </Box>
-
-            {/* Filter Buttons */}
-            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-                <Button
-                    onClick={() => setFilter("all")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "all" || !filter ? "#1b2223" : "#e0e0e0",
-                        color: filter === "all" || !filter ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
-                    }}
-                >
-                    All
-                </Button>
-                <Button
-                    onClick={() => setFilter("Pending")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Pending" ? "#f0ad4e" : "#e0e0e0",
-                        color: filter === "Pending" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "Pending" ? "#ec971f" : "#d0d0d0" },
-                    }}
-                >
-                    Pending
-                </Button>
-                <Button
-                    onClick={() => setFilter("Approved")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Approved" ? "#5cb85c" : "#e0e0e0",
-                        color: filter === "Approved" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "Approved" ? "#449d44" : "#d0d0d0" },
-                    }}
-                >
-                    Approved
-                </Button>
-                <Button
-                    onClick={() => setFilter("Rejected")}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
-                        color: filter === "Rejected" ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
-                    }}
-                >
-                    Rejected
-                </Button>
             </Box>
 
             {/* TABLE CONTAINER */}
             <Box
                 sx={{
-                    height: "calc(100% - 100px)",
+                    height: "calc(100% - 130px)",
+                    flex: 1,
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",
@@ -673,7 +675,7 @@ const ManagerTimesheets = () => {
                         zIndex: 10,
                     }}
                 >
-                    <span>Employee Name</span>
+                    <span style={{ textAlign: "left", paddingLeft: "12px" }}>Employee Name</span>
                     <span>Date</span>
                     <span>Time In</span>
                     <span>Time Out</span>
@@ -723,7 +725,7 @@ const ManagerTimesheets = () => {
                                 textAlign: "center",
                             }}
                         >
-                            <span>{row.employee}</span>
+                            <span style={{ textAlign: "left", paddingLeft: "12px", fontWeight: 600 }}>{row.employee}</span>
                             <span>{row.date}</span>
                             <span>{formatTime(row.timeIn)}</span>
                             <span>{formatTime(row.timeOut)}</span>
@@ -819,7 +821,7 @@ const ManagerTimesheets = () => {
 
             <BoxModal open={openModal} onClose={() => { setOpenModal(false); setIsEditing(false); }}>
                 {selectedRow && (
-                    <>
+                    <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
                         <Box
                             sx={{
                                 display: "flex",
@@ -831,7 +833,7 @@ const ManagerTimesheets = () => {
                             <Typography
                                 variant="h5"
                                 sx={{
-                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF"
+                                    fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary
                                 }}
                             >
                                 Timesheet Details
@@ -864,7 +866,7 @@ const ManagerTimesheets = () => {
                         {/* Employee Field */}
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
                             <Typography
-                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                 Employee
                             </Typography>
                             <TextField
@@ -877,20 +879,11 @@ const ManagerTimesheets = () => {
                                 }}
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
-                                        borderRadius: "13px",
+                                        borderRadius: "10px",
                                         backgroundColor: "#cacace",
-                                        color: "#1F2829",
-                                        fontSize: "18px",
-                                        "& fieldset": {
-                                            border: "none",
-                                        },
-                                        "&:hover fieldset": {
-                                            border: "none",
-                                        },
-                                        "&.Mui-focused fieldset": {
-                                            border: "none",
-                                        },
-                                    }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
                                 }}
                             />
                         </Box>
@@ -905,7 +898,7 @@ const ManagerTimesheets = () => {
                             {/* Date */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                     Date
                                 </Typography>
                                 <TextField
@@ -917,20 +910,11 @@ const ManagerTimesheets = () => {
                                     }}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -938,7 +922,7 @@ const ManagerTimesheets = () => {
                             {/* Status */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
                                     Status
                                 </Typography>
                                 <TextField
@@ -950,20 +934,11 @@ const ManagerTimesheets = () => {
                                     }}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -978,7 +953,7 @@ const ManagerTimesheets = () => {
                             {/* Time In */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                                 >
                                     Time In
                                 </Typography>
@@ -993,20 +968,11 @@ const ManagerTimesheets = () => {
                                     }}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: isEditing ? "#fff" : "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: isEditing ? "2px solid #388E3C" : "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: isEditing ? "2px solid #388E3C" : "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: isEditing ? "2px solid #388E3C" : "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: isEditing ? "2px solid #388E3C" : "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -1014,7 +980,7 @@ const ManagerTimesheets = () => {
                             {/* Time Out */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                                 >
                                     Time Out
                                 </Typography>
@@ -1029,20 +995,11 @@ const ManagerTimesheets = () => {
                                     }}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: isEditing ? "#fff" : "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: isEditing ? "2px solid #388E3C" : "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: isEditing ? "2px solid #388E3C" : "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: isEditing ? "2px solid #388E3C" : "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: isEditing ? "2px solid #388E3C" : "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -1057,7 +1014,7 @@ const ManagerTimesheets = () => {
                             {/* Total Hours */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                                 >
                                     Total Hours
                                 </Typography>
@@ -1070,20 +1027,11 @@ const ManagerTimesheets = () => {
                                     }}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -1091,7 +1039,7 @@ const ManagerTimesheets = () => {
                             {/* Overtime */}
                             <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                 <Typography
-                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                    sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                                 >
                                     Overtime (auto-calculated)
                                 </Typography>
@@ -1104,20 +1052,11 @@ const ManagerTimesheets = () => {
                                     }}
                                     sx={{
                                         "& .MuiOutlinedInput-root": {
-                                            borderRadius: "13px",
+                                            borderRadius: "10px",
                                             backgroundColor: "#cacace",
-                                            color: "#1F2829",
-                                            fontSize: "18px",
-                                            "& fieldset": {
-                                                border: "none",
-                                            },
-                                            "&:hover fieldset": {
-                                                border: "none",
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                border: "none",
-                                            },
-                                        }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                            "& fieldset": { border: "none" },
+                                        },
+                                        "& .MuiInputBase-input": { color: "#1F2829" },
                                     }}
                                 />
                             </Box>
@@ -1128,7 +1067,7 @@ const ManagerTimesheets = () => {
                             <Box mt={2}>
                                 <Box sx={{display: "flex", flexDirection: "column", gap: 0.5}}>
                                     <Typography
-                                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}
+                                        sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}
                                     >
                                         Break (hours)
                                     </Typography>
@@ -1141,14 +1080,11 @@ const ManagerTimesheets = () => {
                                         inputProps={{ step: 0.5, min: 0, max: 4 }}
                                         sx={{
                                             "& .MuiOutlinedInput-root": {
-                                                borderRadius: "13px",
+                                                borderRadius: "10px",
                                                 backgroundColor: "#fff",
-                                                color: "#1F2829",
-                                                fontSize: "18px",
-                                                "& fieldset": {
-                                                    border: "2px solid #388E3C",
-                                                },
-                                            }, "& .MuiInputBase-input": {fontSize: "18px"},
+                                                "& fieldset": { border: "2px solid #388E3C" },
+                                            },
+                                            "& .MuiInputBase-input": { color: "#1F2829" },
                                         }}
                                     />
                                 </Box>
@@ -1158,273 +1094,349 @@ const ManagerTimesheets = () => {
                         {/* Save Button when editing */}
                         {isEditing && (
                             <Box display="flex" justifyContent="center" mt={3}>
-                                <ActionButton text="Save Changes" width="200px" onClick={() => showSaveConfirmation('edit')} />
+                                <Box
+                                    component="button"
+                                    onClick={() => showSaveConfirmation('edit')}
+                                    sx={{
+                                        fontSize: "16px",
+                                        backgroundColor: "#172224",
+                                        color: "#fff",
+                                        padding: "10px 0",
+                                        borderRadius: "15px",
+                                        cursor: "pointer",
+                                        border: "none",
+                                        transition: "all 0.3s ease",
+                                        width: "200px",
+                                        fontFamily: "'TTHoves-Regular', sans-serif",
+                                        "&:hover": {
+                                            backgroundColor: "#1f2f31",
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                        },
+                                    }}
+                                >
+                                    Save Changes
+                                </Box>
                             </Box>
                         )}
-                    </>
+                    </Box>
                 )}
             </BoxModal>
 
             {/* ADD MANUAL ENTRY MODAL */}
             <BoxModal open={openAddModal} onClose={() => setOpenAddModal(false)}>
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2
-                    }}
-                >
-                    Add Manual Time Entry
-                </Typography>
-
-                {/* Employee Select */}
-                <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
-                    <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                        Employee *
-                    </Typography>
-                    <FormControl fullWidth size="small">
-                        <Select
-                            value={newEntry.employee_id}
-                            onChange={(e) => setNewEntry({...newEntry, employee_id: e.target.value})}
-                            sx={{
-                                borderRadius: "13px",
-                                backgroundColor: "#fff",
-                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                            }}
-                        >
-                            {employees.map((emp) => (
-                                <MenuItem key={emp.employee_id} value={emp.employee_id}>
-                                    {emp.full_name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Box>
-
-                {/* Date */}
-                <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
-                    <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                        Date *
-                    </Typography>
-                    <TextField
-                        type="date"
-                        value={newEntry.date}
-                        onChange={(e) => setNewEntry({...newEntry, date: e.target.value})}
-                        fullWidth
-                        size="small"
+                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                    <Typography
+                        variant="h5"
                         sx={{
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "13px",
-                                backgroundColor: "#fff",
-                                "& fieldset": { border: "none" },
-                            },
+                            fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2
                         }}
-                    />
-                </Box>
-
-                {/* Time In / Time Out */}
-                <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Time In *
-                        </Typography>
-                        <TextField
-                            type="time"
-                            value={newEntry.time_in}
-                            onChange={(e) => setNewEntry({...newEntry, time_in: e.target.value})}
-                            fullWidth
-                            size="small"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#fff",
-                                    "& fieldset": { border: "none" },
-                                },
-                            }}
-                        />
-                    </Box>
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Time Out *
-                        </Typography>
-                        <TextField
-                            type="time"
-                            value={newEntry.time_out}
-                            onChange={(e) => setNewEntry({...newEntry, time_out: e.target.value})}
-                            fullWidth
-                            size="small"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#fff",
-                                    "& fieldset": { border: "none" },
-                                },
-                            }}
-                        />
-                    </Box>
-                </Box>
-
-                {/* Break / Overtime */}
-                <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Break (hours)
-                        </Typography>
-                        <TextField
-                            type="number"
-                            value={newEntry.break_duration}
-                            onChange={(e) => setNewEntry({...newEntry, break_duration: parseFloat(e.target.value) || 0})}
-                            fullWidth
-                            size="small"
-                            inputProps={{ step: 0.5, min: 0 }}
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#fff",
-                                    "& fieldset": { border: "none" },
-                                },
-                            }}
-                        />
-                    </Box>
-                    <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
-                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                            Overtime (auto-calculated)
-                        </Typography>
-                        <TextField
-                            type="number"
-                            value={newEntry.overtime_hours}
-                            fullWidth
-                            size="small"
-                            disabled
-                            inputProps={{ step: 0.5, min: 0 }}
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#e0e0e0",
-                                    "& fieldset": { border: "none" },
-                                },
-                            }}
-                        />
-                    </Box>
-                </Box>
-
-                {/* Calculated Hours Display */}
-                <Box sx={{ 
-                    backgroundColor: "rgba(255,255,255,0.1)", 
-                    borderRadius: "12px", 
-                    p: 2, 
-                    mb: 2,
-                    border: "1px solid rgba(255,255,255,0.2)"
-                }}>
-                    <Typography sx={{ color: "#fff", fontSize: "14px", mb: 1 }}>
-                        <strong>Calculated Hours:</strong>
+                    >
+                        Add Manual Time Entry
                     </Typography>
-                    <Box display="flex" gap={3}>
-                        <Typography sx={{ color: "#4CAF50", fontSize: "16px" }}>
-                            Total: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).totalHours}h
-                        </Typography>
-                        <Typography sx={{ color: "#FF9800", fontSize: "16px" }}>
-                            Overtime: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).overtime}h
-                        </Typography>
-                    </Box>
-                </Box>
 
-                {/* Remarks */}
-                <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
-                    <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px"}}>
-                        Remarks
-                    </Typography>
-                    <TextField
-                        value={newEntry.remarks}
-                        onChange={(e) => setNewEntry({...newEntry, remarks: e.target.value})}
-                        fullWidth
-                        size="small"
-                        sx={{
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "13px",
-                                backgroundColor: "#fff",
-                                "& fieldset": { border: "none" },
-                            },
-                        }}
-                    />
-                </Box>
+                    {/* Employee Select */}
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            Employee *
+                        </Typography>
+                        <FormControl fullWidth size="small">
+                            <Select
+                                value={newEntry.employee_id}
+                                onChange={(e) => setNewEntry({...newEntry, employee_id: e.target.value})}
+                                sx={{
+                                    borderRadius: "10px",
+                                    backgroundColor: "#cacace",
+                                    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                    "& .MuiSelect-select": { color: "#1F2829" },
+                                }}
+                            >
+                                {employees.map((emp) => (
+                                    <MenuItem key={emp.employee_id} value={emp.employee_id}>
+                                        {emp.full_name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+
+                    {/* Date */}
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            Date *
+                        </Typography>
+                        <TextField
+                            type="date"
+                            value={newEntry.date}
+                            onChange={(e) => setNewEntry({...newEntry, date: e.target.value})}
+                            fullWidth
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "10px",
+                                    backgroundColor: "#cacace",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                                "& input::-webkit-calendar-picker-indicator": { filter: theme.palette.mode === "dark" ? "invert(1)" : "none" },
+                            }}
+                        />
+                    </Box>
+
+                    {/* Time In / Time Out */}
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                Time In *
+                            </Typography>
+                            <TextField
+                                type="time"
+                                value={newEntry.time_in}
+                                onChange={(e) => setNewEntry({...newEntry, time_in: e.target.value})}
+                                fullWidth
+                                size="small"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                    "& input::-webkit-calendar-picker-indicator": { filter: theme.palette.mode === "dark" ? "invert(1)" : "none" },
+                                }}
+                            />
+                        </Box>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                Time Out *
+                            </Typography>
+                            <TextField
+                                type="time"
+                                value={newEntry.time_out}
+                                onChange={(e) => setNewEntry({...newEntry, time_out: e.target.value})}
+                                fullWidth
+                                size="small"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                    "& input::-webkit-calendar-picker-indicator": { filter: theme.palette.mode === "dark" ? "invert(1)" : "none" },
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Break / Overtime */}
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                Break (hours)
+                            </Typography>
+                            <TextField
+                                type="number"
+                                value={newEntry.break_duration}
+                                onChange={(e) => setNewEntry({...newEntry, break_duration: parseFloat(e.target.value) || 0})}
+                                fullWidth
+                                size="small"
+                                inputProps={{ step: 0.5, min: 0 }}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                                Overtime (auto)
+                            </Typography>
+                            <TextField
+                                type="number"
+                                value={newEntry.overtime_hours}
+                                fullWidth
+                                size="small"
+                                disabled
+                                inputProps={{ step: 0.5, min: 0 }}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#e0e0e0",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Calculated Hours Display */}
+                    <Box sx={{ 
+                        backgroundColor: "#fff",
+                        borderRadius: "12px", 
+                        p: 2, 
+                        mb: 2,
+                        border: `1px solid ${theme.palette.divider}`
+                    }}>
+                        <Typography sx={{ color: "#1F2829", fontSize: "14px", fontFamily: "'TTHoves-DemiBold', sans-serif", mb: 1 }}>
+                            Calculated Hours:
+                        </Typography>
+                        <Box display="flex" gap={3}>
+                            <Typography sx={{ color: "#388E3C", fontSize: "18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                                Total: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).totalHours}h
+                            </Typography>
+                            <Typography sx={{ color: "#F57C00", fontSize: "18px", fontFamily: "'TTHoves-Bold', sans-serif" }}>
+                                Overtime: {calculateHours(newEntry.time_in, newEntry.time_out, newEntry.break_duration).overtime}h
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    {/* Remarks */}
+                    <Box sx={{display: "flex", flexDirection: "column", gap: 1, mb: 2}}>
+                        <Typography sx={{fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px"}}>
+                            Remarks
+                        </Typography>
+                        <TextField
+                            value={newEntry.remarks}
+                            onChange={(e) => setNewEntry({...newEntry, remarks: e.target.value})}
+                            fullWidth
+                            size="small"
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "10px",
+                                    backgroundColor: "#cacace",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                            }}
+                        />
+                    </Box>
 
                 <Box display="flex" justifyContent="center" mt={3}>
-                    <ActionButton text="Add Entry" width="200px" onClick={() => showSaveConfirmation('add')} />
+                    <Box
+                        component="button"
+                        onClick={() => showSaveConfirmation('add')}
+                        sx={{
+                            fontSize: "16px",
+                            backgroundColor: "#172224",
+                            color: "#fff",
+                            padding: "10px 0",
+                            borderRadius: "15px",
+                            cursor: "pointer",
+                            border: "none",
+                            transition: "all 0.3s ease",
+                            width: "200px",
+                            fontFamily: "'TTHoves-Regular', sans-serif",
+                            "&:hover": {
+                                backgroundColor: "#1f2f31",
+                                transform: "translateY(-2px)",
+                                boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                            },
+                        }}
+                    >
+                        Add Entry
+                    </Box>
+                </Box>
                 </Box>
             </BoxModal>
 
-            {/* EXPORT BUTTONS */}
-            <Box display="flex" justifyContent="flex-end" gap="15px" mt="20px">
-                <ActionButton 
-                    text="Export PDF" 
-                    width="150px"
-                    onClick={() => {
-                        setExportModalType('pdf');
-                        setIsExportModalOpen(true);
-                    }}
-                />
-                <ActionButton 
-                    text="Export CSV" 
-                    width="150px"
-                    onClick={() => {
-                        setExportModalType('csv');
-                        setIsExportModalOpen(true);
-                    }}
-                />
-            </Box>
 
             {/* REJECTION MODAL */}
             <BoxModal open={openRejectModal} onClose={() => { setOpenRejectModal(false); setRejectionReason(""); }}>
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif", 
-                        fontSize: "24px", 
-                        color: "#FFFFFF",
-                        mb: 2
-                    }}
-                >
-                    Reject Timesheet
-                </Typography>
-                
-                {rejectingRow && (
-                    <Typography sx={{ color: "#ccc", mb: 2 }}>
-                        Rejecting timesheet for <strong>{rejectingRow.employee}</strong> on {rejectingRow.date}
-                    </Typography>
-                )}
-
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
-                    <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "16px" }}>
-                        Reason for Rejection *
-                    </Typography>
-                    <TextField
-                        multiline
-                        rows={3}
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="Enter reason for rejection..."
-                        fullWidth
+                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                    <Typography
+                        variant="h5"
                         sx={{
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "13px",
-                                backgroundColor: "#fff",
-                                "& fieldset": { border: "none" },
-                            },
+                            fontFamily: "'TTHoves-Bold', sans-serif", 
+                            fontSize: "24px", 
+                            color: theme.palette.text.primary,
+                            mb: 2
                         }}
-                    />
-                </Box>
+                    >
+                        Reject Timesheet
+                    </Typography>
+                    
+                    {rejectingRow && (
+                        <Typography sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+                            Rejecting timesheet for <strong>{rejectingRow.employee}</strong> on {rejectingRow.date}
+                        </Typography>
+                    )}
 
-                <Box display="flex" justifyContent="center" gap={2} mt={3}>
-                    <ActionButton 
-                        text="Cancel" 
-                        width="120px" 
-                        onClick={() => { setOpenRejectModal(false); setRejectionReason(""); }}
-                    />
-                    <ActionButton 
-                        text="Confirm Reject" 
-                        width="150px" 
-                        onClick={handleConfirmReject}
-                    />
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            Reason for Rejection *
+                        </Typography>
+                        <TextField
+                            multiline
+                            rows={3}
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Enter reason for rejection..."
+                            fullWidth
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "10px",
+                                    backgroundColor: "#cacace",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                            }}
+                        />
+                    </Box>
+
+                    <Box display="flex" justifyContent="center" gap={2} mt={3}>
+                        <Box
+                            component="button"
+                            onClick={() => { setOpenRejectModal(false); setRejectionReason(""); }}
+                            sx={{
+                                fontSize: "16px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "120px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#a0a0a0",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            component="button"
+                            onClick={handleConfirmReject}
+                            sx={{
+                                fontSize: "16px",
+                                backgroundColor: "#8b1a1a",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                transition: "all 0.3s ease",
+                                width: "150px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                "&:hover": {
+                                    backgroundColor: "#a32020",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Confirm Reject
+                        </Box>
+                    </Box>
                 </Box>
             </BoxModal>
 

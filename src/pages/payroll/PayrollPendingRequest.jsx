@@ -310,50 +310,82 @@ export default function PayrollPendingRequest() {
             case "viewReject":
                 // View rejection reason
                 return (
-                    <>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            color: theme.palette.text.primary,
+                        }}
+                    >
                         <Typography
                             variant="h5"
                             sx={{
                                 fontFamily: "'TTHoves-Bold', sans-serif",
                                 fontSize: "24px",
-                                color: "#FFFFFF",
-                                textAlign: "left"
+                                color: theme.palette.text.primary,
+                                mb: 2
                             }}
                         >
                             Reason for Rejection
                         </Typography>
 
+                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                            <Typography
+                                sx={{
+                                    fontFamily: "'TTHoves-DemiBold', sans-serif",
+                                    color: theme.palette.text.primary,
+                                    fontSize: "16px",
+                                }}
+                            >
+                                Employee Name
+                            </Typography>
+                            <TextField
+                                value={employeeRequests.find(req => req.requestId === currentRequestId)?.employee || "N/A"}
+                                InputProps={{readOnly: true}}
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+
                         <Box sx={{display: "flex", flexDirection: "column", gap: 1, mt: 2}}>
                             <Typography
                                 sx={{
                                     fontFamily: "'TTHoves-DemiBold', sans-serif",
-                                    color: "#FFFFFF",
-                                    fontSize: "18px",
-                                    textAlign: "left"
+                                    color: theme.palette.text.primary,
+                                    fontSize: "16px",
                                 }}
                             >
-                                Employee: {employeeRequests.find(req => req.requestId === currentRequestId)?.employee || "N/A"}
+                                Rejection Reason
                             </Typography>
-
                             <TextField
                                 value={
-                                    employeeRequests.find(req => req.requestId === currentRequestId)?.rejectReason || ""
+                                    employeeRequests.find(req => req.requestId === currentRequestId)?.rejectReason || "No reason provided"
                                 }
                                 multiline
                                 rows={3}
                                 InputProps={{readOnly: true}}
                                 fullWidth
+                                variant="outlined"
                                 sx={{
                                     "& .MuiOutlinedInput-root": {
-                                        borderRadius: "12px",
+                                        borderRadius: "10px",
                                         backgroundColor: "#cacace",
-                                        "& fieldset": {border: "none"},
+                                        "& fieldset": { border: "none" },
                                     },
-                                    "& .MuiInputBase-input": {fontSize: "16px"},
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
                                 }}
                             />
                         </Box>
-                    </>
+                    </Box>
                 );
 
             case "exportCSV":
@@ -431,43 +463,23 @@ export default function PayrollPendingRequest() {
                 >
                     Employee Requests
                 </Typography>
-
-                <Box
-                    sx={{
-                        display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap",
-                    }}
-                >
-                    <SearchBar
-                        placeholder="Search employee..."
-                        width="300px"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-
-                    <ActionButton
-                        text="Export CSV"
-                        width="120px"
-                        onClick={() => {
-                            setModalType("exportCSV");
-                            setIsModalOpen(true);
-                        }}
-                    />
-                </Box>
             </Box>
 
-            {/* Filter Buttons */}
-            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+            {/* Filter Buttons and Search */}
+            <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                 <Button
                     onClick={() => setFilter("all")}
                     sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
                         textTransform: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "all" || !filter ? "#1b2223" : "#e0e0e0",
+                        backgroundColor: filter === "all" || !filter ? "#334042" : "#e0e0e0",
                         color: filter === "all" || !filter ? "#fff" : "#333",
+                        opacity: filter === "all" || !filter ? 1 : 0.6,
                         "&:hover": { backgroundColor: filter === "all" || !filter ? "#2a3435" : "#d0d0d0" },
                     }}
                 >
@@ -478,14 +490,15 @@ export default function PayrollPendingRequest() {
                         key={type}
                         onClick={() => setFilter(type)}
                         sx={{
-                            fontSize: "12px",
-                            px: 2,
-                            py: 0.5,
-                            borderRadius: "8px",
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
                             textTransform: "none",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            backgroundColor: filter === type ? "#1b2223" : "#e0e0e0",
+                            backgroundColor: filter === type ? "#334042" : "#e0e0e0",
                             color: filter === type ? "#fff" : "#333",
+                            opacity: filter === type ? 1 : 0.6,
                             "&:hover": { backgroundColor: filter === type ? "#2a3435" : "#d0d0d0" },
                         }}
                     >
@@ -495,14 +508,15 @@ export default function PayrollPendingRequest() {
                 <Button
                     onClick={() => setFilter("Manager_Approved")}
                     sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
                         textTransform: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                         backgroundColor: filter === "Manager_Approved" ? "#17a2b8" : "#e0e0e0",
                         color: filter === "Manager_Approved" ? "#fff" : "#333",
+                        opacity: filter === "Manager_Approved" ? 1 : 0.6,
                         "&:hover": { backgroundColor: filter === "Manager_Approved" ? "#138496" : "#d0d0d0" },
                     }}
                 >
@@ -511,14 +525,15 @@ export default function PayrollPendingRequest() {
                 <Button
                     onClick={() => setFilter("Approved")}
                     sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
                         textTransform: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                         backgroundColor: filter === "Approved" ? "#5cb85c" : "#e0e0e0",
                         color: filter === "Approved" ? "#fff" : "#333",
+                        opacity: filter === "Approved" ? 1 : 0.6,
                         "&:hover": { backgroundColor: filter === "Approved" ? "#449d44" : "#d0d0d0" },
                     }}
                 >
@@ -527,24 +542,35 @@ export default function PayrollPendingRequest() {
                 <Button
                     onClick={() => setFilter("Rejected")}
                     sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
                         textTransform: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
                         backgroundColor: filter === "Rejected" ? "#d9534f" : "#e0e0e0",
                         color: filter === "Rejected" ? "#fff" : "#333",
+                        opacity: filter === "Rejected" ? 1 : 0.6,
                         "&:hover": { backgroundColor: filter === "Rejected" ? "#c9302c" : "#d0d0d0" },
                     }}
                 >
                     Rejected
                 </Button>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+                    <SearchBar
+                        placeholder="Search employee..."
+                        width="300px"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </Box>
             </Box>
 
             <Box
                 sx={{
-                    height: "calc(100% - 120px)",
+                    height: "calc(100% - 150px)",
                     backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: "15px",

@@ -132,10 +132,10 @@ const ManagerPayrollSummary = () => {
 
     return (
         <Box
-            sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily}}
+            sx={{width: "100%", height: "100%", fontFamily: theme.typography.fontFamily, display: "flex", flexDirection: "column"}}
         >
             {/* DASHBOARD CARDS */}
-            <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px">
+            <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px" mb={2}>
                 <DashboardCard
                     icon="ri-cash-line"
                     title="Total Payroll Cost"
@@ -158,10 +158,11 @@ const ManagerPayrollSummary = () => {
                 display="grid"
                 gridTemplateColumns={{ xs: "1fr", md: "1.5fr 1fr" }}
                 gap="20px"
-                mt={3}
+                mt={2}
+                sx={{ flex: 1, minHeight: 0 }}
             >
                 {/* LEFT COLUMN - Payroll Summary Table */}
-                <Box>
+                <Box sx={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
                     <Box
                         display="flex"
                         justifyContent="space-between"
@@ -181,7 +182,7 @@ const ManagerPayrollSummary = () => {
                         <Box display="flex" gap={1}>
                             <ActionButton
                                 text="Export CSV"
-                                width="120px"
+                                width="auto"
                                 onClick={exportToCSV}
                             />
                             <SearchBar
@@ -196,7 +197,8 @@ const ManagerPayrollSummary = () => {
                     {/* TABLE CONTAINER */}
                     <Box
                         sx={{
-                            height: "400px",
+                            flex: 1,
+                            minHeight: 0,
                             backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                             border: `1px solid ${theme.palette.divider}`,
                             borderRadius: "15px",
@@ -287,23 +289,12 @@ const ManagerPayrollSummary = () => {
                 </Box>
 
                 {/* RIGHT COLUMN - Activity Logs */}
-                <Box>
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontSize: "20px",
-                            fontFamily: "'TTHoves-Bold', sans-serif",
-                            color: theme.palette.text.primary,
-                            mb: 2,
-                        }}
-                    >
-                        <i className="ri-history-line" style={{ marginRight: "8px" }}></i>
-                        Recent Activity
-                    </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
 
                     <Box
                         sx={{
-                            height: "400px",
+                            flex: 1,
+                            minHeight: 0,
                             backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.2)",
                             border: `1px solid ${theme.palette.divider}`,
                             borderRadius: "15px",
@@ -317,6 +308,18 @@ const ManagerPayrollSummary = () => {
                             },
                         }}
                     >
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                fontSize: "20px",
+                                fontFamily: "'TTHoves-Bold', sans-serif",
+                                color: theme.palette.text.primary,
+                                mb: 2,
+                            }}
+                        >
+                            <i className="ri-history-line" style={{ marginRight: "8px" }}></i>
+                            Recent Activity
+                        </Typography>
                         <Box
                             sx={{
                                 overflowY: "auto",

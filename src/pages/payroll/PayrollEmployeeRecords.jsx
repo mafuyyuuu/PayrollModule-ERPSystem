@@ -234,12 +234,12 @@ export default function PayrollEmployeeRecords() {
                     
                     <ActionButton
                         text="Export PDF"
-                        width="110px"
+                        width="120px"
                         onClick={() => { setExportType('pdf'); setIsExportModalOpen(true); }}
                     />
                     <ActionButton
                         text="Export CSV"
-                        width="110px"
+                        width="120px"
                         onClick={() => { setExportType('csv'); setIsExportModalOpen(true); }}
                     />
                 </Box>
@@ -375,197 +375,173 @@ export default function PayrollEmployeeRecords() {
                 open={userModalOpen}
                 onClose={handleCloseModal}
                 width="500px"
-                height="600px"
             >
-                <Typography
-                    variant="h5"
-                    sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: "#FFFFFF", mb: 2 }}
-                >
-                    Employee Record
-                </Typography>
-
-                {/* Row 1: Employee ID + Name */}
-                <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                            Employee ID
-                        </Typography>
-                        <TextField
-                            InputProps={{ readOnly: true }}
-                            value={selectedEmployee?.id || ""}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": { border: "none" },
-                                    "&:hover fieldset": { border: "none" },
-                                    "&.Mui-focused fieldset": { border: "none" },
-                                },
-                                "& .MuiInputBase-input": { fontSize: "18px" },
-                            }}
-                        />
-                    </Box>
-
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                            Name
-                        </Typography>
-                        <TextField
-                            InputProps={{ readOnly: true }}
-                            value={selectedEmployee?.name || ""}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                width: "250px",
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": { border: "none" },
-                                    "&:hover fieldset": { border: "none" },
-                                    "&.Mui-focused fieldset": { border: "none" },
-                                },
-                                "& .MuiInputBase-input": { fontSize: "18px" },
-                            }}
-                        />
-                    </Box>
-                </Box>
-
-                {/* Row 2: Department + Position */}
-                <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                            Department
-                        </Typography>
-                        <TextField
-                            InputProps={{ readOnly: true }}
-                            value={selectedEmployee?.department || ""}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": { border: "none" },
-                                    "&:hover fieldset": { border: "none" },
-                                    "&.Mui-focused fieldset": { border: "none" },
-                                },
-                                "& .MuiInputBase-input": { fontSize: "18px" },
-                            }}
-                        />
-                    </Box>
-
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                            Position
-                        </Typography>
-                        <TextField
-                            InputProps={{ readOnly: true }}
-                            value={selectedEmployee?.position || ""}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                width: "250px",
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": { border: "none" },
-                                    "&:hover fieldset": { border: "none" },
-                                    "&.Mui-focused fieldset": { border: "none" },
-                                },
-                                "& .MuiInputBase-input": { fontSize: "18px" },
-                            }}
-                        />
-                    </Box>
-                </Box>
-
-                {/* Row 3: Employment Type + Status */}
-                <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                            Employment Type
-                        </Typography>
-                        <TextField
-                            InputProps={{ readOnly: true }}
-                            value={selectedEmployee?.employmentType || ""}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": { border: "none" },
-                                    "&:hover fieldset": { border: "none" },
-                                    "&.Mui-focused fieldset": { border: "none" },
-                                },
-                                "& .MuiInputBase-input": { fontSize: "18px" },
-                            }}
-                        />
-                    </Box>
-
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                            Status
-                        </Typography>
-                        <TextField
-                            InputProps={{ readOnly: true }}
-                            value={selectedEmployee?.status || ""}
-                            variant="outlined"
-                            size="small"
-                            sx={{
-                                width: "250px",
-                                "& .MuiOutlinedInput-root": {
-                                    borderRadius: "13px",
-                                    backgroundColor: "#cacace",
-                                    color: "#1F2829",
-                                    fontSize: "18px",
-                                    "& fieldset": { border: "none" },
-                                    "&:hover fieldset": { border: "none" },
-                                    "&.Mui-focused fieldset": { border: "none" },
-                                },
-                                "& .MuiInputBase-input": { fontSize: "18px" },
-                            }}
-                        />
-                    </Box>
-                </Box>
-
-                {/* Row 4: Tax Info */}
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mb: 1 }}>
-                    <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: "#FFFFFF", fontSize: "18px" }}>
-                        Tax / Government IDs
+                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                    <Typography
+                        variant="h5"
+                        sx={{ fontFamily: "'TTHoves-Bold', sans-serif", fontSize: "24px", color: theme.palette.text.primary, mb: 2 }}
+                    >
+                        Employee Record
                     </Typography>
-                    <TextField
-                        InputProps={{ readOnly: true }}
-                        value={selectedEmployee?.taxInfo ? `TIN: ${selectedEmployee.taxInfo.TIN}, SSS: ${selectedEmployee.taxInfo.SSS}, PhilHealth: ${selectedEmployee.taxInfo.PhilHealth}, Pag-IBIG: ${selectedEmployee.taxInfo.PagIBIG}` : ""}
-                        variant="outlined"
-                        size="small"
-                        multiline
-                        rows={3}
-                        fullWidth
-                        sx={{
-                            "& .MuiOutlinedInput-root": {
-                                borderRadius: "13px",
-                                backgroundColor: "#cacace",
-                                color: "#1F2829",
-                                fontSize: "14px",
-                                "& fieldset": { border: "none" },
-                                "&:hover fieldset": { border: "none" },
-                                "&.Mui-focused fieldset": { border: "none" },
-                            },
-                            "& .MuiInputBase-input": { fontSize: "18px" },
-                        }}
-                    />
+
+                    {/* Row 1: Employee ID + Name */}
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                                Employee ID
+                            </Typography>
+                            <TextField
+                                InputProps={{ readOnly: true }}
+                                value={selectedEmployee?.id || ""}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                                Name
+                            </Typography>
+                            <TextField
+                                InputProps={{ readOnly: true }}
+                                value={selectedEmployee?.name || ""}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Row 2: Department + Position */}
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                                Department
+                            </Typography>
+                            <TextField
+                                InputProps={{ readOnly: true }}
+                                value={selectedEmployee?.department || ""}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                                Position
+                            </Typography>
+                            <TextField
+                                InputProps={{ readOnly: true }}
+                                value={selectedEmployee?.position || ""}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Row 3: Employment Type + Status */}
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                                Employment Type
+                            </Typography>
+                            <TextField
+                                InputProps={{ readOnly: true }}
+                                value={selectedEmployee?.employmentType || ""}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                                Status
+                            </Typography>
+                            <TextField
+                                InputProps={{ readOnly: true }}
+                                value={selectedEmployee?.status || ""}
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: "10px",
+                                        backgroundColor: "#cacace",
+                                        "& fieldset": { border: "none" },
+                                    },
+                                    "& .MuiInputBase-input": { color: "#1F2829" },
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Row 4: Tax Info */}
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                        <Typography sx={{ fontFamily: "'TTHoves-DemiBold', sans-serif", color: theme.palette.text.primary, fontSize: "16px" }}>
+                            Tax / Government IDs
+                        </Typography>
+                        <TextField
+                            InputProps={{ readOnly: true }}
+                            value={selectedEmployee?.taxInfo ? `TIN: ${selectedEmployee.taxInfo.TIN}, SSS: ${selectedEmployee.taxInfo.SSS}, PhilHealth: ${selectedEmployee.taxInfo.PhilHealth}, Pag-IBIG: ${selectedEmployee.taxInfo.PagIBIG}` : ""}
+                            variant="outlined"
+                            size="small"
+                            multiline
+                            rows={3}
+                            fullWidth
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: "10px",
+                                    backgroundColor: "#cacace",
+                                    "& fieldset": { border: "none" },
+                                },
+                                "& .MuiInputBase-input": { color: "#1F2829" },
+                            }}
+                        />
+                    </Box>
                 </Box>
             </BoxModal>
 
@@ -575,55 +551,69 @@ export default function PayrollEmployeeRecords() {
                 onClose={() => setIsExportModalOpen(false)}
                 width="400px"
             >
-                <Typography
-                    variant="h5"
-                    sx={{
-                        fontFamily: "'TTHoves-Bold', sans-serif",
-                        fontSize: "24px",
-                        color: "#FFFFFF",
-                        mb: 2,
-                        textAlign: "center"
-                    }}
-                >
-                    Export Employee Records
-                </Typography>
-                <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
-                    Export {filteredRecords.length} record(s) to {exportType.toUpperCase()}?
-                </Typography>
-                <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
-                    <Box
-                        onClick={() => setIsExportModalOpen(false)}
-                        component="button"
+                <Box sx={{ display: "flex", flexDirection: "column", color: theme.palette.text.primary }}>
+                    <Typography
+                        variant="h5"
                         sx={{
-                            fontSize: "16px",
-                            backgroundColor: "#666",
-                            color: "#fff",
-                            padding: "10px 30px",
-                            borderRadius: "15px",
-                            cursor: "pointer",
-                            border: "none",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            "&:hover": { backgroundColor: "#555" },
+                            fontFamily: "'TTHoves-Bold', sans-serif",
+                            fontSize: "20px",
+                            color: theme.palette.text.primary,
+                            mb: 2,
+                            textAlign: "center"
                         }}
                     >
-                        Cancel
-                    </Box>
-                    <Box
-                        onClick={handleConfirmExport}
-                        component="button"
-                        sx={{
-                            fontSize: "16px",
-                            backgroundColor: "#172224",
-                            color: "#fff",
-                            padding: "10px 30px",
-                            borderRadius: "15px",
-                            cursor: "pointer",
-                            border: "none",
-                            fontFamily: "'TTHoves-Regular', sans-serif",
-                            "&:hover": { backgroundColor: "#1f2f31", transform: "translateY(-2px)" },
-                        }}
-                    >
-                        Export
+                        Export Employee Records
+                    </Typography>
+                    <Typography sx={{ color: theme.palette.text.secondary, textAlign: "center", mb: 2 }}>
+                        Export {filteredRecords.length} record(s) to {exportType.toUpperCase()}?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
+                        <Box
+                            onClick={() => setIsExportModalOpen(false)}
+                            component="button"
+                            sx={{
+                                fontSize: "16px",
+                                backgroundColor: "#bdbdbd",
+                                color: "#333",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                width: "120px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                transition: "all 0.3s ease",
+                                "&:hover": { 
+                                    backgroundColor: "#a0a0a0",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Box>
+                        <Box
+                            onClick={handleConfirmExport}
+                            component="button"
+                            sx={{
+                                fontSize: "16px",
+                                backgroundColor: "#172224",
+                                color: "#fff",
+                                padding: "10px 0",
+                                borderRadius: "15px",
+                                cursor: "pointer",
+                                border: "none",
+                                width: "120px",
+                                fontFamily: "'TTHoves-Regular', sans-serif",
+                                transition: "all 0.3s ease",
+                                "&:hover": { 
+                                    backgroundColor: "#1f2f31", 
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                },
+                            }}
+                        >
+                            Export
+                        </Box>
                     </Box>
                 </Box>
             </BoxModal>
