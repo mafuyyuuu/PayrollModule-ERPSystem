@@ -5,6 +5,89 @@ import { payrollDB, hrDB } from '../db.js';
 const router = express.Router();
 
 // =====================================================
+// HELPER: Sync EMS/HR Approvals - deduct leave when HR approves
+// =====================================================
+const syncEmsApprovals = async () => {
+    try {
+        // Find leave requests that HR has approved (emsRemarks indicates HR processed it)
+        // These are requests where payroll set emsStatus = 'APPROVED' and HR has added emsRemarks
+        const [approvedLeaveRequests] = await payrollDB.query(
+            `SELECT request_id, employee_id, request_type, request_description, total_days, emsStatus, emsRemarks
+             FROM Requests 
+             WHERE status = 'Approved' 
+               AND emsStatus = 'APPROVED'
+               AND emsRemarks IS NOT NULL
+               AND emsRemarks != ''
+               AND emsRemarks NOT LIKE '%[PROCESSED]%'`
+        );
+
+        for (const request of approvedLeaveRequests) {
+            // If Leave request (not Overtime, Bonus, Reimbursement), deduct from balance
+            if (request.request_type && !['Overtime', 'Bonus', 'Reimbursement'].includes(request.request_type)) {
+                try {
+                    // Use total_days column, fallback to parsing description for old records
+                    let totalDays = request.total_days;
+                    if (!totalDays) {
+                        const description = request.request_description || '';
+                        const daysMatch = description.match(/(\d+)\s*days?\)/i);
+                        totalDays = daysMatch ? parseInt(daysMatch[1]) : 1;
+                    }
+                    
+                    // request_type is the leave type name (e.g., "Vacation Leave")
+                    const leaveTypeName = request.request_type;
+                    
+                    const [leaveTypes] = await hrDB.query(
+                        `SELECT leave_type_id FROM leavetype WHERE leave_name = ?`,
+                        [leaveTypeName]
+                    );
+                    
+                    if (leaveTypes.length > 0) {
+                        await hrDB.query(
+                            `UPDATE remainingleaves 
+                             SET num_of_leaves = GREATEST(0, num_of_leaves - ?)
+                             WHERE employee_id = ? AND leave_type_id = ?`,
+                            [totalDays, request.employee_id, leaveTypes[0].leave_type_id]
+                        );
+                        
+                        // Mark as processed so we don't deduct again
+                        await payrollDB.query(
+                            `UPDATE Requests SET emsRemarks = CONCAT(COALESCE(emsRemarks, ''), ' [PROCESSED]') WHERE request_id = ?`,
+                            [request.request_id]
+                        );
+                        
+                        console.log(`[SYNC] Deducted ${totalDays} days from employee ${request.employee_id}'s ${leaveTypeName} balance`);
+                    }
+                } catch (leaveError) {
+                    console.error(`[SYNC ERROR] Failed to deduct leave:`, leaveError.message);
+                }
+            }
+        }
+
+        // Check for HR rejections
+        const [rejectedRequests] = await payrollDB.query(
+            `SELECT request_id, employee_id, request_type, emsRemarks
+             FROM Requests 
+             WHERE status = 'Approved'
+               AND emsStatus = 'REJECTED'`
+        );
+
+        for (const request of rejectedRequests) {
+            await payrollDB.query(
+                `UPDATE Requests 
+                 SET status = 'Rejected', 
+                     remarks = CONCAT(COALESCE(remarks, ''), ' | HR Rejected: ', COALESCE(emsRemarks, 'No remarks')),
+                     updated_at = NOW()
+                 WHERE request_id = ?`,
+                [request.request_id]
+            );
+            console.log(`[SYNC] Request ${request.request_id} rejected by HR`);
+        }
+    } catch (error) {
+        console.error('[SYNC ERROR] Failed to sync EMS approvals:', error.message);
+    }
+};
+
+// =====================================================
 // EMPLOYEE PROFILE ROUTE
 // =====================================================
 
@@ -265,19 +348,15 @@ router.post('/leave-requests', async (req, res) => {
             }
         }
 
-        const description = `${leaveTypeName}: ${reason || 'No reason provided'} (${start_date} to ${end_date}, ${total_days} days)`;
+        const description = reason || 'No reason provided';
 
-        // Insert into Requests table
+        // Insert into Requests table with date columns
         const [result] = await payrollDB.query(
             `INSERT INTO Requests 
-             (employee_id, request_type, request_description, date_filed, status)
-             VALUES (?, 'Leave', ?, CURDATE(), 'Pending')`,
-            [employee_id, description]
+             (employee_id, request_type, request_description, start_date, end_date, total_days, date_filed, status)
+             VALUES (?, ?, ?, ?, ?, ?, CURDATE(), 'Pending')`,
+            [employee_id, leaveTypeName, description, start_date, end_date, total_days || 1]
         );
-
-        // ✅ Also insert into requests table for tracking
-        // Note: This is duplicate logic - the insert above already handles this
-        // Keeping for backward compatibility but should be reviewed
 
         res.status(201).json({
             success: true,
@@ -285,8 +364,8 @@ router.post('/leave-requests', async (req, res) => {
             request_id: result.insertId
         });
     } catch (error) {
-        console.error('Error cancelling leave request:', error.message);
-        res.status(500).json({ error: 'Failed to cancel leave request' });
+        console.error('Error creating leave request:', error.message);
+        res.status(500).json({ error: 'Failed to create leave request' });
     }
 });
 
@@ -582,6 +661,7 @@ router.get('/payroll-history/:employeeId', async (req, res) => {
                 payslip_reference_number
             FROM Payroll
             WHERE employee_id = ? 
+              AND LOWER(status) IN ('released', 'paid', 'completed')
         `;
 
         const params = [employeeId];
@@ -789,19 +869,36 @@ router.get('/dashboard/:employeeId', async (req, res) => {
             console.log('⚠️ Could not fetch pending requests:', err.message);
         }
 
-        // Get latest payslip
+        // Get latest released payslip
         let latestPayslip = null;
         try {
             const [payslips] = await payrollDB.query(
                 `SELECT payroll_id, pay_date, net_pay, status
                  FROM Payroll
-                 WHERE employee_id = ?
+                 WHERE employee_id = ? AND LOWER(status) IN ('released', 'paid', 'completed', 'processed')
                  ORDER BY pay_date DESC LIMIT 1`,
                 [employeeId]
             );
             latestPayslip = payslips[0] || null;
         } catch (err) {
             console.log('⚠️ Could not fetch payslip:', err.message);
+        }
+
+        // Get upcoming/expected payroll (pending payrolls not yet released)
+        let upcomingPayroll = null;
+        try {
+            const [upcoming] = await payrollDB.query(
+                `SELECT payroll_id, pay_date, net_pay, basic_pay, overtime_pay, bonuses, deductions, status,
+                        cutoff_start_date, cutoff_end_date
+                 FROM Payroll
+                 WHERE employee_id = ? AND LOWER(status) IN ('pending', 'processing', 'processed')
+                   AND pay_date >= CURDATE()
+                 ORDER BY pay_date ASC LIMIT 1`,
+                [employeeId]
+            );
+            upcomingPayroll = upcoming[0] || null;
+        } catch (err) {
+            console.log('⚠️ Could not fetch upcoming payroll:', err.message);
         }
 
         // Get attendance summary for current month
@@ -830,6 +927,7 @@ router.get('/dashboard/:employeeId', async (req, res) => {
             pendingManualTimeRequests: pendingRequests.pending_manual_time || 0,
             totalPendingRequests: pendingRequests.total_pending || 0,
             latestPayslip,
+            upcomingPayroll,
             attendanceSummary
         });
     } catch (error) {
@@ -867,6 +965,7 @@ router.get('/earnings-overview/:employeeId', async (req, res) => {
              FROM Payroll
              WHERE employee_id = ? 
                AND pay_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+               AND LOWER(status) IN ('released', 'paid', 'completed')
              ORDER BY pay_date ASC`,
             [employeeId, parseInt(months)]
         );
@@ -894,6 +993,46 @@ router.get('/earnings-overview/:employeeId', async (req, res) => {
     }
 });
 
+// Alias route for frontend compatibility
+router.get('/earnings/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { months = 6 } = req.query;
+
+    try {
+        const [earnings] = await payrollDB.query(
+            `SELECT
+                 DATE_FORMAT(pay_date, '%b') as month,
+                net_pay as earnings,
+                basic_pay,
+                overtime_pay,
+                bonuses,
+                deductions,
+                pay_date
+             FROM Payroll
+             WHERE employee_id = ? 
+               AND pay_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+               AND LOWER(status) IN ('released', 'paid', 'completed')
+             ORDER BY pay_date ASC`,
+            [employeeId, parseInt(months)]
+        );
+
+        const chartData = earnings.map(item => ({
+            month: item.month,
+            earnings: parseFloat(item.earnings) || 0,
+            basicPay: parseFloat(item.basic_pay) || 0,
+            overtimePay: parseFloat(item.overtime_pay) || 0,
+            bonuses: parseFloat(item.bonuses) || 0,
+            deductions: parseFloat(item.deductions) || 0,
+            payDate: item.pay_date
+        }));
+
+        res.json(chartData);
+    } catch (error) {
+        console.error('❌ Error fetching earnings:', error.message);
+        res.status(500).json({ error: 'Failed to fetch earnings', details: error.message });
+    }
+});
+
 // =====================================================
 // TAX CONTRIBUTIONS ROUTES
 // =====================================================
@@ -907,7 +1046,7 @@ router.get('/tax-contributions/:employeeId', async (req, res) => {
     console.log('📋 Fetching tax contributions for employee:', employeeId, 'year:', currentYear);
 
     try {
-        // ✅ Using TaxContributions table (correct case!)
+        // ✅ Using TaxContributions table - only show released/completed payrolls
         const [contributionRecords] = await payrollDB.query(
             `SELECT 
                 tc.contribution_id as id,
@@ -923,7 +1062,9 @@ router.get('/tax-contributions/:employeeId', async (req, res) => {
                 p.cutoff_end_date
             FROM TaxContributions tc
             LEFT JOIN Payroll p ON tc.payroll_id = p.payroll_id
-            WHERE tc.employee_id = ? AND YEAR(p.pay_date) = ?
+            WHERE tc.employee_id = ? 
+              AND YEAR(p.pay_date) = ?
+              AND LOWER(p.status) IN ('released', 'paid', 'completed')
             ORDER BY p.pay_date DESC`,
             [employeeId, currentYear]
         );
@@ -1203,16 +1344,34 @@ router.get('/pending-requests/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
 
     try {
-        // Query the main Requests table where all requests are stored
+        // First, sync any HR approvals/rejections (deduct leave if HR approved)
+        await syncEmsApprovals();
+
+        // Query requests in approval flow:
+        // - status = 'Pending' → awaiting manager
+        // - status = 'Approved' + emsStatus = 'PENDING' + payroll_approved = 0 → awaiting payroll
+        // - status = 'Approved' + emsStatus = 'PENDING' + payroll_approved = 1 → awaiting HR
         const [requests] = await payrollDB.query(`
             SELECT 
                 request_id,
                 request_type as type,
                 date_filed as date,
                 status,
-                request_description as details
+                emsStatus,
+                payroll_approved,
+                request_description as details,
+                CASE 
+                    WHEN status = 'Pending' THEN 'Awaiting Manager'
+                    WHEN status = 'Approved' AND emsStatus = 'PENDING' AND (payroll_approved = 0 OR payroll_approved IS NULL) THEN 'Awaiting Payroll'
+                    WHEN status = 'Approved' AND emsStatus = 'PENDING' AND payroll_approved = 1 THEN 'Awaiting HR Approval'
+                    ELSE status
+                END as displayStatus
             FROM Requests
-            WHERE employee_id = ? AND LOWER(status) = 'pending'
+            WHERE employee_id = ? 
+              AND (
+                  status = 'Pending' 
+                  OR (status = 'Approved' AND emsStatus = 'PENDING')
+              )
             ORDER BY date_filed DESC
             LIMIT 10
         `, [employeeId]);
@@ -1237,13 +1396,13 @@ router.get('/recent-payslips/:employeeId', async (req, res) => {
                 pay_date,
                 net_pay,
                 CONCAT(
-                    DATE_FORMAT(period_start, '%b %d'),
+                    DATE_FORMAT(cutoff_start_date, '%b %d'),
                     ' - ',
-                    DATE_FORMAT(period_end, '%b %d, %Y')
+                    DATE_FORMAT(cutoff_end_date, '%b %d, %Y')
                 ) as period,
                 status
-            FROM payroll
-            WHERE employee_id = ? AND status IN ('released', 'paid', 'processed')
+            FROM Payroll
+            WHERE employee_id = ? AND LOWER(status) IN ('released', 'paid', 'completed')
             ORDER BY pay_date DESC
             LIMIT 5
         `, [employeeId]);
@@ -1252,6 +1411,76 @@ router.get('/recent-payslips/:employeeId', async (req, res) => {
     } catch (error) {
         console.error('[ERROR] Error fetching recent payslips:', error.message);
         res.status(500).json({ error: 'Failed to fetch recent payslips' });
+    }
+});
+
+// =====================================================
+// NOTIFICATIONS - Get employee notifications
+// =====================================================
+router.get('/notifications/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { unreadOnly } = req.query;
+
+    try {
+        let query = `
+            SELECT notification_id, employee_id, title, message, type, is_read, created_at, read_at
+            FROM Notifications
+            WHERE employee_id = ?
+        `;
+        
+        if (unreadOnly === 'true') {
+            query += ` AND is_read = 0`;
+        }
+        
+        query += ` ORDER BY created_at DESC LIMIT 50`;
+
+        const [notifications] = await payrollDB.query(query, [employeeId]);
+        
+        // Get unread count
+        const [unreadCount] = await payrollDB.query(
+            `SELECT COUNT(*) as count FROM Notifications WHERE employee_id = ? AND is_read = 0`,
+            [employeeId]
+        );
+
+        res.json({
+            notifications,
+            unreadCount: unreadCount[0]?.count || 0
+        });
+    } catch (error) {
+        console.error('[ERROR] Error fetching notifications:', error.message);
+        res.status(500).json({ error: 'Failed to fetch notifications' });
+    }
+});
+
+// Mark notification as read
+router.put('/notifications/:notificationId/read', async (req, res) => {
+    const { notificationId } = req.params;
+
+    try {
+        await payrollDB.query(
+            `UPDATE Notifications SET is_read = 1, read_at = NOW() WHERE notification_id = ?`,
+            [notificationId]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('[ERROR] Error marking notification as read:', error.message);
+        res.status(500).json({ error: 'Failed to mark notification as read' });
+    }
+});
+
+// Mark all notifications as read
+router.put('/notifications/:employeeId/read-all', async (req, res) => {
+    const { employeeId } = req.params;
+
+    try {
+        await payrollDB.query(
+            `UPDATE Notifications SET is_read = 1, read_at = NOW() WHERE employee_id = ? AND is_read = 0`,
+            [employeeId]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('[ERROR] Error marking all notifications as read:', error.message);
+        res.status(500).json({ error: 'Failed to mark notifications as read' });
     }
 });
 

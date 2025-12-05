@@ -199,24 +199,24 @@ router.get('/pending-requests', async (req, res) => {
     try {
         const { search, type, status, showAll } = req.query;
 
-        // Payroll sees requests that are Manager_Approved (ready for second-level/processing)
-        // or Approved/Rejected (final status history)
+        // Payroll sees requests that are Approved with emsStatus = 'PENDING' and payroll_approved = 0
+        // or all approved requests for history view
         let query = `SELECT * FROM Requests`;
         const params = [];
 
         if (showAll === 'true') {
-            // Show all requests that payroll can see
-            query += ` WHERE status IN ('Manager_Approved', 'Approved', 'Rejected')`;
+            // Show all approved requests (both pending and processed)
+            query += ` WHERE status = 'Approved'`;
         } else if (status && status !== 'all') {
             query += ` WHERE status = ?`;
             params.push(status);
         } else {
-            // Default: show Manager_Approved (ready for payroll processing)
-            query += ` WHERE status = 'Manager_Approved'`;
+            // Default: show requests awaiting payroll approval (payroll_approved = 0)
+            query += ` WHERE status = 'Approved' AND emsStatus = 'PENDING' AND (payroll_approved = 0 OR payroll_approved IS NULL)`;
         }
 
         if (type) {
-            query += params.length > 0 || showAll === 'true' ? ` AND request_type = ?` : ` AND request_type = ?`;
+            query += ` AND request_type = ?`;
             params.push(type);
         }
 
@@ -275,11 +275,11 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
     const { approved_by, remarks } = req.body;
 
     try {
-        console.log(`[INFO] Payroll approving request ID: ${id} (second-level/final approval)`);
+        console.log(`[INFO] Payroll approving request ID: ${id} - sending to HR/EMS`);
         
         // Get request details first
         const [requestDetails] = await payrollDB.query(
-            `SELECT employee_id, request_type, status FROM Requests WHERE request_id = ?`,
+            `SELECT employee_id, request_type, request_description, status, emsStatus, payroll_approved FROM Requests WHERE request_id = ?`,
             [id]
         );
 
@@ -287,24 +287,26 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
             return res.status(404).json({ error: 'Request not found' });
         }
 
-        // Payroll can only approve Manager_Approved requests
-        if (requestDetails[0].status !== 'Manager_Approved') {
+        // Payroll can only approve requests with status = 'Approved', emsStatus = 'PENDING', and not yet payroll approved
+        if (requestDetails[0].status !== 'Approved' || requestDetails[0].emsStatus !== 'PENDING' || requestDetails[0].payroll_approved === 1) {
             return res.status(400).json({ 
                 error: 'Invalid request status',
-                message: 'Only manager-approved requests can be processed by payroll',
-                currentStatus: requestDetails[0].status
+                message: 'Only manager-approved requests awaiting payroll can be processed',
+                currentStatus: requestDetails[0].status,
+                emsStatus: requestDetails[0].emsStatus,
+                payrollApproved: requestDetails[0].payroll_approved
             });
         }
         
-        // Final approval - this processes the request into payroll
+        // Payroll approval - set payroll_approved = 1, emsStatus stays PENDING (awaiting HR)
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Approved', 
+             SET payroll_approved = 1,
                  approved_by = ?, 
                  remarks = ?, 
                  updated_at = NOW()
-             WHERE request_id = ? AND status = 'Manager_Approved'`,
-            [approved_by, remarks || 'Processed by payroll team', id]
+             WHERE request_id = ? AND status = 'Approved' AND emsStatus = 'PENDING'`,
+            [approved_by, remarks || 'Approved by payroll - awaiting HR approval', id]
         );
 
         // Log activity
@@ -313,16 +315,16 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
                 `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, processed_by, description)
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 ['PAYROLL_APPROVE', 'Request', id, requestDetails[0].employee_id, approved_by, 
-                 `${requestDetails[0].request_type} request processed and approved by payroll`]
+                 `${requestDetails[0].request_type} request approved by payroll - sent to HR`]
             );
         }
 
-        console.log(`[SUCCESS] Request ${id} approved by payroll. Affected rows: ${result.affectedRows}`);
+        console.log(`[SUCCESS] Request ${id} approved by payroll, sent to HR. Affected rows: ${result.affectedRows}`);
         res.json({ 
             success: true, 
-            message: 'Request processed and approved by payroll', 
+            message: 'Request approved by payroll - awaiting HR approval', 
             affectedRows: result.affectedRows,
-            newStatus: 'Approved'
+            emsStatus: 'PENDING'
         });
     } catch (error) {
         console.error('Error approving request:', error);
@@ -330,7 +332,7 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
     }
 });
 
-// 6. PAYROLL REJECT REQUEST (Second-Level - Final Rejection)
+// 6. PAYROLL REJECT REQUEST
 router.put('/pending-requests/:id/reject', async (req, res) => {
     const { id } = req.params;
     const { approved_by, remarks } = req.body;
@@ -340,7 +342,7 @@ router.put('/pending-requests/:id/reject', async (req, res) => {
         
         // Get request details first
         const [requestDetails] = await payrollDB.query(
-            `SELECT employee_id, request_type, status FROM Requests WHERE request_id = ?`,
+            `SELECT employee_id, request_type, status, emsStatus FROM Requests WHERE request_id = ?`,
             [id]
         );
 
@@ -348,22 +350,23 @@ router.put('/pending-requests/:id/reject', async (req, res) => {
             return res.status(404).json({ error: 'Request not found' });
         }
 
-        // Payroll can only reject Manager_Approved requests
-        if (requestDetails[0].status !== 'Manager_Approved') {
+        // Payroll can only reject requests with status = 'Approved' and emsStatus = 'PENDING'
+        if (requestDetails[0].status !== 'Approved' || requestDetails[0].emsStatus !== 'PENDING') {
             return res.status(400).json({ 
                 error: 'Invalid request status',
-                message: 'Only manager-approved requests can be rejected by payroll',
+                message: 'Only manager-approved requests awaiting payroll can be rejected',
                 currentStatus: requestDetails[0].status
             });
         }
         
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Rejected', 
+             SET status = 'Rejected',
+                 emsStatus = 'REJECTED', 
                  approved_by = ?, 
                  remarks = ?, 
                  updated_at = NOW()
-             WHERE request_id = ? AND status = 'Manager_Approved'`,
+             WHERE request_id = ? AND status = 'Approved' AND emsStatus = 'PENDING'`,
             [approved_by, remarks || 'Rejected by payroll team', id]
         );
 
@@ -387,6 +390,122 @@ router.put('/pending-requests/:id/reject', async (req, res) => {
     } catch (error) {
         console.error('Error rejecting request:', error);
         res.status(500).json({ error: 'Failed to reject request', details: error.message });
+    }
+});
+
+// 6b. SYNC HR/EMS APPROVALS - Check for EMS-approved requests and update status + deduct leave
+router.post('/sync-ems-approvals', async (req, res) => {
+    try {
+        console.log('[INFO] Syncing HR/EMS approvals...');
+        
+        // Find requests that have been approved by EMS but not yet processed
+        const [pendingEmsApprovals] = await payrollDB.query(
+            `SELECT request_id, employee_id, request_type, request_description, emsStatus, emsRemarks
+             FROM Requests 
+             WHERE status = 'Payroll_Approved' 
+               AND emsStatus = 'APPROVED'`
+        );
+
+        console.log(`[INFO] Found ${pendingEmsApprovals.length} EMS-approved requests to process`);
+
+        let processed = 0;
+        let leaveDeducted = 0;
+
+        for (const request of pendingEmsApprovals) {
+            // Update status to Approved
+            await payrollDB.query(
+                `UPDATE Requests 
+                 SET status = 'Approved', 
+                     remarks = CONCAT(COALESCE(remarks, ''), ' | EMS Approved: ', COALESCE(emsRemarks, 'No remarks')),
+                     updated_at = NOW()
+                 WHERE request_id = ?`,
+                [request.request_id]
+            );
+
+            // If Leave request (request_type is now the leave type name), deduct from balance
+            // Skip non-leave types like Overtime, Bonus, Reimbursement
+            if (request.request_type && !['Overtime', 'Bonus', 'Reimbursement'].includes(request.request_type)) {
+                try {
+                    const description = request.request_description || '';
+                    const daysMatch = description.match(/(\d+)\s*days?\)/i);
+                    const totalDays = daysMatch ? parseInt(daysMatch[1]) : 1;
+                    
+                    // request_type is now the leave type name (e.g., "Vacation Leave", "Sick Leave")
+                    const leaveTypeName = request.request_type;
+                    
+                    const [leaveTypes] = await hrDB.query(
+                        `SELECT leave_type_id FROM leavetype WHERE leave_name = ?`,
+                        [leaveTypeName]
+                    );
+                    
+                    if (leaveTypes.length > 0) {
+                        const [updateResult] = await hrDB.query(
+                            `UPDATE remainingleaves 
+                             SET num_of_leaves = GREATEST(0, num_of_leaves - ?)
+                             WHERE employee_id = ? AND leave_type_id = ?`,
+                            [totalDays, request.employee_id, leaveTypes[0].leave_type_id]
+                        );
+                        
+                        if (updateResult.affectedRows > 0) {
+                            leaveDeducted++;
+                            console.log(`[INFO] Deducted ${totalDays} days from employee ${request.employee_id}'s ${leaveTypeName} balance`);
+                        }
+                    }
+                } catch (leaveError) {
+                    console.error(`[ERROR] Failed to deduct leave for request ${request.request_id}:`, leaveError.message);
+                }
+            }
+
+            // Log activity
+            await payrollDB.query(
+                `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, description)
+                 VALUES (?, ?, ?, ?, ?)`,
+                ['EMS_SYNC', 'Request', request.request_id, request.employee_id, 
+                 `${request.request_type} request approved by HR/EMS`]
+            );
+
+            processed++;
+        }
+
+        // Also check for EMS rejections
+        const [pendingEmsRejections] = await payrollDB.query(
+            `SELECT request_id, employee_id, request_type, emsRemarks
+             FROM Requests 
+             WHERE status = 'Payroll_Approved' 
+               AND emsStatus = 'REJECTED'`
+        );
+
+        for (const request of pendingEmsRejections) {
+            await payrollDB.query(
+                `UPDATE Requests 
+                 SET status = 'Rejected', 
+                     remarks = CONCAT(COALESCE(remarks, ''), ' | EMS Rejected: ', COALESCE(emsRemarks, 'No remarks')),
+                     updated_at = NOW()
+                 WHERE request_id = ?`,
+                [request.request_id]
+            );
+
+            await payrollDB.query(
+                `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, description)
+                 VALUES (?, ?, ?, ?, ?)`,
+                ['EMS_SYNC', 'Request', request.request_id, request.employee_id, 
+                 `${request.request_type} request rejected by HR/EMS: ${request.emsRemarks || 'No reason'}`]
+            );
+
+            processed++;
+        }
+
+        console.log(`[SUCCESS] Synced ${processed} requests (${leaveDeducted} leave balances updated)`);
+        res.json({ 
+            success: true, 
+            message: `Synced ${processed} EMS decisions`,
+            processed,
+            leaveDeducted,
+            rejections: pendingEmsRejections.length
+        });
+    } catch (error) {
+        console.error('Error syncing EMS approvals:', error);
+        res.status(500).json({ error: 'Failed to sync EMS approvals', details: error.message });
     }
 });
 
@@ -848,7 +967,7 @@ router.put('/payroll/:id/approve', async (req, res) => {
         
         // Get payroll details first
         const [payrollDetails] = await payrollDB.query(
-            `SELECT employee_id FROM Payroll WHERE payroll_id = ?`,
+            `SELECT employee_id, net_pay, cutoff_start_date, cutoff_end_date FROM Payroll WHERE payroll_id = ?`,
             [id]
         );
         
@@ -857,13 +976,30 @@ router.put('/payroll/:id/approve', async (req, res) => {
             [id]
         );
         
-        // Log activity
+        // Log activity and create notification
         if (result.affectedRows > 0 && payrollDetails.length > 0) {
+            const payroll = payrollDetails[0];
+            
             await payrollDB.query(
                 `INSERT INTO ActivityLogs (action_type, entity_type, entity_id, employee_id, processed_by, description)
                  VALUES (?, ?, ?, ?, ?, ?)`,
-                ['PROCESS', 'Payroll', id, payrollDetails[0].employee_id, approved_by || null, 
-                 `Payslip marked as processed for Employee ID ${payrollDetails[0].employee_id}`]
+                ['PROCESS', 'Payroll', id, payroll.employee_id, approved_by || null, 
+                 `Payslip marked as processed for Employee ID ${payroll.employee_id}`]
+            );
+
+            // Create notification for the employee
+            const periodStart = new Date(payroll.cutoff_start_date).toLocaleDateString();
+            const periodEnd = new Date(payroll.cutoff_end_date).toLocaleDateString();
+            const netPay = parseFloat(payroll.net_pay || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+            
+            await payrollDB.query(
+                `INSERT INTO Notifications (employee_id, title, message, type) VALUES (?, ?, ?, ?)`,
+                [
+                    payroll.employee_id,
+                    'Payroll Processed',
+                    `Your payroll for ${periodStart} - ${periodEnd} has been processed and is pending release. Expected: ₱${netPay}`,
+                    'payroll'
+                ]
             );
         }
         
@@ -922,10 +1058,10 @@ router.put('/payroll-release', async (req, res) => {
             return res.status(400).json({ error: 'No payroll IDs provided' });
         }
         
-        // Get payroll details first for logging
+        // Get payroll details first for logging and notifications
         const placeholders = payrollIds.map(() => '?').join(',');
         const [payrollDetails] = await payrollDB.query(
-            `SELECT payroll_id, employee_id FROM Payroll WHERE payroll_id IN (${placeholders})`,
+            `SELECT payroll_id, employee_id, net_pay, cutoff_start_date, cutoff_end_date FROM Payroll WHERE payroll_id IN (${placeholders})`,
             payrollIds
         );
         
@@ -934,7 +1070,7 @@ router.put('/payroll-release', async (req, res) => {
             payrollIds
         );
         
-        // Log activity for each released payroll
+        // Log activity for each released payroll and create notifications
         if (result.affectedRows > 0) {
             for (const payroll of payrollDetails) {
                 await payrollDB.query(
@@ -942,6 +1078,21 @@ router.put('/payroll-release', async (req, res) => {
                      VALUES (?, ?, ?, ?, ?, ?)`,
                     ['RELEASE', 'Payroll', payroll.payroll_id, payroll.employee_id, released_by || null, 
                      `Payroll released for Employee ID ${payroll.employee_id}`]
+                );
+
+                // Create notification for the employee
+                const periodStart = new Date(payroll.cutoff_start_date).toLocaleDateString();
+                const periodEnd = new Date(payroll.cutoff_end_date).toLocaleDateString();
+                const netPay = parseFloat(payroll.net_pay || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+                
+                await payrollDB.query(
+                    `INSERT INTO Notifications (employee_id, title, message, type) VALUES (?, ?, ?, ?)`,
+                    [
+                        payroll.employee_id,
+                        'Salary Released',
+                        `Your salary for the period ${periodStart} - ${periodEnd} has been released. Net Pay: ₱${netPay}`,
+                        'payroll'
+                    ]
                 );
             }
         }
@@ -1247,7 +1398,7 @@ router.get('/timesheets-for-payroll', async (req, res) => {
             let daysWorked = sheets.length;
             
             sheets.forEach(ts => {
-                // Calculate hours worked
+                // Calculate hours worked from time in/out
                 const timeIn = new Date(`2000-01-01 ${ts.time_in}`);
                 const timeOut = new Date(`2000-01-01 ${ts.time_out}`);
                 let hoursWorked = (timeOut - timeIn) / (1000 * 60 * 60); // Convert to hours
@@ -1256,9 +1407,14 @@ router.get('/timesheets-for-payroll', async (req, res) => {
                 const breakHours = parseFloat(ts.break_duration) || 1;
                 hoursWorked -= breakHours;
                 
-                // Regular hours capped at 8, rest is overtime
+                // Regular hours capped at 8
                 const regularHours = Math.min(hoursWorked, 8);
-                const overtimeHours = Math.max(hoursWorked - 8, 0) + (parseFloat(ts.overtime_hours) || 0);
+                
+                // Overtime: use explicit overtime_hours if set, otherwise calculate from excess hours
+                // The overtime_hours column represents the TOTAL overtime, not additional
+                const explicitOvertime = parseFloat(ts.overtime_hours) || 0;
+                const calculatedOvertime = Math.max(hoursWorked - 8, 0);
+                const overtimeHours = explicitOvertime > 0 ? explicitOvertime : calculatedOvertime;
                 
                 totalRegularHours += regularHours;
                 totalOvertimeHours += overtimeHours;
@@ -1517,12 +1673,18 @@ router.post('/save-payroll-batch', async (req, res) => {
     
     try {
         console.log(`💾 Saving ${payrolls.length} payroll records`);
+        console.log('📋 First payroll data:', JSON.stringify(payrolls[0], null, 2));
         
         const savedPayrolls = [];
         
         for (const payroll of payrolls) {
             // Generate reference number
             const refNum = `PAY-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${Date.now().toString().slice(-6)}`;
+            
+            // Calculate net_pay if not provided
+            const netPay = payroll.netPay || (payroll.grossPay - (payroll.deductions?.total || payroll.deductions || 0));
+            
+            console.log(`💰 Employee ${payroll.employeeId}: basicPay=${payroll.basicPay}, overtimePay=${payroll.overtimePay}, deductions=${payroll.deductions?.total || payroll.deductions}, netPay=${netPay}`);
             
             // Insert payroll record
             const [result] = await payrollDB.query(`
@@ -1536,16 +1698,17 @@ router.post('/save-payroll-batch', async (req, res) => {
                 payroll.cutoffEndDate,
                 payroll.payDate,
                 preparedBy || null,
-                payroll.basicPay,
-                payroll.overtimePay,
-                payroll.deductions.total,
-                payroll.netPay,
+                payroll.basicPay || 0,
+                payroll.overtimePay || 0,
+                payroll.deductions?.total || payroll.deductions || 0,
+                netPay,
                 refNum
             ]);
             
             const payrollId = result.insertId;
             
-            // Insert tax contributions
+            // Insert tax contributions (handle both object and flat structure)
+            const deductions = payroll.deductions || {};
             await payrollDB.query(`
                 INSERT INTO TaxContributions 
                 (payroll_id, employee_id, sss_contribution, philhealth_contribution, pagibig_contribution, withholding_tax, total_contributions)
@@ -1553,11 +1716,11 @@ router.post('/save-payroll-batch', async (req, res) => {
             `, [
                 payrollId,
                 payroll.employeeId,
-                payroll.deductions.sss,
-                payroll.deductions.philhealth,
-                payroll.deductions.pagibig,
-                payroll.deductions.tax,
-                payroll.deductions.total
+                deductions.sss || 0,
+                deductions.philhealth || 0,
+                deductions.pagibig || 0,
+                deductions.tax || 0,
+                deductions.total || 0
             ]);
             
             // Log activity
@@ -2158,6 +2321,17 @@ router.post('/send-payslip-emails', async (req, res) => {
                     `
                 });
 
+                // Create notification for the employee
+                await payrollDB.query(
+                    `INSERT INTO Notifications (employee_id, title, message, type) VALUES (?, ?, ?, ?)`,
+                    [
+                        payroll.employee_id,
+                        'Payslip Released',
+                        `Your payslip for the period ${new Date(payroll.cutoff_start_date).toLocaleDateString()} - ${new Date(payroll.cutoff_end_date).toLocaleDateString()} has been released. Net Pay: ₱${parseFloat(payroll.net_pay || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
+                        'payroll'
+                    ]
+                );
+
                 results.sent.push({ 
                     payrollId, 
                     employeeId: payroll.employee_id,
@@ -2308,11 +2482,32 @@ router.get('/payroll-by-period', async (req, res) => {
             }
         }
 
-        // Convert to array and sort by urgency
+        // Convert to array and calculate final urgency based on unreleased payrolls
         const periods = Array.from(periodMap.values())
+            .map(period => {
+                // Recalculate urgency - only consider unreleased payrolls
+                const hasUnreleasedPayrolls = period.payrolls.some(p => 
+                    !['released', 'paid', 'completed'].includes((p.status || '').toLowerCase())
+                );
+                
+                // If all payrolls are released, set urgency to 'completed'
+                if (!hasUnreleasedPayrolls && period.stats.total > 0) {
+                    period.urgency = 'completed';
+                } else if (hasUnreleasedPayrolls && period.daysUntilPayDate <= 0) {
+                    period.urgency = 'overdue';
+                } else if (hasUnreleasedPayrolls && period.daysUntilPayDate <= 3) {
+                    period.urgency = 'urgent';
+                } else if (hasUnreleasedPayrolls && period.daysUntilPayDate <= 7) {
+                    period.urgency = 'soon';
+                } else {
+                    period.urgency = 'normal';
+                }
+                
+                return period;
+            })
             .sort((a, b) => {
                 // Sort by urgency first, then by pay date
-                const urgencyOrder = { overdue: 0, urgent: 1, soon: 2, normal: 3 };
+                const urgencyOrder = { overdue: 0, urgent: 1, soon: 2, normal: 3, completed: 4 };
                 if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
                     return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
                 }

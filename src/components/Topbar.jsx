@@ -82,7 +82,10 @@ const Topbar = () => {
                 
                 // Use role-specific endpoints if available
                 if (user?.role === 'employee') {
-                    endpoint = `http://localhost:8080/api/employee/notifications/${user.employee_id || user.employeeId}`;
+                    const empId = user.employee_id || user.employeeId;
+                    if (empId) {
+                        endpoint = `http://localhost:8080/api/employee/notifications/${empId}`;
+                    }
                 } else if (user?.role === 'manager') {
                     endpoint = 'http://localhost:8080/api/manager/notifications';
                 } else if (user?.role === 'payroll') {
@@ -92,18 +95,24 @@ const Topbar = () => {
                 const response = await fetch(endpoint);
                 if (response.ok) {
                     const data = await response.json();
-                    setNotifications(data.slice(0, 5));
-                    setUnreadCount(data.filter(n => !n.read).length);
+                    // Handle both array and object response formats
+                    const notifList = data.notifications || data;
+                    const unread = data.unreadCount !== undefined ? data.unreadCount : notifList.filter(n => !n.is_read && !n.read).length;
+                    setNotifications(Array.isArray(notifList) ? notifList.slice(0, 5) : []);
+                    setUnreadCount(unread);
                 }
             } catch (error) {
-                setNotifications([
-                    { id: 1, title: "System Ready", message: "All systems operational", read: true }
-                ]);
+                console.error('Error fetching notifications:', error);
+                setNotifications([]);
+                setUnreadCount(0);
             }
         };
 
         if (user) {
             fetchNotifications();
+            // Poll for new notifications every 30 seconds
+            const interval = setInterval(fetchNotifications, 30000);
+            return () => clearInterval(interval);
         }
     }, [user]);
 
@@ -111,9 +120,23 @@ const Topbar = () => {
         setAnchorEl(event.currentTarget);
     };
 
-    const handleNotificationClose = () => {
+    const handleNotificationClose = async () => {
         setAnchorEl(null);
-        setUnreadCount(0);
+        // Mark all as read when closing
+        if (unreadCount > 0 && user) {
+            try {
+                const empId = user.employee_id || user.employeeId;
+                if (empId) {
+                    await fetch(`http://localhost:8080/api/employee/notifications/${empId}/read-all`, {
+                        method: 'PUT'
+                    });
+                    setUnreadCount(0);
+                    setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
+                }
+            } catch (error) {
+                console.error('Error marking notifications as read:', error);
+            }
+        }
     };
 
     const formatTimeAgo = (date) => {
@@ -196,9 +219,18 @@ const Topbar = () => {
                     </MenuItem>
                 ) : (
                     notifications.map((notif, index) => (
-                        <MenuItem key={notif.id || index} onClick={handleNotificationClose}
-                            sx={{ flexDirection: "column", alignItems: "flex-start", py: 1.5 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{notif.title}</Typography>
+                        <MenuItem key={notif.notification_id || notif.id || index} onClick={handleNotificationClose}
+                            sx={{ 
+                                flexDirection: "column", 
+                                alignItems: "flex-start", 
+                                py: 1.5,
+                                backgroundColor: (!notif.is_read && !notif.read) ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                                borderLeft: (!notif.is_read && !notif.read) ? '3px solid #1976d2' : '3px solid transparent',
+                            }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{notif.title}</Typography>
+                                <Typography variant="caption" color="text.secondary">{formatTimeAgo(notif.created_at)}</Typography>
+                            </Box>
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{notif.message}</Typography>
                         </MenuItem>
                     ))

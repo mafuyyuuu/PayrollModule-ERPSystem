@@ -612,6 +612,12 @@ const EmployeeDashboard = () => {
                 return { bg: 'rgba(255, 152, 0, 0.1)', color: '#ff9800' };
             case 'rejected':
                 return { bg: 'rgba(244, 67, 54, 0.1)', color: '#f44336' };
+            case 'awaiting manager':
+                return { bg: 'rgba(255, 152, 0, 0.1)', color: '#ff9800' };
+            case 'awaiting payroll':
+                return { bg: 'rgba(33, 150, 243, 0.1)', color: '#2196f3' };
+            case 'awaiting hr approval':
+                return { bg: 'rgba(156, 39, 176, 0.1)', color: '#9c27b0' };
             default:
                 return { bg: 'rgba(158, 158, 158, 0.1)', color: '#9e9e9e' };
         }
@@ -1062,11 +1068,11 @@ const EmployeeDashboard = () => {
                                                 {request.type}
                                             </Typography>
                                             <Chip
-                                                label={request.status}
+                                                label={request.displayStatus || request.status}
                                                 size="small"
                                                 sx={{
-                                                    ...getStatusColor(request.status),
-                                                    backgroundColor: getStatusColor(request.status).bg,
+                                                    ...getStatusColor(request.displayStatus || request.status),
+                                                    backgroundColor: getStatusColor(request.displayStatus || request.status).bg,
                                                     fontSize: "10px",
                                                     height: "20px"
                                                 }}

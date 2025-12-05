@@ -55,22 +55,35 @@ export default function PayrollPendingRequest() {
             const data = await response.json();
             console.log('✅ All requests:', data);
 
-            const transformedData = data.map(request => ({
-                type: request.request_type || "Overtime",
-                employee: request.employee_name || `Employee ${request.employee_id}`,
-                date: new Date(request.date_filed).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                }),
-                rawDate: new Date(request.date_filed), // For sorting
-                updatedAt: request.updated_at ? new Date(request.updated_at) : new Date(request.date_filed),
-                amount: request.request_description || "N/A",
-                status: request.status || "Pending",
-                requestId: request.request_id,
-                rejectReason: request.remarks || ""
-            }))
-            // Sort by most recent updated_at first (when processed), fallback to date_filed
+            const transformedData = data.map(request => {
+                // Determine display status based on status, emsStatus, and payroll_approved
+                let displayStatus = request.status;
+                if (request.status === 'Approved' && request.emsStatus === 'PENDING' && !request.payroll_approved) {
+                    displayStatus = 'Ready for Processing';
+                } else if (request.status === 'Approved' && request.emsStatus === 'PENDING' && request.payroll_approved) {
+                    displayStatus = 'Sent to HR';
+                } else if (request.status === 'Approved' && request.emsStatus === 'APPROVED') {
+                    displayStatus = 'HR Approved';
+                }
+                
+                return {
+                    type: request.request_type || "Overtime",
+                    employee: request.employee_name || `Employee ${request.employee_id}`,
+                    date: new Date(request.date_filed).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }),
+                    rawDate: new Date(request.date_filed),
+                    updatedAt: request.updated_at ? new Date(request.updated_at) : new Date(request.date_filed),
+                    amount: request.request_description || "N/A",
+                    status: displayStatus,
+                    emsStatus: request.emsStatus,
+                    payrollApproved: request.payroll_approved,
+                    requestId: request.request_id,
+                    rejectReason: request.remarks || ""
+                };
+            })
             .sort((a, b) => b.updatedAt - a.updatedAt);
 
             setEmployeeRequests(transformedData);
@@ -103,8 +116,8 @@ export default function PayrollPendingRequest() {
         if (filter) {
             if (filter === 'all') {
                 // Show all
-            } else if (['Manager_Approved', 'Approved', 'Rejected'].includes(filter)) {
-                // Filter by status
+            } else if (['Ready for Processing', 'Sent to HR', 'Rejected'].includes(filter)) {
+                // Filter by display status
                 filtered = filtered.filter(request => request.status === filter);
             } else {
                 // Filter by type
@@ -120,8 +133,8 @@ export default function PayrollPendingRequest() {
     const filterOptions = [
         {value: 'all', label: 'All'},
         ...requestTypes.map(type => ({value: type, label: type})),
-        {value: 'Manager_Approved', label: 'Ready for Processing'},
-        {value: 'Approved', label: 'Processed'},
+        {value: 'Ready for Processing', label: 'Ready for Processing'},
+        {value: 'Sent to HR', label: 'Sent to HR'},
         {value: 'Rejected', label: 'Rejected'},
     ];
 
@@ -506,7 +519,7 @@ export default function PayrollPendingRequest() {
                     </Button>
                 ))}
                 <Button
-                    onClick={() => setFilter("Manager_Approved")}
+                    onClick={() => setFilter("Ready for Processing")}
                     sx={{
                         fontSize: "14px",
                         px: 3,
@@ -514,16 +527,16 @@ export default function PayrollPendingRequest() {
                         borderRadius: "10px",
                         textTransform: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Manager_Approved" ? "#17a2b8" : "#e0e0e0",
-                        color: filter === "Manager_Approved" ? "#fff" : "#333",
-                        opacity: filter === "Manager_Approved" ? 1 : 0.6,
-                        "&:hover": { backgroundColor: filter === "Manager_Approved" ? "#138496" : "#d0d0d0" },
+                        backgroundColor: filter === "Ready for Processing" ? "#17a2b8" : "#e0e0e0",
+                        color: filter === "Ready for Processing" ? "#fff" : "#333",
+                        opacity: filter === "Ready for Processing" ? 1 : 0.6,
+                        "&:hover": { backgroundColor: filter === "Ready for Processing" ? "#138496" : "#d0d0d0" },
                     }}
                 >
                     Ready for Processing
                 </Button>
                 <Button
-                    onClick={() => setFilter("Approved")}
+                    onClick={() => setFilter("Sent to HR")}
                     sx={{
                         fontSize: "14px",
                         px: 3,
@@ -531,13 +544,13 @@ export default function PayrollPendingRequest() {
                         borderRadius: "10px",
                         textTransform: "none",
                         fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: filter === "Approved" ? "#5cb85c" : "#e0e0e0",
-                        color: filter === "Approved" ? "#fff" : "#333",
-                        opacity: filter === "Approved" ? 1 : 0.6,
-                        "&:hover": { backgroundColor: filter === "Approved" ? "#449d44" : "#d0d0d0" },
+                        backgroundColor: filter === "Sent to HR" ? "#5cb85c" : "#e0e0e0",
+                        color: filter === "Sent to HR" ? "#fff" : "#333",
+                        opacity: filter === "Sent to HR" ? 1 : 0.6,
+                        "&:hover": { backgroundColor: filter === "Sent to HR" ? "#449d44" : "#d0d0d0" },
                     }}
                 >
-                    Processed
+                    Sent to HR
                 </Button>
                 <Button
                     onClick={() => setFilter("Rejected")}
@@ -662,20 +675,20 @@ export default function PayrollPendingRequest() {
                                         style={{
                                             fontFamily: "'TTHoves-Bold', sans-serif",
                                             color:
-                                                item.status === "Approved"
+                                                item.status === "Sent to HR"
                                                     ? "#4CAF50"
                                                     : item.status === "Rejected"
                                                         ? "#F44336"
-                                                        : item.status === "Manager_Approved"
+                                                        : item.status === "Ready for Processing"
                                                             ? "#17a2b8"
                                                             : "#FFC107",
                                             fontWeight: 500,
                                         }}
                                     >
-                                        {item.status === "Manager_Approved" ? "Ready for Processing" : item.status}
+                                        {item.status}
                                     </span>
                                     <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
-                                        {item.status === "Manager_Approved" ? (
+                                        {item.status === "Ready for Processing" ? (
                                             <>
                                                 {/*Accept Button - Process into payroll */}
                                                 <IconButton

@@ -12,6 +12,14 @@ export const payrollDB = mysql.createPool({
 });
 
 // This is the HR database with employee data
+// export const hrDB = mysql.createPool({
+//     host: process.env.EMP_DB_HOST || '26.212.193.34',
+//     user: process.env.EMP_DB_USER || 'payroll',
+//     password: process.env.EMP_DB_PASSWORD || 'payroll',
+//     database: process.env.EMP_DB_NAME || 'employee_management_system',
+//     port: process.env.EMP_DB_PORT || 3306
+// });
+
 export const hrDB = mysql.createPool({
     host: process.env.EMP_DB_HOST || 'localhost',
     user: process.env.EMP_DB_USER || 'root',
@@ -19,6 +27,7 @@ export const hrDB = mysql.createPool({
     database: process.env.EMP_DB_NAME || 'employee_management_system',
     port: process.env.EMP_DB_PORT || 3306
 });
+
 
 // Test connections on startup
 (async () => {

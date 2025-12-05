@@ -314,14 +314,14 @@ router.post('/timesheets', async (req, res) => {
 // =====================================================
 // 7. PENDING REQUESTS - GET ALL
 // =====================================================
-// Manager sees: Pending (new requests to approve) and Manager_Approved/Rejected (their history)
+// Manager sees: Pending (new requests to approve) and Approved/Rejected (their history)
 router.get('/pending-requests', async (req, res) => {
     try {
         const { search, type, status } = req.query;
 
         // Manager sees requests that are Pending (need first-level approval)
-        // or Manager_Approved/Rejected (their decision history)
-        let query = `SELECT * FROM Requests WHERE status IN ('Pending', 'Manager_Approved', 'Rejected')`;
+        // or Approved/Rejected (decision history)
+        let query = `SELECT * FROM Requests WHERE status IN ('Pending', 'Approved', 'Rejected')`;
         const params = [];
 
         if (status && status !== 'all') {
@@ -394,10 +394,11 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
     try {
         console.log(`[INFO] Manager approving request ID: ${id} (first-level approval)`);
         
-        // Manager approval sets status to 'Manager_Approved' - awaits payroll processing
+        // Manager approval sets status to 'Approved' and emsStatus to 'PENDING' - awaits payroll processing
         const [result] = await payrollDB.query(
             `UPDATE Requests 
-             SET status = 'Manager_Approved', 
+             SET status = 'Approved', 
+                 emsStatus = 'PENDING',
                  approved_by = ?, 
                  remarks = ?,
                  updated_at = NOW()
@@ -417,7 +418,7 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
             success: true, 
             message: 'Request approved by manager - awaiting payroll processing', 
             affectedRows: result.affectedRows,
-            newStatus: 'Manager_Approved'
+            newStatus: 'Approved'
         });
     } catch (error) {
         console.error('Error approving request:', error);
