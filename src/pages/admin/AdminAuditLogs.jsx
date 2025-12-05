@@ -154,7 +154,7 @@ export default function AdminAuditLogs() {
                 display: "flex",
                 justifyContent: "space-between",
                 width: "100%",
-                mb: 3,
+                mb: 2,
             }}
         >
             <Typography
@@ -167,8 +167,50 @@ export default function AdminAuditLogs() {
             >
                 Audit Logs
             </Typography>
+        </Box>
 
-            <Box sx={{display: "flex", gap: 2, alignItems: "center"}}>
+        {/* Filter Buttons */}
+        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                    onClick={() => setActionFilter("all")}
+                    sx={{
+                        fontSize: "14px",
+                        px: 3,
+                        py: 1,
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontFamily: "'TTHoves-DemiBold', sans-serif",
+                        backgroundColor: actionFilter === "all" ? "#334042" : "#e0e0e0",
+                        color: actionFilter === "all" ? "#fff" : "#333",
+                        opacity: actionFilter === "all" ? 1 : 0.6,
+                        "&:hover": { backgroundColor: actionFilter === "all" ? "#2a3435" : "#d0d0d0" },
+                    }}
+                >
+                    All Actions
+                </Button>
+                {uniqueActions.slice(0, 6).map((action) => (
+                    <Button
+                        key={action}
+                        onClick={() => setActionFilter(action)}
+                        sx={{
+                            fontSize: "14px",
+                            px: 3,
+                            py: 1,
+                            borderRadius: "10px",
+                            textTransform: "none",
+                            fontFamily: "'TTHoves-DemiBold', sans-serif",
+                            backgroundColor: actionFilter === action ? "#334042" : "#e0e0e0",
+                            color: actionFilter === action ? "#fff" : "#333",
+                            opacity: actionFilter === action ? 1 : 0.6,
+                            "&:hover": { backgroundColor: actionFilter === action ? "#2a3435" : "#d0d0d0" },
+                        }}
+                    >
+                        {action}
+                    </Button>
+                ))}
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 <SearchBar 
                     placeholder="Search logs..." 
                     width="300px"
@@ -188,45 +230,6 @@ export default function AdminAuditLogs() {
             </Box>
         </Box>
 
-        {/* Filter Buttons */}
-        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-            <Button
-                onClick={() => setActionFilter("all")}
-                sx={{
-                    fontSize: "12px",
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    fontFamily: "'TTHoves-DemiBold', sans-serif",
-                    backgroundColor: actionFilter === "all" ? "#1b2223" : "#e0e0e0",
-                    color: actionFilter === "all" ? "#fff" : "#333",
-                    "&:hover": { backgroundColor: actionFilter === "all" ? "#2a3435" : "#d0d0d0" },
-                }}
-            >
-                All Actions
-            </Button>
-            {uniqueActions.slice(0, 6).map((action) => (
-                <Button
-                    key={action}
-                    onClick={() => setActionFilter(action)}
-                    sx={{
-                        fontSize: "12px",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "8px",
-                        textTransform: "none",
-                        fontFamily: "'TTHoves-DemiBold', sans-serif",
-                        backgroundColor: actionFilter === action ? "#1b2223" : "#e0e0e0",
-                        color: actionFilter === action ? "#fff" : "#333",
-                        "&:hover": { backgroundColor: actionFilter === action ? "#2a3435" : "#d0d0d0" },
-                    }}
-                >
-                    {action}
-                </Button>
-            ))}
-        </Box>
-
         <Box
             sx={{
                 height: "calc(100% - 120px)",
@@ -237,6 +240,7 @@ export default function AdminAuditLogs() {
                 p: "12px 24px",
                 display: "flex",
                 flexDirection: "column",
+                overflow: "hidden",
             }}
         >
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
@@ -251,13 +255,13 @@ export default function AdminAuditLogs() {
                     gridTemplateColumns: "1fr 1fr 1fr 2fr",
                     color: theme.palette.text.primary,
                     fontWeight: 700,
-                    p: "8px 0",
+                    p: "5px 0",
                     width: "100%",
                     alignItems: "center",
                     justifyItems: "center",
                     position: "sticky",
                     top: 0,
-                    zIndex: 10,
+                    zIndex: 10
                 }}
             >
                 <span>Date</span>
@@ -270,9 +274,11 @@ export default function AdminAuditLogs() {
                 sx={{
                     flex: 1,
                     overflowY: "auto",
-                    "&::-webkit-scrollbar": { width: 6 },
-                    "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: 3 },
-                    mt: "8px",
+                    "&::-webkit-scrollbar": { width: 0, height: 0 },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                    mt: "5px",
+                    mb: "20px",
                     fontFamily: "'TTHoves-DemiBold', sans-serif",
                 }}
             >
@@ -297,24 +303,26 @@ export default function AdminAuditLogs() {
                             borderRadius: "8px",
                             width: "100%",
                             minHeight: "60px",
-                            transition: "all 0.3s ease",
-                            "&:hover": {
-                                transform: "translateY(-2px)", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                            },
                             textAlign: "center",
                             fontSize: "13px",
                             p: 1,
+                            cursor: "pointer",
                         }}
                     >
                         <span>{formatDate(log.date)}</span>
                         <span>{log.user}</span>
                         <span style={{
-                            backgroundColor: log.action === 'CREATE' ? '#e8f5e9' : 
-                                           log.action === 'UPDATE' ? '#e3f2fd' : 
-                                           log.action === 'DELETE' ? '#ffebee' : '#f5f5f5',
                             padding: '4px 8px',
                             borderRadius: '4px',
-                            fontSize: '11px'
+                            fontSize: '11px',
+                            backgroundColor: log.action === 'CREATE' ? '#d4edda'
+                                : log.action === 'UPDATE' ? '#d1ecf1'
+                                : log.action === 'DELETE' ? '#f8d7da'
+                                : '#f0f0f0',
+                            color: log.action === 'DELETE' ? '#721c24'
+                                : log.action === 'CREATE' ? '#155724'
+                                : log.action === 'UPDATE' ? '#0c5460'
+                                : '#333'
                         }}>{log.action}</span>
                         <span style={{ 
                             textAlign: "left", 
@@ -339,14 +347,14 @@ export default function AdminAuditLogs() {
                 sx={{
                     fontFamily: "'TTHoves-Bold', sans-serif",
                     fontSize: "24px",
-                    color: "#FFFFFF",
+                    color: theme.palette.text.primary,
                     mb: 2,
                     textAlign: "center"
                 }}
             >
                 Export Audit Logs
             </Typography>
-            <Typography sx={{ color: "#ccc", textAlign: "center", mb: 2 }}>
+            <Typography sx={{ color: theme.palette.text.secondary, textAlign: "center", mb: 2 }}>
                 Export {filteredLogs.length} log(s) to {exportType.toUpperCase()}?
             </Typography>
             <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>

@@ -46,24 +46,41 @@ const FilterSelect = ({
                     fontFamily: "inherit",
                     fontSize: "16px",
                     cursor: "pointer",
+                    textTransform: "capitalize",
                 }}
             >
-                <option value="" disabled hidden>
+                <option value="" disabled hidden style={{
+                    backgroundColor: theme.palette.mode === "dark" ? "#172224" : "#fff",
+                    color: theme.palette.text.primary,
+                    padding: "10px",
+                }}>
                     {placeholder}
                 </option>
 
                 {/* Handle options as array of objects or strings */}
                 {options.length > 0 && typeof options[0] === "object" ? (
                     options.map((option, index) => (
-                        <option key={index} value={option.value}>
+                        <option key={index} value={option.value} style={{
+                            width: "3rem",
+                            backgroundColor: theme.palette.mode === "dark" ? "#172224" : "#fff",
+                            color: theme.palette.text.primary,
+                            textTransform: "capitalize",
+                        }}>
                             {option.label}
                         </option>
                     ))
                 ) : (
                     <>
-                        <option value="">All</option>
+                        <option value="" style={{
+                            backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
+                            color: theme.palette.text.primary,
+                        }}>All</option>
                         {options.map((option, index) => (
-                            <option key={index} value={option}>
+                            <option key={index} value={option} style={{
+                                backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#fff",
+                                color: theme.palette.text.primary,
+                                textTransform: "capitalize",
+                            }}>
                                 {option}
                             </option>
                         ))}
