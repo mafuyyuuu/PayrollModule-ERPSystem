@@ -925,6 +925,22 @@ router.get('/dashboard/:employeeId', async (req, res) => {
             console.log('⚠️ Could not fetch attendance:', err.message);
         }
 
+        // Get YTD earnings (sum of all released payroll this year)
+        let ytdEarnings = 0;
+        try {
+            const [ytd] = await payrollDB.query(
+                `SELECT COALESCE(SUM(net_pay), 0) as total
+                 FROM Payroll
+                 WHERE employee_id = ? 
+                   AND YEAR(pay_date) = ?
+                   AND LOWER(status) IN ('released', 'paid', 'completed')`,
+                [employeeId, currentYear]
+            );
+            ytdEarnings = parseFloat(ytd[0]?.total) || 0;
+        } catch (err) {
+            console.log('⚠️ Could not fetch YTD earnings:', err.message);
+        }
+
         res.json({
             leaveBalances,
             pendingLeaveRequests: pendingLeaves[0]?.count || 0,
@@ -933,7 +949,8 @@ router.get('/dashboard/:employeeId', async (req, res) => {
             totalPendingRequests: pendingRequests.total_pending || 0,
             latestPayslip,
             upcomingPayroll,
-            attendanceSummary
+            attendanceSummary,
+            ytdEarnings
         });
     } catch (error) {
         console.error('Error fetching employee dashboard:', error.message);

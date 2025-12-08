@@ -283,7 +283,7 @@ const ManagerPendingRequest = () => {
                         Pending
                     </Button>
                     <Button
-                        onClick={() => setFilter("Manager_Approved")}
+                        onClick={() => setFilter("Approved")}
                         sx={{
                             fontSize: "14px",
                             px: 3,
@@ -291,10 +291,10 @@ const ManagerPendingRequest = () => {
                             borderRadius: "10px",
                             textTransform: "none",
                             fontFamily: "'TTHoves-DemiBold', sans-serif",
-                            backgroundColor: filter === "Manager_Approved" ? "#17a2b8" : "#e0e0e0",
-                            color: filter === "Manager_Approved" ? "#fff" : "#333",
-                            opacity: filter === "Manager_Approved" ? 1 : 0.6,
-                            "&:hover": { backgroundColor: filter === "Manager_Approved" ? "#138496" : "#d0d0d0" },
+                            backgroundColor: filter === "Approved" ? "#17a2b8" : "#e0e0e0",
+                            color: filter === "Approved" ? "#fff" : "#333",
+                            opacity: filter === "Approved" ? 1 : 0.6,
+                            "&:hover": { backgroundColor: filter === "Approved" ? "#138496" : "#d0d0d0" },
                         }}
                     >
                         Awaiting Payroll
@@ -424,16 +424,14 @@ const ManagerPendingRequest = () => {
                                     fontFamily: "'TTHoves-Bold', sans-serif",
                                     color:
                                         row.status === "Approved"
-                                            ? "#4CAF50"
+                                            ? "#17a2b8"
                                             : row.status === "Rejected"
                                                 ? "#F44336"
-                                                : row.status === "Manager_Approved"
-                                                    ? "#17a2b8"
-                                                    : "#FFC107",
+                                                : "#FFC107",
                                     fontWeight: 500,
                                 }}
                             >
-                                {row.status === "Manager_Approved" ? "Awaiting Payroll" : row.status}
+                                {row.status === "Approved" ? "Awaiting Payroll" : row.status}
                             </span>
                             <Box textAlign="center" ml="0px" display="flex" justifyContent="center" gap="8px">
                                 {row.status === "Pending" ? (

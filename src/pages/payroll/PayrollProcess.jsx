@@ -20,11 +20,13 @@ import {RiCheckFill, RiCloseFill, RiCloseLine, RiDownload2Line, RiEyeFill, RiCal
 import BoxModal from "../../components/BoxModal.jsx";
 import {PayslipActions, PayslipDocument} from "../../components/PayslipPDF.jsx";
 import {PDFViewer, pdf, PDFDownloadLink} from "@react-pdf/renderer";
+import { useUser } from "../../components/UserContext.jsx";
 
 const steps = ['Select Pay Period', 'Review Timesheets', 'Calculate Payroll', 'Review & Approve'];
 
 export default function PayoutProcessing() {
     const theme = useTheme();
+    const { user } = useUser();
 
     // Step-based workflow state
     const [activeStep, setActiveStep] = useState(0);
@@ -476,7 +478,7 @@ export default function PayoutProcessing() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     payrolls: calculatedPayrolls,
-                    preparedBy: 4 // TODO: Get from auth context
+                    preparedBy: user?.id || user?.user_id || null
                 })
             });
             
@@ -976,14 +978,14 @@ export default function PayoutProcessing() {
                         >
                             Mark payslip as processed for {selectedEmployee.name}?
                         </Typography>
-                        <Typography variant="body2" sx={{color: "#ccc", textAlign: "center", mt: 1}}>
+                        <Typography variant="body2" sx={{color: "#FFFFFF", textAlign: "center", mt: 1}}>
                             This confirms the payroll calculation has been reviewed and is ready for release.
                         </Typography>
                         <Box sx={{mt: 2, p: 2, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "8px"}}>
-                            <Typography variant="body2" sx={{color: "#ccc"}}>
+                            <Typography variant="body2" sx={{color: "#FFFFFF"}}>
                                 Net Pay: {selectedEmployee.netpayDisplay}
                             </Typography>
-                            <Typography variant="body2" sx={{color: "#ccc"}}>
+                            <Typography variant="body2" sx={{color: "#FFFFFF"}}>
                                 Period: {selectedEmployee.period}
                             </Typography>
                         </Box>

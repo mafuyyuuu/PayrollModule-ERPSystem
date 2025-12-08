@@ -6,8 +6,10 @@ import SearchBar from "../../components/SearchBar.jsx";
 import React, {useState, useEffect} from "react";
 import ActionButton from "../../components/ActionButton.jsx";
 import BoxModal from "../../components/BoxModal.jsx";
+import { useUser } from "../../components/UserContext.jsx";
 
 const ManagerPayrollSummary = () => {
+    const { user } = useUser();
     const [employeePayrollData, setEmployeePayrollData] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,6 +23,7 @@ const ManagerPayrollSummary = () => {
     });
 
     const theme = useTheme();
+    const currentUserId = user?.employeeId || user?.employee_id;
 
     // Fetch payroll data
     useEffect(() => {
@@ -70,7 +73,11 @@ const ManagerPayrollSummary = () => {
 
         const fetchActivityLogs = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/manager/activity-logs');
+                const managerId = user?.employeeId || user?.employee_id;
+                const url = managerId 
+                    ? `http://localhost:8080/api/manager/activity-logs?managerId=${managerId}`
+                    : 'http://localhost:8080/api/manager/activity-logs';
+                const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to fetch activity logs');
                 const data = await response.json();
                 setActivityLogs(data);

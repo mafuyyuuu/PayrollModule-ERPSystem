@@ -169,10 +169,21 @@ app.post('/api/create-user', async (req, res) => {
     }
 });
 
-// GET ALL EMPLOYEES
+// GET ALL EMPLOYEES (only registered employees with role_id = 4)
 app.get('/api/employees', async (req, res) => {
     try {
-        const [employees] = await hrDB.execute(
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
+        );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        if (employeeIds.length === 0) {
+            return res.json([]);
+        }
+        
+        // Use query instead of execute for array parameters
+        const [employees] = await hrDB.query(
             `SELECT 
                 e.employee_id,
                 CONCAT(e.first_name, ' ', IFNULL(e.middle_name, ''), ' ', e.last_name) as full_name,
@@ -193,7 +204,9 @@ app.get('/api/employees', async (req, res) => {
              LEFT JOIN positions p ON e.position_id = p.position_id
              LEFT JOIN departments d ON e.department_id = d.department_id
              LEFT JOIN employeetype et ON e.employee_type_id = et.employee_type_id
-             ORDER BY e.employee_id`
+             WHERE e.employee_id IN (?)
+             ORDER BY e.employee_id`,
+            [employeeIds]
         );
 
         res.json(employees);

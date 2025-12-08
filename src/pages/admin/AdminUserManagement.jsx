@@ -30,6 +30,7 @@ export default function AdminUserManagement() {
     const [saveConfirmModalOpen, setSaveConfirmModalOpen] = useState(false);
     const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
     const [availableEmployees, setAvailableEmployees] = useState([]);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Role options
     const roleOptions = [
@@ -715,7 +716,7 @@ export default function AdminUserManagement() {
                                 Password *
                             </Typography>
                             <TextField
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 placeholder="Enter password"
                                 value={selectedUser?.password || ""}
                                 onChange={(e) => setSelectedUser(prev => ({...prev, password: e.target.value}))}
@@ -730,6 +731,21 @@ export default function AdminUserManagement() {
                                     "& .MuiInputBase-input": {color: "#1F2829"},
                                 }}
                             />
+                            <Box sx={{display: "flex", alignItems: "center", mt: 0.5}}>
+                                <input
+                                    type="checkbox"
+                                    id="showPassword"
+                                    checked={showPassword}
+                                    onChange={() => setShowPassword(!showPassword)}
+                                    style={{marginRight: "8px", cursor: "pointer"}}
+                                />
+                                <label 
+                                    htmlFor="showPassword" 
+                                    style={{color: "#FFFFFF", fontSize: "12px", cursor: "pointer", fontFamily: "'TTHoves-Regular', sans-serif"}}
+                                >
+                                    Show Password
+                                </label>
+                            </Box>
                         </Box>
                     </Box>
                 )}

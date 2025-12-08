@@ -21,9 +21,20 @@ const logActivity = async (actionType, entityType, entityId, description, proces
 // 1. GET PAYROLL DASHBOARD STATS
 router.get('/dashboard-stats', async (req, res) => {
     try {
-        const [totalEmployees] = await hrDB.query(
-            "SELECT COUNT(*) as count FROM employees"
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
         );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        let totalCount = 0;
+        if (employeeIds.length > 0) {
+            const [totalEmployees] = await hrDB.query(
+                `SELECT COUNT(*) as count FROM employees WHERE employee_id IN (?)`,
+                [employeeIds]
+            );
+            totalCount = totalEmployees[0]?.count || 0;
+        }
 
         const [processedPayouts] = await payrollDB.query(
             "SELECT COUNT(*) as count FROM Payroll WHERE status IN ('Completed', 'Paid', 'Released')"
@@ -44,7 +55,7 @@ router.get('/dashboard-stats', async (req, res) => {
         );
 
         res.json({
-            totalEmployees: totalEmployees[0]?.count || 0,
+            totalEmployees: totalCount,
             processedPayouts: processedPayouts[0]?.count || 0,
             pendingPayouts: pendingPayouts[0]?.count || 0,
             pendingRequests: pendingRequests[0]?.count || 0,
@@ -61,6 +72,16 @@ router.get('/employees', async (req, res) => {
     try {
         const { search, department, position } = req.query;
 
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
+        );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        if (employeeIds.length === 0) {
+            return res.json([]);
+        }
+
         let query = `
             SELECT 
                 e.employee_id,
@@ -73,18 +94,15 @@ router.get('/employees', async (req, res) => {
                 e.salary,
                 et.employee_type_name as employment_type,
                 p.position_name as position,
-                d.department_name as department,
-                sd.basic_rate,
-                sd.overtime_rate
+                d.department_name as department
             FROM employees e
             LEFT JOIN positions p ON e.position_id = p.position_id
             LEFT JOIN departments d ON e.department_id = d.department_id
             LEFT JOIN employeetype et ON e.employee_type_id = et.employee_type_id
-            LEFT JOIN PayrollManagementSystem.SalaryDetails sd ON e.employee_id = sd.employee_id
-            WHERE 1=1
+            WHERE e.employee_id IN (?)
         `;
 
-        const params = [];
+        const params = [employeeIds];
 
         if (search) {
             query += ` AND (CONCAT(e.first_name, ' ', e.last_name) LIKE ?)`;
@@ -104,7 +122,25 @@ router.get('/employees', async (req, res) => {
         query += ` ORDER BY e.employee_id`;
 
         const [employees] = await hrDB.query(query, params);
-        res.json(employees);
+        
+        // Enrich with salary details from payroll database
+        const enrichedEmployees = await Promise.all(employees.map(async (emp) => {
+            try {
+                const [salaryDetails] = await payrollDB.query(
+                    `SELECT basic_rate, overtime_rate FROM SalaryDetails WHERE employee_id = ?`,
+                    [emp.employee_id]
+                );
+                return {
+                    ...emp,
+                    basic_rate: salaryDetails[0]?.basic_rate || null,
+                    overtime_rate: salaryDetails[0]?.overtime_rate || null
+                };
+            } catch (_err) {
+                return emp;
+            }
+        }));
+        
+        res.json(enrichedEmployees);
     } catch (error) {
         console.error('Error fetching employees:', error);
         res.status(500).json({ error: 'Failed to fetch employee data' });
@@ -827,8 +863,10 @@ router.get('/cutoffs', async (req, res) => {
 // 14. GET RECENT ACTIVITY FOR DASHBOARD
 router.get('/recent-activity', async (req, res) => {
     try {
-        // Get recent activities from ActivityLogs table
-        const [activityLogs] = await payrollDB.query(`
+        const { userId } = req.query;
+        
+        // Get recent activities from ActivityLogs table, filtered by user if provided
+        let query = `
             SELECT 
                 log_id,
                 action_type,
@@ -839,9 +877,17 @@ router.get('/recent-activity', async (req, res) => {
                 description,
                 created_at
             FROM ActivityLogs
-            ORDER BY created_at DESC
-            LIMIT 10
-        `);
+        `;
+        const params = [];
+        
+        if (userId) {
+            query += ` WHERE processed_by = ?`;
+            params.push(userId);
+        }
+        
+        query += ` ORDER BY created_at DESC LIMIT 10`;
+        
+        const [activityLogs] = await payrollDB.query(query, params);
 
         // Enrich with employee and processor names
         const enrichedActivities = await Promise.all(activityLogs.map(async (log) => {
@@ -1521,9 +1567,14 @@ router.post('/calculate-payroll', async (req, res) => {
         );
         
         // Get overtime multiplier from rule or use default
-        const overtimeMultiplier = overtimeRule && overtimeRule.formula 
-            ? 1 + (parseFloat(overtimeRule.formula) / 100)
-            : 1.25; // Default 25% OT premium
+        // Try to extract multiplier from formula like "hourly_rate * 1.25 * overtime_hours"
+        let overtimeMultiplier = 1.25; // Default 25% OT premium
+        if (overtimeRule && overtimeRule.formula) {
+            const match = overtimeRule.formula.match(/\*\s*([\d.]+)\s*\*/);
+            if (match) {
+                overtimeMultiplier = parseFloat(match[1]) || 1.25;
+            }
+        }
         
         const calculatedPayrolls = [];
         
@@ -1538,15 +1589,14 @@ router.post('/calculate-payroll', async (req, res) => {
             // Calculate overtime pay using rule multiplier
             const overtimePay = totalOvertimeHours * hourlyRate * overtimeMultiplier;
             
-            // Calculate additional earnings from rules
+            // Calculate additional earnings from rules (only fixed amounts, skip formula-based)
             let additionalEarnings = 0;
             payrollRules.filter(r => r.rule_type === 'earning' && !r.rule_name.toLowerCase().includes('overtime'))
                 .forEach(rule => {
                     if (rule.fixed_amount) {
                         additionalEarnings += parseFloat(rule.fixed_amount);
-                    } else if (rule.formula) {
-                        additionalEarnings += basicPay * (parseFloat(rule.formula) / 100);
                     }
+                    // Skip formula-based earnings as they're text descriptions, not calculable
                 });
             
             // Gross pay
@@ -1556,49 +1606,16 @@ router.post('/calculate-payroll', async (req, res) => {
             // For bi-monthly, we calculate based on half-month
             const monthlyEquivalent = grossPay * 2; // Estimate monthly for deduction calculation
             
-            // Calculate SSS - use rule if exists, otherwise use table
-            let sssContribution;
-            if (sssRule) {
-                if (sssRule.fixed_amount) {
-                    sssContribution = parseFloat(sssRule.fixed_amount) / 2;
-                } else if (sssRule.formula) {
-                    sssContribution = (monthlyEquivalent * (parseFloat(sssRule.formula) / 100)) / 2;
-                } else {
-                    sssContribution = calculateSSS(monthlyEquivalent) / 2;
-                }
-            } else {
-                sssContribution = calculateSSS(monthlyEquivalent) / 2;
-            }
+            // Calculate SSS - always use calculation function (formula is text description)
+            const sssContribution = calculateSSS(monthlyEquivalent) / 2;
             
-            // Calculate PhilHealth - use rule if exists
-            let philhealthContribution;
-            if (philhealthRule) {
-                if (philhealthRule.fixed_amount) {
-                    philhealthContribution = parseFloat(philhealthRule.fixed_amount) / 2;
-                } else if (philhealthRule.formula) {
-                    philhealthContribution = (monthlyEquivalent * (parseFloat(philhealthRule.formula) / 100)) / 2;
-                } else {
-                    philhealthContribution = calculatePhilHealth(monthlyEquivalent) / 2;
-                }
-            } else {
-                philhealthContribution = calculatePhilHealth(monthlyEquivalent) / 2;
-            }
+            // Calculate PhilHealth - always use calculation function
+            const philhealthContribution = calculatePhilHealth(monthlyEquivalent) / 2;
             
-            // Calculate Pag-IBIG - use rule if exists
-            let pagibigContribution;
-            if (pagibigRule) {
-                if (pagibigRule.fixed_amount) {
-                    pagibigContribution = parseFloat(pagibigRule.fixed_amount) / 2;
-                } else if (pagibigRule.formula) {
-                    pagibigContribution = Math.min((monthlyEquivalent * (parseFloat(pagibigRule.formula) / 100)) / 2, 100);
-                } else {
-                    pagibigContribution = calculatePagIBIG(monthlyEquivalent) / 2;
-                }
-            } else {
-                pagibigContribution = calculatePagIBIG(monthlyEquivalent) / 2;
-            }
+            // Calculate Pag-IBIG - always use calculation function  
+            const pagibigContribution = calculatePagIBIG(monthlyEquivalent) / 2;
             
-            // Calculate other deductions from rules
+            // Calculate other deductions from rules (only fixed amounts)
             let otherDeductions = 0;
             payrollRules.filter(r => 
                 r.rule_type === 'deduction' && 
@@ -1606,13 +1623,14 @@ router.post('/calculate-payroll', async (req, res) => {
                 !r.rule_name.toLowerCase().includes('philhealth') &&
                 !r.rule_name.toLowerCase().includes('pagibig') &&
                 !r.rule_name.toLowerCase().includes('pag-ibig') &&
-                !r.rule_name.toLowerCase().includes('hdmf')
+                !r.rule_name.toLowerCase().includes('hdmf') &&
+                !r.rule_name.toLowerCase().includes('withholding') &&
+                !r.rule_name.toLowerCase().includes('tax')
             ).forEach(rule => {
                 if (rule.fixed_amount) {
                     otherDeductions += parseFloat(rule.fixed_amount);
-                } else if (rule.formula) {
-                    otherDeductions += grossPay * (parseFloat(rule.formula) / 100);
                 }
+                // Skip formula-based deductions as they're text descriptions
             });
             
             // Calculate taxable income (gross - mandatory contributions)
@@ -1804,7 +1822,17 @@ router.put('/salary-details/:employeeId', async (req, res) => {
 // 27. GET ALL EMPLOYEES WITH SALARY DETAILS (for payroll processing)
 router.get('/employees-with-salary', async (req, res) => {
     try {
-        // Get all employees from HR
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
+        );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        if (employeeIds.length === 0) {
+            return res.json([]);
+        }
+        
+        // Get employee data from HR
         const [employees] = await hrDB.query(`
             SELECT 
                 e.employee_id,
@@ -1816,8 +1844,9 @@ router.get('/employees-with-salary', async (req, res) => {
             FROM employees e
             LEFT JOIN positions p ON e.position_id = p.position_id
             LEFT JOIN departments d ON e.department_id = d.department_id
+            WHERE e.employee_id IN (?)
             ORDER BY e.employee_id
-        `);
+        `, [employeeIds]);
         
         // Enrich with salary details
         const enrichedEmployees = await Promise.all(employees.map(async (emp) => {

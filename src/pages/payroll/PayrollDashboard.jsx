@@ -4,10 +4,12 @@ import DashboardCard from "../../components/DashboardCard.jsx";
 import { useEffect, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../components/UserContext.jsx";
 
 const PayrollDashboard = () => {
     const theme = useTheme();
     const navigate = useNavigate();
+    const { user } = useUser();
     const [timeRange, setTimeRange] = useState("90d");
 
     // State for dashboard data from database
@@ -34,12 +36,12 @@ const PayrollDashboard = () => {
                         ? new Date(stats.upcomingSchedule).toLocaleDateString('en-US', {
                             month: 'long', day: 'numeric', year: 'numeric'
                         })
-                        : "December 5, 2025"; // Fallback
+                        : "No upcoming schedule";
                     
                     setDashboardData({
-                        totalEmployees: stats.totalEmployees || 10,
-                        processedPayouts: stats.processedPayouts || 12,
-                        pendingPayouts: stats.pendingPayouts || 5,
+                        totalEmployees: stats.totalEmployees ?? 0,
+                        processedPayouts: stats.processedPayouts ?? 0,
+                        pendingPayouts: stats.pendingPayouts ?? 0,
                         upcomingSchedule: formattedSchedule
                     });
                 }
@@ -51,8 +53,12 @@ const PayrollDashboard = () => {
                     setTimelineData(timeline);
                 }
 
-                // Fetch recent activity
-                const activityResponse = await fetch('http://localhost:8080/api/payroll/recent-activity');
+                // Fetch recent activity (filtered by current user)
+                const payrollUserId = user?.employeeId || user?.employee_id;
+                const activityUrl = payrollUserId 
+                    ? `http://localhost:8080/api/payroll/recent-activity?userId=${payrollUserId}`
+                    : 'http://localhost:8080/api/payroll/recent-activity';
+                const activityResponse = await fetch(activityUrl);
                 if (activityResponse.ok) {
                     const activity = await activityResponse.json();
                     setRecentActivity(activity);
@@ -66,10 +72,10 @@ const PayrollDashboard = () => {
                 
                 // Use fallback data if API fails
                 setDashboardData({
-                    totalEmployees: 10,
-                    processedPayouts: 12,
-                    pendingPayouts: 5,
-                    upcomingSchedule: "December 5, 2025"
+                    totalEmployees: 0,
+                    processedPayouts: 0,
+                    pendingPayouts: 0,
+                    upcomingSchedule: "No upcoming schedule"
                 });
             }
         };

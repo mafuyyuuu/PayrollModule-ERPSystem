@@ -9,10 +9,20 @@ const router = express.Router();
 // =====================================================
 router.get('/dashboard-stats', async (req, res) => {
     try {
-        // Get active employees count
-        const [activeEmployees] = await hrDB.query(
-            "SELECT COUNT(*) as count FROM employees"
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
         );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        let activeCount = 0;
+        if (employeeIds.length > 0) {
+            const [activeEmployees] = await hrDB.query(
+                `SELECT COUNT(*) as count FROM employees WHERE employee_id IN (?)`,
+                [employeeIds]
+            );
+            activeCount = activeEmployees[0]?.count || 0;
+        }
 
         // Get pending approvals (timesheets + requests)
         const [pendingTimesheets] = await payrollDB.query(
@@ -28,7 +38,7 @@ router.get('/dashboard-stats', async (req, res) => {
         );
 
         // Calculate attendance rate based on timesheets
-        const employeeCount = activeEmployees[0]?.count || 1;
+        const employeeCount = activeCount || 1;
         const [timesheetCount] = await payrollDB.query(
             `SELECT COUNT(DISTINCT CONCAT(employee_id, '-', date)) as count
              FROM Timesheets 
@@ -43,7 +53,7 @@ router.get('/dashboard-stats', async (req, res) => {
             : 96;
 
         res.json({
-            activeEmployees: activeEmployees[0]?.count || 0,
+            activeEmployees: activeCount,
             pendingApprovals: (pendingTimesheets[0]?.count || 0) + (pendingRequests[0]?.count || 0),
             totalDepartmentPayroll: parseFloat(totalPayroll[0]?.total) || 0,
             attendanceRate: attendanceRate
@@ -394,7 +404,7 @@ router.put('/pending-requests/:id/approve', async (req, res) => {
     try {
         console.log(`[INFO] Manager approving request ID: ${id} (first-level approval)`);
         
-        // Manager approval sets status to 'Approved' and emsStatus to 'PENDING' - awaits payroll processing
+        // Manager approval sets status to 'Approved' - awaits payroll processing
         const [result] = await payrollDB.query(
             `UPDATE Requests 
              SET status = 'Approved', 
@@ -591,6 +601,16 @@ router.get('/reports/deductions', async (req, res) => {
 // =====================================================
 router.get('/employees', async (req, res) => {
     try {
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
+        );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        if (employeeIds.length === 0) {
+            return res.json([]);
+        }
+        
         const [employees] = await hrDB.query(
             `SELECT 
                 e.employee_id,
@@ -600,7 +620,9 @@ router.get('/employees', async (req, res) => {
              FROM employees e
              LEFT JOIN positions p ON e.position_id = p.position_id
              LEFT JOIN departments d ON e.department_id = d.department_id
-             ORDER BY e.first_name, e.last_name`
+             WHERE e.employee_id IN (?)
+             ORDER BY e.first_name, e.last_name`,
+            [employeeIds]
         );
 
         res.json(employees);
@@ -666,8 +688,10 @@ router.get('/timesheets/:id', async (req, res) => {
 // =====================================================
 router.get('/activity-logs', async (req, res) => {
     try {
-        // Get recent activities from ActivityLogs table
-        const [activities] = await payrollDB.query(`
+        const { managerId } = req.query;
+        
+        // Get recent activities from ActivityLogs table, filtered by manager if provided
+        let query = `
             SELECT 
                 log_id as id,
                 action_type,
@@ -678,9 +702,17 @@ router.get('/activity-logs', async (req, res) => {
                 description,
                 created_at as date_time
             FROM ActivityLogs
-            ORDER BY created_at DESC
-            LIMIT 20
-        `);
+        `;
+        const params = [];
+        
+        if (managerId) {
+            query += ` WHERE processed_by = ?`;
+            params.push(managerId);
+        }
+        
+        query += ` ORDER BY created_at DESC LIMIT 20`;
+        
+        const [activities] = await payrollDB.query(query, params);
 
         // Enrich with names
         const enrichedActivities = await Promise.all(activities.map(async (activity) => {

@@ -28,10 +28,20 @@ const logActivity = async (actionType, entityType, entityId, description, proces
 // =====================================================
 router.get('/dashboard-stats', async (req, res) => {
     try {
-        // Get total employees count
-        const [totalEmployees] = await hrDB.query(
-            "SELECT COUNT(*) as count FROM employees"
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
         );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        let totalCount = 0;
+        if (employeeIds.length > 0) {
+            const [totalEmployees] = await hrDB.query(
+                `SELECT COUNT(*) as count FROM employees WHERE employee_id IN (?)`,
+                [employeeIds]
+            );
+            totalCount = totalEmployees[0]?.count || 0;
+        }
 
         // Get processed payouts (sum of net_pay for completed payrolls)
         const [processedPayouts] = await payrollDB.query(
@@ -49,7 +59,7 @@ router.get('/dashboard-stats', async (req, res) => {
         );
 
         res.json({
-            totalEmployees: totalEmployees[0]?.count || 0,
+            totalEmployees: totalCount,
             processedPayouts: parseFloat(processedPayouts[0]?.total) || 0,
             pendingPayouts: parseFloat(pendingPayouts[0]?.total) || 0,
             upcomingSchedule: upcomingSchedule[0]?.pay_date || null
@@ -744,19 +754,29 @@ router.get('/reports-summary', async (req, res) => {
             WHERE YEAR(pay_date) = YEAR(CURDATE())
         `);
 
-        // Get employee count by department
-        const [deptCounts] = await hrDB.query(`
-            SELECT 
-                d.department_name,
-                COUNT(*) as employee_count
-            FROM employees e
-            LEFT JOIN departments d ON e.department_id = d.department_id
-            GROUP BY e.department_id, d.department_name
-        `);
+        // First get registered employee IDs from our local payroll database
+        const [registeredEmployees] = await payrollDB.query(
+            `SELECT employee_id FROM UserAccounts WHERE employee_id IS NOT NULL AND role_id = 4`
+        );
+        const employeeIds = registeredEmployees.map(e => e.employee_id);
+        
+        let deptCounts = [];
+        if (employeeIds.length > 0) {
+            // Get employee count by department (only registered employees)
+            [deptCounts] = await hrDB.query(`
+                SELECT 
+                    d.department_name,
+                    COUNT(*) as employee_count
+                FROM employees e
+                LEFT JOIN departments d ON e.department_id = d.department_id
+                WHERE e.employee_id IN (?)
+                GROUP BY e.department_id, d.department_name
+            `, [employeeIds]);
+        }
 
         // Get request statistics
         const [requestStats] = await payrollDB.query(`
-            SELECT 
+            SELECT
                 status,
                 COUNT(*) as count
             FROM Requests
